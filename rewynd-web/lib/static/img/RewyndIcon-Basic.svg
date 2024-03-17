@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg:svg
+   width="200mm"
+   height="170mm"
+   viewBox="0 0 200 170"
+   version="1.1"
+   id="svg5"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <svg:defs
+     id="defs2" />
+  <svg:g
+     id="layer1"
+     transform="translate(-150,-65)">
+    <svg:rect
+       style="fill:#008000"
+       id="rect113-3-6"
+       width="200"
+       height="170"
+       x="150"
+       y="65" />
+    <triangle1
+       d="M350 300 L350 100 L250 200 L 350 300 z"
+       style="fill:#000000"
+       id="triangle1" />
+    <svg:path
+       id="path174"
+       d="m 325,200 v 0 l -75,-50 75,-50 z"
+       style="fill:#000000" />
+    <svg:path
+       id="path176"
+       d="m 250,200 v 0 l -75,-50 75,-50 z"
+       style="fill:#000000" />
+  </svg:g>
+</svg:svg>

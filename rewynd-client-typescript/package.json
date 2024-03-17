@@ -1,0 +1,57 @@
+{
+  "name": "@rewynd.io/rewynd-client-typescript",
+  "version": "0.1.1",
+  "license": "AGPLv3",
+  "repository": {
+    "url": "https://github.com/rewynd-io/rewynd-client-typescript.git"
+  },
+  "author": {
+    "name": "Kenneth Sanders",
+    "email": "rewynd.io@kensand.net"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.23.4",
+    "@babel/core": "^7.23.7",
+    "@babel/plugin-transform-modules-commonjs": "^7.23.3",
+    "@babel/preset-env": "^7.23.8",
+    "@openapitools/openapi-generator-cli": "^2.7.0",
+    "@rewynd.io/rewynd-spec": "file:../rewynd-spec",
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "openapi-types": "^12.1.3",
+    "prettier": "^3.2.2",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "prettier": "npx prettier --write .",
+    "eslint": "npx eslint --fix .",
+    "clean": "rm -rf dist lib bin",
+    "compileBin": "tsc binSrc/*.ts --outDir bin/esm --resolveJsonModule && babel -s true -d bin/cjs bin/esm",
+    "copySpec": "node ./bin/cjs/copy.js",
+    "generate-client": "openapi-generator-cli generate -g typescript-fetch -i ./node_modules/@rewynd.io/rewynd-spec/dist/openapi.json -o lib/",
+    "generate-additional": "node ./bin/cjs/generate.js ./lib",
+    "generate": "npm run generate-client && npm run generate-additional && npm run prettier && npm run eslint",
+    "_build": "npm run generate && tsc",
+    "build": "npm run _pre-build && npm run _build && npm run _post-build",
+    "_post-build": "npm run babel-cjs",
+    "_pre-build": "npm run clean && npm run compileBin",
+    "babel-cjs": "babel -s true -d dist/cjs dist/esm",
+    "update": "npm update --save && ((! git diff --exit-code package.json package-lock.json > /dev/null && git add package.json package-lock.json && git commit -m 'Dependency updates') || true)",
+    "pub": "npm run clean && npm run build && npm version patch && npm publish"
+  },
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "./dist/**"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  }
+}

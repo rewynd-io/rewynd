@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Rewynd"
+        android:usesCleartextTraffic="true"
+        android:name="io.rewynd.android.App"
+        tools:targetApi="31">
+        <activity
+            android:name="io.rewynd.android.player.PlayerActivity"
+            android:supportsPictureInPicture="true"
+            android:configChanges="orientation|screenLayout|keyboardHidden|screenSize|smallestScreenSize"
+            android:exported="false"
+            android:label="@string/title_activity_player"
+            android:theme="@style/Theme.Rewynd.NoActionBar.FullScreen"
+            android:launchMode="singleInstance"
+        />
+        <activity
+            android:name="io.rewynd.android.browser.BrowserActivity"
+            android:exported="false"
+            android:label="@string/title_activity_browser"
+            android:theme="@style/Theme.Rewynd.NoActionBar"
+            android:launchMode="singleInstance"
+            />
+        <activity
+            android:name="io.rewynd.android.login.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Rewynd.NoActionBar"
+            android:launchMode="singleInstance">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="io.rewynd.android.player.PlayerService"
+            android:enabled="true"
+            android:foregroundServiceType="mediaPlayback" />
+    </application>
+
+</manifest>

@@ -1,0 +1,5 @@
+root = true
+
+[*.{kt,kts}]
+# Disable standard function naming in favor of Compose standards
+ktlint_standard_function-naming=disabled

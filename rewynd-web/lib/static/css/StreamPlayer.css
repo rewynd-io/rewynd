@@ -1,0 +1,4 @@
+/* Remove dashed animation from video player progress bar. */
+.MuiLinearProgress-dashed {
+  visibility: hidden;
+}
