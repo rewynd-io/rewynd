@@ -1,0 +1,10 @@
+when:
+  - event: [pull_request]
+    branch: [main]
+    evaluate: 'CI_COMMIT_AUTHOR == "kensand"'
+
+steps:
+  build:
+    image: codeberg.org/kensand/devenv-kotlin-multiplatform:latest 
+    commands:
+      - ./gradlew clean build

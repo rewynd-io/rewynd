@@ -1,0 +1,39 @@
+when:
+  - event: [tag]
+
+steps:
+  build:
+    image: codeberg.org/kensand/devenv-kotlin-multiplatform:latest
+    commands:
+      - ./gradlew clean build
+  publish android:
+    image: codeberg.org/kensand/woodpecker-plugins-forgejo-generic-package:latest
+    settings:
+      username: ${CI_REPO_OWNER}
+      password:
+        from_secret: forge-token
+      file: rewynd-android/build/outputs/apk/debug/rewynd-android-debug-${CI_COMMIT_TAG##v}.apk
+  publish worker:
+    image: codeberg.org/woodpecker-plugins/docker-buildx:latest
+    settings:
+      repo: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-worker
+      cache_from: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-worker:latest
+      registry: ${CI_FORGE_URL#*//}
+      dockerfile: ./rewynd-worker/Dockerfile
+      context: ./rewynd-worker
+      username: ${CI_REPO_OWNER}
+      password:
+        from_secret: forge-token
+      auto_tag: true
+  publish api:
+    image: codeberg.org/woodpecker-plugins/docker-buildx:latest
+    settings:
+      repo: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-api
+      cache_from: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-api:latest
+      registry: ${CI_FORGE_URL#*//}
+      dockerfile: ./rewynd-api/Dockerfile
+      context: ./rewynd-api
+      username: ${CI_REPO_OWNER}
+      password:
+        from_secret: forge-token
+      auto_tag: true
