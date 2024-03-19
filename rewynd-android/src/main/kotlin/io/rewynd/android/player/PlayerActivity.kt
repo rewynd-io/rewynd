@@ -44,7 +44,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var viewModel: PlayerViewModel
 
     private val playerService: PlayerServiceInterface?
-        get() = PlayerService.INSTANCE.value
+        get() = PlayerService.instance.value
 
     private fun updatePictureInPictureParams() {
         val next =
@@ -221,7 +221,7 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             setContent {
-                val service by PlayerService.INSTANCE.collectAsState()
+                val service by PlayerService.instance.collectAsState()
                 service?.let { serviceInterface ->
                     val isPlaying by serviceInterface.isPlayingState.collectAsState()
                     LaunchedEffect(isPlaying) {

@@ -142,14 +142,17 @@ val FFMPEG_START =
         "ffmpeg",
         "-loglevel",
         "quiet",
-        "-progress", "pipe:2",
+        "-progress",
+        "pipe:2",
         // TODO parse these from error output and add them to metadata
         "-nostats",
         // TODO nvidia hwaccel actually appears to be as simple as
         // "-hwaccel", "cuda",
         "-probesize",
-        "1000000", "-analyzeduration",
-        "1000000", "-accurate_seek",
+        "1000000",
+        "-analyzeduration",
+        "1000000",
+        "-accurate_seek",
     )
 val FFMPEG_END =
     listOf(

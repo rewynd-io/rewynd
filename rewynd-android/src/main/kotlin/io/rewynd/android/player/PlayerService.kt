@@ -283,7 +283,7 @@ class PlayerService : Service() {
         }
         this.mediaSession.setCallback(mediaSessionCallback)
         this.setPlaybackState()
-        _INSTANCE.value = serviceInterface
+        _instance.value = serviceInterface
     }
 
     private fun setPlaybackState() {
@@ -573,9 +573,9 @@ class PlayerService : Service() {
         const val PLAYER_SERVICE_NOTIFICATION_CHANNEL_ID = "RewyndServiceNotification"
         private val logging = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
 
-        private val _INSTANCE: MutableStateFlow<PlayerServiceInterface?> = MutableStateFlow(null)
-        val INSTANCE: StateFlow<PlayerServiceInterface?>
-            get() = _INSTANCE
+        private val _instance: MutableStateFlow<PlayerServiceInterface?> = MutableStateFlow(null)
+        val instance: StateFlow<PlayerServiceInterface?>
+            get() = _instance
     }
 
     private val serviceInterface =
