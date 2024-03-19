@@ -1,19 +1,10 @@
 import java.net.URI
 
-val kotlinVersion: String by project
-val kotlinxSerializationVersion: String by project
-val logbackVersion: String by project
-val lettuceVersion: String by project
-val slf4jVersion: String by project
-val postgresDriverVersion: String by project
-val kotlinxCoroutinesVersion: String by project
-val exposedVersion: String by project
-
 plugins {
-    kotlin("jvm") version "1.9.23"
-    kotlin("plugin.serialization") version "1.9.23"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("org.jmailen.kotlinter") version "4.3.0"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.kotlinter)
     application
 }
 apply(plugin = "kotlin")
@@ -28,7 +19,6 @@ application {
 
 repositories {
     mavenCentral()
-    maven { url = URI.create("https://jitpack.io") }
 }
 
 dependencies {

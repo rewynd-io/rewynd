@@ -1,10 +1,5 @@
 import java.time.Instant
 
-val ktorVersion: String by project
-val kotlinVersion: String by project
-val kotlinxSerializationVersion: String by project
-val kotlinxCoroutinesVersion: String by project
-
 plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.android.app)
@@ -18,7 +13,6 @@ buildscript {
     }
 }
 
-val preferenceVersion = "1.2.1"
 repositories {
     mavenCentral()
     google()
@@ -26,13 +20,13 @@ repositories {
 
 android {
     namespace = "io.rewynd.android"
-    compileSdk = 34
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
         val now = Instant.now()
         applicationId = "io.rewynd.android"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.compileSdk.get().toInt()
         versionCode = now.toEpochMilli().toInt()
         versionName = now.toEpochMilli().toString()
 

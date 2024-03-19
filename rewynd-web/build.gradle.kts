@@ -1,6 +1,3 @@
-val kotlinVersion: String by project
-val logbackVersion: String by project
-
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.node.gradle)
