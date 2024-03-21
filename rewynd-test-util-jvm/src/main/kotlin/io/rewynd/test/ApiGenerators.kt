@@ -6,6 +6,7 @@ import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.string
 import io.rewynd.model.Actor
 import io.rewynd.model.AudioTrack
+import io.rewynd.model.Library
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.SubtitleTrack
@@ -51,4 +52,6 @@ object ApiGenerators {
                 actors = actor.list().bind(),
             )
         }
+
+    val library = Arb.bind<Library>()
 }

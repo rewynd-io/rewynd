@@ -17,6 +17,7 @@ import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerShowInfo
 import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.SessionStorage
+import io.rewynd.model.Library
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -34,13 +35,17 @@ fun mockDatabase(
     listEpisodesByLastUpdatedHandler: (
         Long?,
         ListEpisodesByLastUpdatedOrder,
-    ) -> List<ServerEpisodeInfo> = { _, _ -> Arb.list(InternalGenerators.serverEpisodeInfo).next() },
-    listSeasonsHandler: (String) -> List<ServerSeasonInfo> = { Arb.list(InternalGenerators.serverSeasonInfo).next() },
-    listShowsHandler: (String) -> List<ServerShowInfo> = { Arb.list(InternalGenerators.serverShowInfo).next() },
+    ) -> List<ServerEpisodeInfo> = { _, _ -> InternalGenerators.serverEpisodeInfo.list().next() },
+    listSeasonsHandler: (String) -> List<ServerSeasonInfo> = { InternalGenerators.serverSeasonInfo.list().next() },
+    listShowsHandler: (String) -> List<ServerShowInfo> = { InternalGenerators.serverShowInfo.list().next() },
+    listLibrariesHandler: () -> List<Library> = { ApiGenerators.library.list().next() },
     getEpisodeHandler: (String) -> ServerEpisodeInfo? = { InternalGenerators.serverEpisodeInfo.next() },
     getSeasonHandler: (String) -> ServerSeasonInfo? = { InternalGenerators.serverSeasonInfo.next() },
     getShowHandler: (String) -> ServerShowInfo? = { InternalGenerators.serverShowInfo.next() },
     getImageHandler: (String) -> ServerImageInfo? = { InternalGenerators.serverImageInfo.next() },
+    getLibraryHandler: (String) -> Library? = { ApiGenerators.library.next() },
+    deleteLibraryHandler: (String) -> Boolean = { true },
+    upsertLibraryHandler: (Library) -> Boolean = { true },
 ) = mockk<Database> {
     coEvery { getUser(any()) } answers { getUserHandler(it.invocation.args.first() as String) }
     coEvery { mkSessionStorage() } returns mkSessionStorageHandler()
@@ -55,10 +60,14 @@ fun mockDatabase(
     }
     coEvery { listSeasons(any()) } answers { listSeasonsHandler(it.invocation.args.first() as String) }
     coEvery { listShows(any()) } answers { listShowsHandler(it.invocation.args.first() as String) }
+    coEvery { listLibraries() } answers { listLibrariesHandler() }
     coEvery { getEpisode(any()) } answers { getEpisodeHandler(it.invocation.args.first() as String) }
     coEvery { getSeason(any()) } answers { getSeasonHandler(it.invocation.args.first() as String) }
     coEvery { getShow(any()) } answers { getShowHandler(it.invocation.args.first() as String) }
     coEvery { getImage(any()) } answers { getImageHandler(it.invocation.args.first() as String) }
+    coEvery { getLibrary(any()) } answers { getLibraryHandler(it.invocation.args.first() as String) }
+    coEvery { deleteLibrary(any()) } answers { deleteLibraryHandler(it.invocation.args.first() as String) }
+    coEvery { upsertLibrary(any()) } answers { upsertLibraryHandler(it.invocation.args.first() as Library) }
 }
 
 fun mockCache(

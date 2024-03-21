@@ -26,9 +26,10 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import io.ktor.server.sessions.defaultSessionSerializer
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import io.rewynd.api.SESSION_ID
+import io.rewynd.api.SESSION_SERIALIZER
 import io.rewynd.api.UserSession
 import io.rewynd.api.plugins.configureSession
 import io.rewynd.common.database.Database
@@ -61,7 +62,7 @@ internal class AuthControllerTest : StringSpec({
     "verify success" {
         val session =
             MemorySessionStorage().apply {
-                write(SESSION_ID, sessionSerializer.serialize(UserSession(SESSION_ID, user.user.username)))
+                write(SESSION_ID, SESSION_SERIALIZER.serialize(UserSession(SESSION_ID, user.user.username)))
             }
         val db =
             mockDatabase(
@@ -87,7 +88,7 @@ internal class AuthControllerTest : StringSpec({
     "verify invalid sessionId" {
         val session =
             MemorySessionStorage().apply {
-                write(SESSION_ID, sessionSerializer.serialize(UserSession(SESSION_ID, user.user.username)))
+                write(SESSION_ID, SESSION_SERIALIZER.serialize(UserSession(SESSION_ID, user.user.username)))
             }
         val db =
             mockDatabase(
@@ -113,7 +114,7 @@ internal class AuthControllerTest : StringSpec({
     "logout logged-in user" {
         val session =
             MemorySessionStorage().apply {
-                write(SESSION_ID, sessionSerializer.serialize(UserSession(SESSION_ID, user.user.username)))
+                write(SESSION_ID, SESSION_SERIALIZER.serialize(UserSession(SESSION_ID, user.user.username)))
             }
         val db =
             mockDatabase(
@@ -173,7 +174,7 @@ internal class AuthControllerTest : StringSpec({
 
             val session =
                 MemorySessionStorage().apply {
-                    write(SESSION_ID, sessionSerializer.serialize(UserSession(SESSION_ID, userWithPass.user.username)))
+                    write(SESSION_ID, SESSION_SERIALIZER.serialize(UserSession(SESSION_ID, userWithPass.user.username)))
                 }
             val db =
                 mockDatabase(
@@ -207,7 +208,7 @@ internal class AuthControllerTest : StringSpec({
                 }
 
                 session.read(SESSION_ID) shouldBe
-                    sessionSerializer.serialize(
+                    SESSION_SERIALIZER.serialize(
                         UserSession(
                             SESSION_ID,
                             userWithPass.user.username,
@@ -343,9 +344,7 @@ internal class AuthControllerTest : StringSpec({
     }
 }) {
     companion object {
-        val sessionSerializer = defaultSessionSerializer<UserSession>()
         val user = InternalGenerators.serverUser.next()
-        const val SESSION_ID = "sessionId"
 
         private fun ApplicationTestBuilder.setupApp(db: Database) {
             install(ContentNegotiation) {
