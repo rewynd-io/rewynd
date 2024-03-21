@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.mockk)
     implementation(libs.kotest.property)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotest.extensions.property.datetime)
 }
 

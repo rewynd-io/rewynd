@@ -19,8 +19,6 @@ import io.rewynd.common.decoder
 import io.rewynd.common.hashPassword
 import io.rewynd.model.LoginRequest
 import java.security.MessageDigest
-import java.security.SecureRandom
-import java.util.Base64
 
 fun Route.authRoutes(db: Database) {
     route("/auth") {
@@ -66,13 +64,4 @@ fun Route.authRoutes(db: Database) {
             )
         }
     }
-}
-
-private val encoder by lazy { Base64.getEncoder() }
-private val random by lazy { SecureRandom() }
-
-fun generateSessionId(): String {
-    val arr = ByteArray(1024)
-    random.nextBytes(arr)
-    return encoder.encodeToString(arr)
 }

@@ -22,6 +22,7 @@ object UtilGenerators {
     val boolean = Arb.boolean()
     val instant = Arb.instant()
 
+    val byteArray = Arb.byteArray(Arb.int(0..64), Arb.byte())
     val base64 = Arb.byteArray(Arb.int(4..128), Arb.byte()).map { encoder.encodeToString(it) }
     val urlEncodedBase64 = Arb.byteArray(Arb.int(4..128), Arb.byte()).map { urlEncoder.encodeToString(it) }
 }

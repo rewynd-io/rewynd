@@ -3,6 +3,7 @@ package io.rewynd.api.controller
 import io.kotest.assertions.inspecting
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -260,6 +261,84 @@ internal class AuthControllerTest : StringSpec({
                 }
                 cookieStorage.get(Url("https://localhost")).shouldBeEmpty()
             }
+        }
+    }
+
+    "login missing password" {
+        listOf(
+            LoginRequest(null, null),
+            LoginRequest(null, "foo"),
+            LoginRequest("foo", null),
+        ).forAll {
+            val session = MemorySessionStorage()
+            val db = mockDatabase()
+            val cookieStorage = AcceptAllCookiesStorage()
+
+            testApplication {
+                val client =
+                    createClient {
+                        install(HttpCookies) {
+                            storage = cookieStorage
+                        }
+                        install(ClientContentNegotiation) {
+                            json()
+                        }
+                    }
+                setupApp(db)
+
+                inspecting(
+                    client.post("/api/auth/login") {
+                        url {
+                            protocol = URLProtocol.HTTPS
+                        }
+                        setBody(it)
+                        contentType(ContentType.Application.Json)
+                    },
+                ) {
+                    status shouldBe HttpStatusCode.BadRequest
+                }
+
+                shouldThrow<NoSuchElementException> {
+                    session.read(SESSION_ID)
+                }
+                cookieStorage.get(Url("https://localhost")).shouldBeEmpty()
+            }
+        }
+    }
+
+    "no user found" {
+        val session = MemorySessionStorage()
+        val db = mockDatabase(getUserHandler = { null })
+        val cookieStorage = AcceptAllCookiesStorage()
+
+        testApplication {
+            val client =
+                createClient {
+                    install(HttpCookies) {
+                        storage = cookieStorage
+                    }
+                    install(ClientContentNegotiation) {
+                        json()
+                    }
+                }
+            setupApp(db)
+
+            inspecting(
+                client.post("/api/auth/login") {
+                    url {
+                        protocol = URLProtocol.HTTPS
+                    }
+                    setBody(LoginRequest("non-existent-user", "bar"))
+                    contentType(ContentType.Application.Json)
+                },
+            ) {
+                status shouldBe HttpStatusCode.Forbidden
+            }
+
+            shouldThrow<NoSuchElementException> {
+                session.read(SESSION_ID)
+            }
+            cookieStorage.get(Url("https://localhost")).shouldBeEmpty()
         }
     }
 }) {

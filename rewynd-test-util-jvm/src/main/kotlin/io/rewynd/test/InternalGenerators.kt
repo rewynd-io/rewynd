@@ -13,8 +13,10 @@ import io.rewynd.common.model.LibraryData
 import io.rewynd.common.model.Mime
 import io.rewynd.common.model.ServerAudioTrack
 import io.rewynd.common.model.ServerEpisodeInfo
+import io.rewynd.common.model.ServerImageInfo
 import io.rewynd.common.model.ServerMediaInfo
 import io.rewynd.common.model.ServerSeasonInfo
+import io.rewynd.common.model.ServerShowInfo
 import io.rewynd.common.model.ServerSubtitleTrack
 import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.ServerVideoTrack
@@ -25,6 +27,7 @@ import io.rewynd.common.model.SubtitleFileTrack
 import io.rewynd.common.model.SubtitleMetadata
 import io.rewynd.common.model.SubtitleSegment
 import io.rewynd.model.NormalizationProps
+import io.rewynd.test.ApiGenerators.actor
 import io.rewynd.test.ApiGenerators.mediaInfo
 import io.rewynd.test.ApiGenerators.seasonInfo
 import io.rewynd.test.UtilGenerators.boolean
@@ -148,6 +151,43 @@ object InternalGenerators {
                 libraryData = libraryData.bind(),
             )
         }
+
+    val serverShowInfo =
+        arbitrary {
+            ServerShowInfo(
+                id = string.bind(),
+                libraryId = string.bind(),
+                title = string.bind(),
+                plot = string.nullable().bind(),
+                outline = string.nullable().bind(),
+                originalTitle = string.nullable().bind(),
+                premiered = string.nullable().bind(),
+                releaseDate = string.nullable().bind(),
+                endDate = string.nullable().bind(),
+                mpaa = string.nullable().bind(),
+                imdbId = string.nullable().bind(),
+                tmdbId = string.nullable().bind(),
+                tvdbId = string.nullable().bind(),
+                tvRageId = string.nullable().bind(),
+                rating = double.nullable().bind(),
+                year = double.nullable().bind(),
+                runTime = double.nullable().bind(),
+                episode = double.nullable().bind(),
+                episodeNumberEnd = double.nullable().bind(),
+                season = double.nullable().bind(),
+                aired = double.nullable().bind(),
+                genre = string.nullable().bind(),
+                studio = string.nullable().bind(),
+                status = string.nullable().bind(),
+                tag = string.list().nullable().bind(),
+                actors = actor.list().nullable().bind(),
+                seriesImageId = string.nullable().bind(),
+                backdropImageId = string.nullable().bind(),
+                lastUpdated = instant.bind(),
+            )
+        }
+
+    val serverImageInfo = Arb.bind<ServerImageInfo>()
 }
 
 fun <A> Arb<A>.nullable() =

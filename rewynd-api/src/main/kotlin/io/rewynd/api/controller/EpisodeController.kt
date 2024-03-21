@@ -25,7 +25,7 @@ fun Route.episodeRoutes(db: Database) {
                 val cursor = request.cursor?.toLong()
                 db.listEpisodesByLastUpdated(cursor, request.order).let { episodes ->
                     ListEpisodesByLastUpdatedResponse(
-                        cursor = episodes.lastOrNull()?.lastUpdated.toString(),
+                        cursor = episodes.lastOrNull()?.lastUpdated?.toEpochMilliseconds()?.toString(),
                         episodes = episodes.map { it.toEpisodeInfo() },
                     ).let { call.respond(HttpStatusCode.OK, it) }
                 }
