@@ -21,6 +21,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.rewynd.common.cache.Cache
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.SessionStorage
@@ -62,7 +63,7 @@ open class BaseHarness(
             coEvery { mkSessionStorage() } returns session
             coEvery { getUser(user.user.username) } returns user
         }
-    val cache by lazy { mockk<Database>() }
+    val cache = mockk<Cache>()
 
     inline fun <reified Req : Any?> testCall(
         path: String,

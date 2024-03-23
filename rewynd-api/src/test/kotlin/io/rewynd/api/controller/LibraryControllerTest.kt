@@ -81,11 +81,16 @@ internal class LibraryControllerTest : StringSpec({
                 },
             ) {
                 status shouldBe HttpStatusCode.OK
-            }
-
-            coVerify {
-                libraryIds.forEach {
-                    db.deleteLibrary(it)
+                if (libraryIds.isNotEmpty()) {
+                    coVerify {
+                        libraryIds.forEach {
+                            db.deleteLibrary(it)
+                        }
+                    }
+                } else {
+                    coVerify(inverse = true) {
+                        db.deleteLibrary(any())
+                    }
                 }
             }
         }

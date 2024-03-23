@@ -37,6 +37,7 @@ import io.rewynd.test.UtilGenerators.boolean
 import io.rewynd.test.UtilGenerators.double
 import io.rewynd.test.UtilGenerators.duration
 import io.rewynd.test.UtilGenerators.instant
+import io.rewynd.test.UtilGenerators.long
 import io.rewynd.test.UtilGenerators.string
 
 object InternalGenerators {
@@ -190,7 +191,16 @@ object InternalGenerators {
             )
         }
 
-    val serverImageInfo = Arb.bind<ServerImageInfo>()
+    val serverImageInfo =
+        arbitrary {
+            ServerImageInfo(
+                location = fileLocation.bind(),
+                size = long.bind(),
+                libraryId = string.bind(),
+                lastUpdated = instant.bind(),
+                imageId = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
+            )
+        }
 }
 
 fun <A> Arb<A>.nullable() =

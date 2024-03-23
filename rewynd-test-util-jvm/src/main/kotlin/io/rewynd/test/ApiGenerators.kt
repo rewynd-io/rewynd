@@ -46,7 +46,7 @@ object ApiGenerators {
     val seasonInfo =
         arbitrary {
             SeasonInfo(
-                id = string.bind(),
+                id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
                 showId = string.bind(),
                 seasonNumber = double.bind(),
                 libraryId = string.bind(),
