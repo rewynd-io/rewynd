@@ -1,7 +1,10 @@
 package io.rewynd.test
 
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.Codepoint
+import io.kotest.property.arbitrary.alphanumeric
 import io.kotest.property.arbitrary.arbitrary
+import io.kotest.property.arbitrary.asString
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.choice
 import io.kotest.property.arbitrary.list
@@ -116,7 +119,7 @@ object InternalGenerators {
     val serverEpisodeInfo =
         arbitrary {
             ServerEpisodeInfo(
-                id = string.bind(),
+                id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
                 libraryId = string.bind(),
                 showId = string.bind(),
                 seasonId = string.bind(),

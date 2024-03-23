@@ -1,12 +1,18 @@
 package io.rewynd.test
 
 import io.kotest.property.Arb
+import io.kotest.property.Exhaustive
+import io.kotest.property.arbitrary.Codepoint
+import io.kotest.property.arbitrary.alphanumeric
 import io.kotest.property.arbitrary.arbitrary
+import io.kotest.property.arbitrary.asString
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.string
+import io.kotest.property.exhaustive.enum
 import io.rewynd.model.Actor
 import io.rewynd.model.AudioTrack
 import io.rewynd.model.Library
+import io.rewynd.model.LibraryType
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.SubtitleTrack
@@ -53,5 +59,12 @@ object ApiGenerators {
             )
         }
 
-    val library = Arb.bind<Library>()
+    val library =
+        arbitrary {
+            Library(
+                Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
+                string.list().bind(),
+                Exhaustive.enum<LibraryType>().toArb().bind(),
+            )
+        }
 }

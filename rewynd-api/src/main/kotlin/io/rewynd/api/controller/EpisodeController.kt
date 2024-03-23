@@ -23,12 +23,18 @@ fun Route.episodeRoutes(db: Database) {
         call.receive<ListEpisodesByLastUpdatedRequest>().let { request ->
             try {
                 val cursor = request.cursor?.toLong()
-                db.listEpisodesByLastUpdated(cursor, request.order).let { episodes ->
+                val episodes = db.listEpisodesByLastUpdated(cursor, request.order)
+                val res =
                     ListEpisodesByLastUpdatedResponse(
-                        cursor = episodes.lastOrNull()?.lastUpdated?.toEpochMilliseconds()?.toString(),
+                        cursor =
+                            episodes.maxByOrNull { it.lastUpdated }
+                                ?.lastUpdated
+                                ?.toEpochMilliseconds()
+                                ?.toString(),
                         episodes = episodes.map { it.toEpisodeInfo() },
-                    ).let { call.respond(HttpStatusCode.OK, it) }
-                }
+                    )
+                println(res)
+                call.respond(HttpStatusCode.OK, res)
             } catch (e: NumberFormatException) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid cursor: ${request.cursor}")
             }

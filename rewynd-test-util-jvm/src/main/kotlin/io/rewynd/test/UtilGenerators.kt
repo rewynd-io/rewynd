@@ -18,6 +18,7 @@ object UtilGenerators {
     private val urlEncoder = java.util.Base64.getUrlEncoder()
     val duration = arbitrary { Arb.long(0..Long.MAX_VALUE).bind().nanoseconds }
     val string = Arb.string()
+    val long = Arb.long()
     val double = Arb.double()
     val boolean = Arb.boolean()
     val instant = Arb.instant()
