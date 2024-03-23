@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -21,7 +20,6 @@ import io.rewynd.api.plugins.configureSession
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerUser
-import io.rewynd.model.SeasonInfo
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.list
 
@@ -31,13 +29,12 @@ internal class SeasonControllerTest : StringSpec({
             coEvery {
                 db.getSeason(season.seasonInfo.id)
             } returns season
-            testCall<Any?>(
-                "/api/season/get/${season.seasonInfo.id}",
-                method = HttpMethod.Get,
+            testCall(
+                { getSeasons(season.seasonInfo.id) },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<SeasonInfo>() shouldBe season.seasonInfo
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe season.seasonInfo
             }
             coVerify {
                 db.getSeason(season.seasonInfo.id)
@@ -50,13 +47,12 @@ internal class SeasonControllerTest : StringSpec({
             coEvery {
                 db.listSeasons(show.id)
             } returns seasons
-            testCall<Any?>(
-                "/api/season/list/${show.id}",
-                method = HttpMethod.Get,
+            testCall(
+                { listSeasons(show.id) },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<List<SeasonInfo>>() shouldBe seasons.map(ServerSeasonInfo::seasonInfo)
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe seasons.map(ServerSeasonInfo::seasonInfo)
             }
             coVerify {
                 db.listSeasons(show.id)

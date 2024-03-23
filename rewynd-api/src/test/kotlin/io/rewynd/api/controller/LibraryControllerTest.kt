@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -23,7 +22,6 @@ import io.rewynd.common.cache.queue.ScanJobQueue
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerUser
 import io.rewynd.model.DeleteLibrariesRequest
-import io.rewynd.model.Library
 import io.rewynd.model.ScanLibrariesRequest
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
@@ -34,13 +32,14 @@ internal class LibraryControllerTest : StringSpec({
     "getLibrary" {
         Harness().run {
             coEvery { db.getLibrary(library.name) } returns library
-            testCall<Any?>(
-                "/api/lib/get/${library.name}",
-                method = HttpMethod.Get,
+            testCall(
+                {
+                    getLibrary(library.name)
+                },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<Library>() shouldBe library
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe library
             }
 
             coVerify {
@@ -53,13 +52,12 @@ internal class LibraryControllerTest : StringSpec({
         val libraries = ApiGenerators.library.list().next()
         Harness().run {
             coEvery { db.listLibraries() } returns libraries
-            testCall<Any?>(
-                "/api/lib/list",
-                method = HttpMethod.Get,
+            testCall(
+                { listLibraries() },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<List<Library>>() shouldBe libraries
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe libraries
             }
 
             coVerify {
@@ -72,13 +70,12 @@ internal class LibraryControllerTest : StringSpec({
         Harness().run {
             coEvery { db.deleteLibrary(any()) } returns true
             testCall(
-                "/api/lib/delete",
-                request = DeleteLibrariesRequest(libraries = libraryIds),
+                { deleteLibraries(DeleteLibrariesRequest(libraryIds)) },
                 setup = {
                     setupApp(db)
                 },
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK.value
                 if (libraryIds.isNotEmpty()) {
                     coVerify {
                         libraryIds.forEach {
@@ -97,14 +94,13 @@ internal class LibraryControllerTest : StringSpec({
     "deleteLibraries - forbidden" {
         Harness(NON_ADMIN_USER).run {
             coEvery { db.upsertLibrary(library) } returns true
-            testCall<Any?>(
-                "/api/lib/delete",
-                request = DeleteLibrariesRequest(libraries = UtilGenerators.string.list().next()),
+            testCall(
+                { deleteLibraries(DeleteLibrariesRequest(libraryIds)) },
                 setup = {
                     setupApp(db)
                 },
             ) {
-                status shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden.value
             }
 
             coVerify(inverse = true) {
@@ -117,14 +113,13 @@ internal class LibraryControllerTest : StringSpec({
         Harness().run {
             coEvery { queue.submit(library) } returns jobId
             coEvery { db.upsertLibrary(library) } returns true
-            testCall<Any?>(
-                "/api/lib/create",
-                request = library,
+            testCall(
+                { createLibrary(library) },
                 setup = {
                     setupApp(db, queue)
                 },
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK.value
             }
 
             coVerify {
@@ -136,14 +131,13 @@ internal class LibraryControllerTest : StringSpec({
 
     "createLibrary - forbidden" {
         Harness(NON_ADMIN_USER).run {
-            testCall<Any?>(
-                "/api/lib/create",
-                request = library,
+            testCall(
+                { createLibrary(library) },
                 setup = {
                     setupApp(db, queue)
                 },
             ) {
-                status shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden.value
             }
 
             coVerify(inverse = true) {
@@ -156,14 +150,13 @@ internal class LibraryControllerTest : StringSpec({
     "scanLibrary - success" {
         Harness().run {
             coEvery { queue.submit(library) } returns jobId
-            testCall<Any?>(
-                "/api/lib/scan",
-                request = ScanLibrariesRequest(listOf(library.name)),
+            testCall(
+                { scanLibraries(ScanLibrariesRequest(listOf(library.name))) },
                 setup = {
                     setupApp(db, queue)
                 },
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK.value
             }
 
             coVerify {
@@ -175,14 +168,13 @@ internal class LibraryControllerTest : StringSpec({
 
     "scanLibrary - Forbidden" {
         Harness(NON_ADMIN_USER).run {
-            testCall<Any?>(
-                "/api/lib/scan",
-                request = ScanLibrariesRequest(listOf(library.name)),
+            testCall(
+                { scanLibraries(ScanLibrariesRequest(listOf(library.name))) },
                 setup = {
                     setupApp(db, queue)
                 },
             ) {
-                status shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden.value
             }
 
             coVerify(inverse = true) {

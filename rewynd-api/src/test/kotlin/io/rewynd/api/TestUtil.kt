@@ -1,34 +1,27 @@
 package io.rewynd.api
 
 import io.kotest.assertions.inspecting
-import io.kotest.property.arbitrary.arbitrary
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
-import io.ktor.client.request.cookie
-import io.ktor.client.request.request
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
-import io.ktor.http.path
+import io.ktor.client.plugins.cookies.addCookie
+import io.ktor.http.Cookie
+import io.ktor.http.Url
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.rewynd.client.RewyndClient
 import io.rewynd.common.cache.Cache
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.SessionStorage
-import io.rewynd.test.InternalGenerators
 import io.rewynd.test.MemorySessionStorage
-import io.rewynd.test.UtilGenerators
 import kotlinx.coroutines.runBlocking
+import org.openapitools.client.infrastructure.HttpResponse
 
 fun ApplicationTestBuilder.mkClient(cookieStorage: CookiesStorage = AcceptAllCookiesStorage()) =
     createClient {
@@ -48,10 +41,10 @@ open class BaseHarness(
         MemorySessionStorage().apply {
             runBlocking {
                 write(
-                    SESSION_ID,
+                    sessionId,
                     SESSION_SERIALIZER.serialize(
                         UserSession(
-                            SESSION_ID,
+                            sessionId,
                             user.user.username,
                         ),
                     ),
@@ -63,41 +56,33 @@ open class BaseHarness(
             coEvery { mkSessionStorage() } returns session
             coEvery { getUser(user.user.username) } returns user
         }
-    val cache = mockk<Cache>()
-    val cookieStorage by lazy { AcceptAllCookiesStorage() }
 
-    inline fun <reified Req : Any?> testCall(
-        path: String,
-        request: Req? = null,
-        method: HttpMethod = HttpMethod.Post,
-        crossinline clientSetup: ApplicationTestBuilder.() -> HttpClient = { mkClient(cookieStorage) },
+    val cache = mockk<Cache>()
+
+    val cookieStorage by lazy {
+        runBlocking {
+            AcceptAllCookiesStorage().apply {
+                addCookie(
+                    Url("https://localhost"),
+                    Cookie("RewyndIoSession", sessionId),
+                )
+            }
+        }
+    }
+
+    inline fun <Res : Any> testCall(
+        crossinline clientCall: suspend RewyndClient.() -> HttpResponse<Res>,
         crossinline setup: ApplicationTestBuilder.() -> Unit = {},
-        noinline inspector: suspend HttpResponse.() -> Unit = {},
+        crossinline clientSetup: ApplicationTestBuilder.() -> HttpClient = { mkClient(cookieStorage) },
+        noinline inspector: suspend HttpResponse<Res>.() -> Unit = {},
     ) {
         testApplication {
             setup()
-            val customClient = clientSetup()
-            val res =
-                customClient.request {
-                    this.method = method
-                    cookie("RewyndIoSession", SESSION_ID)
-                    request?.let {
-                        setBody(it)
-                        contentType(ContentType.Application.Json)
-                    }
-                    url {
-                        protocol = URLProtocol.HTTPS
-                        path(path)
-                    }
-                }
+            val customClient = RewyndClient("https://localhost", clientSetup())
+            val res = clientCall.invoke(customClient)
             inspecting(res) { runBlocking { inspector() } }
         }
     }
 
-    companion object {
-        val arbitrary =
-            arbitrary {
-                BaseHarness(InternalGenerators.serverUser.bind(), UtilGenerators.string.bind())
-            }
-    }
+    companion object
 }

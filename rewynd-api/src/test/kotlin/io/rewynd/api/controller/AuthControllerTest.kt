@@ -9,7 +9,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.next
 import io.kotest.property.arbitrary.string
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.serialization.kotlinx.json.json
@@ -39,24 +38,22 @@ internal class AuthControllerTest : StringSpec({
     "verify failure" {
         Harness().run {
             coEvery { db.getUser(any()) } returns null
-            testCall<Any?>(
-                "/api/auth/verify",
-                method = HttpMethod.Get,
+            testCall(
+                { verify() },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden.value
             }
         }
     }
 
     "verify success" {
         Harness().run {
-            testCall<Any?>(
-                "/api/auth/verify",
-                method = HttpMethod.Get,
+            testCall(
+                { verify() },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK.value
             }
         }
     }
@@ -64,24 +61,22 @@ internal class AuthControllerTest : StringSpec({
     "verify invalid sessionId" {
         Harness(sessionId = "InvalidSession").run {
             coEvery { db.getUser(any()) } returns null
-            testCall<Any?>(
-                "/api/auth/verify",
-                method = HttpMethod.Get,
+            testCall(
+                { verify() },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden.value
             }
         }
     }
 
     "logout logged-in user" {
         Harness().run {
-            testCall<Any?>(
-                "/api/auth/logout",
-                method = HttpMethod.Post,
+            testCall(
+                { logout() },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK.value
                 shouldThrow<NoSuchElementException> {
                     session.read(SESSION_ID)
                 }
@@ -91,12 +86,11 @@ internal class AuthControllerTest : StringSpec({
 
     "logout logged-out user" {
         Harness(sessionId = "InvalidSessionId").run {
-            testCall<Any?>(
-                "/api/auth/logout",
-                method = HttpMethod.Post,
+            testCall(
+                { logout() },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK.value
                 shouldThrow<NoSuchElementException> {
                     session.read(SESSION_ID)
                 }
@@ -111,13 +105,11 @@ internal class AuthControllerTest : StringSpec({
             coEvery { db.getUser(userWithPass.user.username) } returns userWithPass
             mockkStatic(::generateSessionId)
             coEvery { generateSessionId() } returns sessionId
-            testCall<Any?>(
-                "/api/auth/login",
-                LoginRequest(userWithPass.user.username, password),
-                method = HttpMethod.Post,
+            testCall(
+                { login(LoginRequest(userWithPass.user.username, password)) },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.OK.value
                 sessionStore.read(sessionId) shouldBe
                     SESSION_SERIALIZER.serialize(
                         UserSession(
@@ -138,13 +130,15 @@ internal class AuthControllerTest : StringSpec({
             coEvery { db.getUser(userWithPass.user.username) } returns userWithPass
             mockkStatic(::generateSessionId)
             coEvery { generateSessionId() } returns sessionId
-            testCall<Any?>(
-                "/api/auth/login",
-                LoginRequest(userWithPass.user.username, "InvalidPassword"),
-                method = HttpMethod.Post,
+            testCall(
+                {
+                    login(
+                        LoginRequest(userWithPass.user.username, "InvalidPassword"),
+                    )
+                },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden.value
 
                 shouldThrow<NoSuchElementException> {
                     sessionStore.read(sessionId)
@@ -168,13 +162,11 @@ internal class AuthControllerTest : StringSpec({
                 LoginRequest(null, password),
                 LoginRequest(userWithPass.user.username, null),
             ).forAll {
-                testCall<Any?>(
-                    "/api/auth/login",
-                    it,
-                    method = HttpMethod.Post,
+                testCall(
+                    { login(it) },
                     setup = { setupApp(db) },
                 ) {
-                    status shouldBe HttpStatusCode.BadRequest
+                    status shouldBe HttpStatusCode.BadRequest.value
 
                     shouldThrow<NoSuchElementException> {
                         sessionStore.read(sessionId)
@@ -193,13 +185,13 @@ internal class AuthControllerTest : StringSpec({
             coEvery { db.getUser(userWithPass.user.username) } returns null
             mockkStatic(::generateSessionId)
             coEvery { generateSessionId() } returns sessionId
-            testCall<Any?>(
-                "/api/auth/login",
-                LoginRequest(userWithPass.user.username, password),
-                method = HttpMethod.Post,
+            testCall(
+                {
+                    login(LoginRequest(userWithPass.user.username, password))
+                },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.Forbidden
+                status shouldBe HttpStatusCode.Forbidden.value
 
                 shouldThrow<NoSuchElementException> {
                     sessionStore.read(sessionId)

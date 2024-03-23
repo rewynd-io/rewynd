@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -23,7 +22,6 @@ import io.rewynd.api.util.getNextEpisodeInSeason
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerUser
-import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesByLastUpdatedResponse
@@ -36,13 +34,12 @@ internal class EpisodeControllerTest : StringSpec({
         Harness().run {
             coEvery { db.getEpisode(episode.id) } returns episode
 
-            testCall<Any?>(
-                "/api/episode/get/${episode.id}",
-                method = HttpMethod.Get,
+            testCall(
+                { getEpisode(episode.id) },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<EpisodeInfo>() shouldBe episode.toEpisodeInfo()
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe episode.toEpisodeInfo()
             }
 
             coVerify {
@@ -58,13 +55,12 @@ internal class EpisodeControllerTest : StringSpec({
             mockkStatic(::getNextEpisodeInSeason)
             coEvery { getNextEpisodeInSeason(db, episode, false) } returns nextEp
 
-            testCall<Any?>(
-                "/api/episode/next/${episode.id}",
-                method = HttpMethod.Get,
+            testCall(
+                { getNextEpisode(episode.id) },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<EpisodeInfo>() shouldBe nextEp.toEpisodeInfo()
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe nextEp.toEpisodeInfo()
             }
         }
     }
@@ -75,13 +71,12 @@ internal class EpisodeControllerTest : StringSpec({
             mockkStatic(::getNextEpisodeInSeason)
             coEvery { getNextEpisodeInSeason(db, episode, true) } returns prevEp
 
-            testCall<Any?>(
-                "/api/episode/previous/${episode.id}",
-                method = HttpMethod.Get,
+            testCall(
+                { getPreviousEpisode(episode.id) },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<EpisodeInfo>() shouldBe prevEp.toEpisodeInfo()
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe prevEp.toEpisodeInfo()
             }
         }
     }
@@ -90,13 +85,12 @@ internal class EpisodeControllerTest : StringSpec({
         Harness().run {
             coEvery { db.listEpisodes(season.seasonInfo.id) } returns episodes
 
-            testCall<Any?>(
-                "/api/episode/list/${season.seasonInfo.id}",
-                method = HttpMethod.Get,
+            testCall(
+                { listEpisodes(season.seasonInfo.id) },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<List<EpisodeInfo>>() shouldBe episodes.map(ServerEpisodeInfo::toEpisodeInfo)
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe episodes.map(ServerEpisodeInfo::toEpisodeInfo)
             }
         }
     }
@@ -105,17 +99,19 @@ internal class EpisodeControllerTest : StringSpec({
         Harness().run {
             coEvery { db.listEpisodesByLastUpdated(cursor, ListEpisodesByLastUpdatedOrder.Oldest) } returns episodes
 
-            testCall<Any?>(
-                "/api/episode/listByLastUpdated",
+            testCall(
+                {
+                    listEpisodesByLastUpdated(
+                        ListEpisodesByLastUpdatedRequest(
+                            ListEpisodesByLastUpdatedOrder.Oldest,
+                            cursor.toString(),
+                        ),
+                    )
+                },
                 setup = { setupApp(db) },
-                request =
-                    ListEpisodesByLastUpdatedRequest(
-                        ListEpisodesByLastUpdatedOrder.Oldest,
-                        cursor.toString(),
-                    ),
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<ListEpisodesByLastUpdatedResponse>() shouldBe
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe
                     ListEpisodesByLastUpdatedResponse(
                         episodes.map(ServerEpisodeInfo::toEpisodeInfo),
                         episodes.maxByOrNull { it.lastUpdated }?.lastUpdated?.toEpochMilliseconds()
@@ -127,16 +123,18 @@ internal class EpisodeControllerTest : StringSpec({
 
     "listByLastUpdated NumberFormatException" {
         Harness().run {
-            testCall<Any?>(
-                "/api/episode/listByLastUpdated",
+            testCall(
+                {
+                    listEpisodesByLastUpdated(
+                        ListEpisodesByLastUpdatedRequest(
+                            ListEpisodesByLastUpdatedOrder.Oldest,
+                            "abc",
+                        ),
+                    )
+                },
                 setup = { setupApp(db) },
-                request =
-                    ListEpisodesByLastUpdatedRequest(
-                        ListEpisodesByLastUpdatedOrder.Oldest,
-                        "abc",
-                    ),
             ) {
-                status shouldBe HttpStatusCode.BadRequest
+                status shouldBe HttpStatusCode.BadRequest.value
                 coVerify(inverse = true) { db.listEpisodesByLastUpdated(any(), any()) }
             }
         }

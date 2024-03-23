@@ -3,8 +3,6 @@ package io.rewynd.api.controller
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.next
-import io.ktor.client.call.body
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -20,7 +18,6 @@ import io.rewynd.api.plugins.configureSession
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerShowInfo
 import io.rewynd.common.model.ServerUser
-import io.rewynd.model.ShowInfo
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.list
@@ -31,13 +28,12 @@ internal class ShowControllerTest : StringSpec({
             coEvery {
                 db.getShow(show.id)
             } returns show
-            testCall<Any?>(
-                "/api/show/get/${show.id}",
-                method = HttpMethod.Get,
+            testCall(
+                { getShow(show.id) },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<ShowInfo>() shouldBe show.toShowInfo()
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe show.toShowInfo()
             }
             coVerify {
                 db.getShow(show.id)
@@ -50,13 +46,12 @@ internal class ShowControllerTest : StringSpec({
             coEvery {
                 db.listShows(library.name)
             } returns shows
-            testCall<Any?>(
-                "/api/show/list/${library.name}",
-                method = HttpMethod.Get,
+            testCall(
+                { listShows(library.name) },
                 setup = { setupApp(db) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<List<ShowInfo>>() shouldBe shows.map(ServerShowInfo::toShowInfo)
+                status shouldBe HttpStatusCode.OK.value
+                body() shouldBe shows.map(ServerShowInfo::toShowInfo)
             }
             coVerify {
                 db.listShows(library.name)

@@ -5,13 +5,13 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.util.toByteArray
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -34,13 +34,14 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientCon
 internal class ImageControllerTest : StringSpec({
     "getImage - cached" {
         Harness().run {
-            testCall<Any?>(
-                "/api/image/${imageInfo.imageId}",
-                method = HttpMethod.Get,
+            testCall(
+                {
+                    getImage(imageInfo.imageId)
+                },
                 setup = { setupApp(db, cache, queue) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<ByteArray>() shouldBe byteArr
+                status shouldBe HttpStatusCode.OK.value
+                body().toByteArray() shouldBe byteArr
                 coVerify {
                     cache.getImage(imageInfo.imageId)
                 }
@@ -53,13 +54,14 @@ internal class ImageControllerTest : StringSpec({
     "getImage - not cached" {
         Harness().run {
             coEvery { cache.getImage(imageInfo.imageId) } returns null
-            testCall<Any?>(
-                "/api/image/${imageInfo.imageId}",
-                method = HttpMethod.Get,
+            testCall(
+                {
+                    getImage(imageInfo.imageId)
+                },
                 setup = { setupApp(db, cache, queue) },
             ) {
-                status shouldBe HttpStatusCode.OK
-                body<ByteArray>() shouldBe byteArr
+                status shouldBe HttpStatusCode.OK.value
+                body().toByteArray() shouldBe byteArr
                 coVerify {
                     cache.getImage(imageInfo.imageId)
                     queue.submit(imageInfo)
@@ -72,12 +74,13 @@ internal class ImageControllerTest : StringSpec({
         Harness().run {
             coEvery { cache.getImage(imageInfo.imageId) } returns null
             coEvery { db.getImage(imageInfo.imageId) } returns null
-            testCall<Any?>(
-                "/api/image/${imageInfo.imageId}",
-                method = HttpMethod.Get,
+            testCall(
+                {
+                    getImage(imageInfo.imageId)
+                },
                 setup = { setupApp(db, cache, queue) },
             ) {
-                status shouldBe HttpStatusCode.NotFound
+                status shouldBe HttpStatusCode.NotFound.value
                 coVerify {
                     cache.getImage(imageInfo.imageId)
                     db.getImage(imageInfo.imageId)
@@ -95,12 +98,13 @@ internal class ImageControllerTest : StringSpec({
             coEvery { db.getImage(imageInfo.imageId) } returns imageInfo
             coEvery { queue.monitor(jobId) } returns flowOf(WorkerEvent.Fail("FooReason"))
 
-            testCall<Any?>(
-                "/api/image/${imageInfo.imageId}",
-                method = HttpMethod.Get,
+            testCall(
+                {
+                    getImage(imageInfo.imageId)
+                },
                 setup = { setupApp(db, cache, queue) },
             ) {
-                status shouldBe HttpStatusCode.InternalServerError
+                status shouldBe HttpStatusCode.InternalServerError.value
                 coVerify {
                     cache.getImage(imageInfo.imageId)
                     db.getImage(imageInfo.imageId)
