@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import {
   Button,
   ButtonGroup,
@@ -20,9 +20,7 @@ import type { LibraryType } from "@rewynd.io/rewynd-client-typescript";
 import { List } from "immutable";
 import { HttpClient } from "../../../const";
 import { MultiInput } from "../../MultiInput";
-import { GridValidRowModel } from "@mui/x-data-grid/models/gridRows";
 
-// TODO declare using value getter for type safety
 const columns: GridColDef[] = [
   {
     field: "name",
@@ -35,8 +33,7 @@ const columns: GridColDef[] = [
   {
     field: "rootPaths",
     headerName: "Root Paths",
-    valueGetter: (params: GridValueGetterParams<GridValidRowModel, string[]>) =>
-      JSON.stringify(params.value ?? []),
+    valueGetter: (value) => JSON.stringify(value ?? []),
   },
 ];
 

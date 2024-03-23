@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import {
   Button,
   ButtonGroup,
@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import { HttpClient } from "../../../const";
 import "../../../declarations";
-import { GridValidRowModel } from "@mui/x-data-grid/models/gridRows";
 import { UserPermissions } from "@rewynd.io/rewynd-client-typescript";
 
 // TODO declare using value getter for type safety
@@ -24,9 +23,8 @@ const columns: GridColDef[] = [
   {
     field: "permissions",
     headerName: "Admin",
-    valueGetter: (
-      row: GridValueGetterParams<GridValidRowModel, UserPermissions>,
-    ) => (row.value?.isAdmin ? "true" : "false"),
+    valueGetter: (value: UserPermissions) =>
+      value?.isAdmin ? "true" : "false",
   },
 ];
 
