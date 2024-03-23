@@ -16,6 +16,9 @@ import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.Progress
+import io.rewynd.model.SearchRequest
+import io.rewynd.model.SearchResponse
+import io.rewynd.model.SearchResult
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.SubtitleTrack
 import io.rewynd.model.User
@@ -79,5 +82,17 @@ object ApiGenerators {
                 percent = Arb.double(0.0, 1.0).bind(),
                 timestamp = UtilGenerators.instant.bind().toEpochMilliseconds().toDouble(),
             )
+        }
+
+    val searchRequest =
+        arbitrary {
+            SearchRequest(string.bind())
+        }
+
+    val searchResult = Arb.bind<SearchResult>()
+
+    val searchResponse =
+        arbitrary {
+            SearchResponse(searchResult.list().bind())
         }
 }
