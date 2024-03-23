@@ -7,6 +7,7 @@ import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.asString
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.choice
+import io.kotest.property.arbitrary.double
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.map
 import io.rewynd.common.cache.queue.JobId
@@ -18,6 +19,8 @@ import io.rewynd.common.model.ServerAudioTrack
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerImageInfo
 import io.rewynd.common.model.ServerMediaInfo
+import io.rewynd.common.model.ServerScanTask
+import io.rewynd.common.model.ServerScheduleInfo
 import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerShowInfo
 import io.rewynd.common.model.ServerSubtitleTrack
@@ -29,6 +32,7 @@ import io.rewynd.common.model.StreamSegmentMetadata
 import io.rewynd.common.model.SubtitleFileTrack
 import io.rewynd.common.model.SubtitleMetadata
 import io.rewynd.common.model.SubtitleSegment
+import io.rewynd.common.model.UserProgress
 import io.rewynd.model.NormalizationProps
 import io.rewynd.test.ApiGenerators.actor
 import io.rewynd.test.ApiGenerators.mediaInfo
@@ -203,6 +207,30 @@ object InternalGenerators {
                 libraryId = string.bind(),
                 lastUpdated = instant.bind(),
                 imageId = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
+            )
+        }
+
+    val userProgress =
+        arbitrary {
+            UserProgress(
+                username = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
+                id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
+                percent = Arb.double(0.0, 1.0).bind(),
+                timestamp = instant.bind().toEpochMilliseconds().toDouble(),
+            )
+        }
+
+    val serverScanTask =
+        arbitrary {
+            ServerScanTask(ApiGenerators.library.bind().name)
+        }
+
+    val serverScheduleInfo =
+        arbitrary {
+            ServerScheduleInfo(
+                id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
+                cronExpression = UtilGenerators.cron.bind(),
+                scanTasks = serverScanTask.list().bind(),
             )
         }
 }

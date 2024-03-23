@@ -242,7 +242,7 @@ paths:
           description: "Successfully scheduled."
 
   /api/schedule/delete:
-    delete:
+    post:
       operationId: deleteSchedule
       security:
         - CookieAuth: []
@@ -262,7 +262,7 @@ paths:
           description: "Successfully deleted cron schedule"
 
   /api/schedule/get/{id}:
-    delete:
+    get:
       operationId: getSchedule
       security:
         - CookieAuth: []

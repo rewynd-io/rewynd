@@ -6,13 +6,13 @@ import io.ktor.server.application.install
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.rewynd.api.plugins.mkAdminAuthZPlugin
 import io.rewynd.common.cache.queue.RefreshScheduleJobQueue
 import io.rewynd.common.database.Database
+import io.rewynd.common.toSchedule
 import io.rewynd.common.toServerScheduleInfo
 import io.rewynd.model.DeleteScheduleRequest
 import io.rewynd.model.Schedule
@@ -39,7 +39,7 @@ fun Route.scheduleRoutes(
                 if (scheduleInfo == null) {
                     call.respond(HttpStatusCode.NotFound)
                 } else {
-                    call.respond(scheduleInfo)
+                    call.respond(scheduleInfo.toSchedule())
                 }
             }
         }
@@ -62,12 +62,13 @@ fun Route.scheduleRoutes(
         route("/delete") {
             install(mkAdminAuthZPlugin(db))
 
-            delete {
+            post {
                 val req = call.receive<DeleteScheduleRequest>()
-                if (req.ids.any {
+                val anyDeleted =
+                    req.ids.map {
                         db.deleteSchedule(it)
-                    }
-                ) {
+                    }.any()
+                if (anyDeleted) {
                     refreshScheduleJobQueue.submit(Unit)
                 }
                 call.respond(HttpStatusCode.OK)

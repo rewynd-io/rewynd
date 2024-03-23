@@ -7,6 +7,7 @@ import io.kotest.property.arbitrary.alphanumeric
 import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.asString
 import io.kotest.property.arbitrary.bind
+import io.kotest.property.arbitrary.double
 import io.kotest.property.arbitrary.string
 import io.kotest.property.exhaustive.enum
 import io.rewynd.model.Actor
@@ -14,6 +15,7 @@ import io.rewynd.model.AudioTrack
 import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.model.MediaInfo
+import io.rewynd.model.Progress
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.SubtitleTrack
 import io.rewynd.model.User
@@ -69,4 +71,13 @@ object ApiGenerators {
             )
         }
     val user = Arb.bind<User>()
+
+    val progress =
+        arbitrary {
+            Progress(
+                string.bind(),
+                percent = Arb.double(0.0, 1.0).bind(),
+                timestamp = UtilGenerators.instant.bind().toEpochMilliseconds().toDouble(),
+            )
+        }
 }

@@ -64,3 +64,7 @@ fun Schedule.toServerScheduleInfo(): ServerScheduleInfo =
     ServerScheduleInfo(id = id, cronExpression = cronExpression, scanTasks = scanTasks.map { it.toServerScanTask() })
 
 fun ScanTask.toServerScanTask() = ServerScanTask(libraryId = libraryId)
+
+fun ServerScanTask.toScanTask() = ScanTask(libraryId)
+
+fun ServerScheduleInfo.toSchedule() = Schedule(id, cronExpression, scanTasks.map { it.toScanTask() })
