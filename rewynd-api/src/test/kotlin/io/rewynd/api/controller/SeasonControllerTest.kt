@@ -1,88 +1,78 @@
 package io.rewynd.api.controller
 
-import io.kotest.assertions.inspecting
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.rewynd.api.ADMIN_USER
+import io.rewynd.api.BaseHarness
+import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerSeasonInfo
+import io.rewynd.common.model.ServerUser
 import io.rewynd.model.SeasonInfo
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.list
-import io.rewynd.test.mockDatabase
-import kotlinx.coroutines.runBlocking
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 
 internal class SeasonControllerTest : StringSpec({
     "getSeason" {
-        val season = InternalGenerators.serverSeasonInfo.next()
-        val db =
-            mockDatabase(getSeasonHandler = {
-                it shouldBe SEASON_ID
-                season
-            })
-        testApplication {
-            setupApp(db)
-            inspecting(
-                mkClient().get("/api/season/get/$SEASON_ID") {
-                    url {
-                        protocol = URLProtocol.HTTPS
-                    }
-                },
+        Harness().run {
+            coEvery {
+                db.getSeason(season.seasonInfo.id)
+            } returns season
+            testCall<Any?>(
+                "/api/season/get/${season.seasonInfo.id}",
+                method = HttpMethod.Get,
+                setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK
-                runBlocking {
-                    body<SeasonInfo>() shouldBe season.seasonInfo
-                }
+                body<SeasonInfo>() shouldBe season.seasonInfo
+            }
+            coVerify {
+                db.getSeason(season.seasonInfo.id)
             }
         }
     }
 
     "listSeasons" {
-        val seasons = InternalGenerators.serverSeasonInfo.list().next()
-        val db =
-            mockDatabase(listSeasonsHandler = {
-                it shouldBe SHOW_ID
-                seasons
-            })
-        testApplication {
-            setupApp(db)
-            inspecting(
-                mkClient().get("/api/season/list/$SHOW_ID") {
-                    url {
-                        protocol = URLProtocol.HTTPS
-                    }
-                },
+        Harness().run {
+            coEvery {
+                db.listSeasons(show.id)
+            } returns seasons
+            testCall<Any?>(
+                "/api/season/list/${show.id}",
+                method = HttpMethod.Get,
+                setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK
-                runBlocking {
-                    body<List<SeasonInfo?>>() shouldBe seasons.map(ServerSeasonInfo::seasonInfo)
-                }
+                body<List<SeasonInfo>>() shouldBe seasons.map(ServerSeasonInfo::seasonInfo)
+            }
+            coVerify {
+                db.listSeasons(show.id)
             }
         }
     }
 }) {
     companion object {
-        private const val SEASON_ID = "FooSeasonId"
-        private const val SHOW_ID = "FooShowId"
-
-        private fun ApplicationTestBuilder.mkClient() =
-            createClient {
-                install(ClientContentNegotiation) {
-                    json()
-                }
-            }
+        private class Harness(
+            user: ServerUser = ADMIN_USER,
+            sessionId: String = SESSION_ID,
+        ) : BaseHarness(user, sessionId) {
+            val season by lazy { InternalGenerators.serverSeasonInfo.next() }
+            val seasons by lazy { InternalGenerators.serverSeasonInfo.list().next() }
+            val show by lazy { InternalGenerators.serverShowInfo.next() }
+        }
 
         private fun ApplicationTestBuilder.setupApp(db: Database) {
             install(ContentNegotiation) {

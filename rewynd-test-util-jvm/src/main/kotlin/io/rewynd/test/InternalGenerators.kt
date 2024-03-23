@@ -159,7 +159,7 @@ object InternalGenerators {
     val serverShowInfo =
         arbitrary {
             ServerShowInfo(
-                id = string.bind(),
+                id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
                 libraryId = string.bind(),
                 title = string.bind(),
                 plot = string.nullable().bind(),

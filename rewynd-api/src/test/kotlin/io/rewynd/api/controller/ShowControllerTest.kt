@@ -1,87 +1,78 @@
 package io.rewynd.api.controller
 
-import io.kotest.assertions.inspecting
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
-import io.ktor.client.request.get
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.rewynd.api.ADMIN_USER
+import io.rewynd.api.BaseHarness
+import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerShowInfo
+import io.rewynd.common.model.ServerUser
 import io.rewynd.model.ShowInfo
+import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.list
-import io.rewynd.test.mockDatabase
-import kotlinx.coroutines.runBlocking
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 
 internal class ShowControllerTest : StringSpec({
     "getShow" {
-        val show = InternalGenerators.serverShowInfo.next()
-        val db =
-            mockDatabase(getShowHandler = {
-                it shouldBe SHOW_ID
-                show
-            })
-        testApplication {
-            setupApp(db)
-            inspecting(
-                mkClient().get("/api/show/get/$SHOW_ID") {
-                    url {
-                        protocol = URLProtocol.HTTPS
-                    }
-                },
+        Harness().run {
+            coEvery {
+                db.getShow(show.id)
+            } returns show
+            testCall<Any?>(
+                "/api/show/get/${show.id}",
+                method = HttpMethod.Get,
+                setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK
-                runBlocking {
-                    body<ShowInfo>() shouldBe show.toShowInfo()
-                }
+                body<ShowInfo>() shouldBe show.toShowInfo()
+            }
+            coVerify {
+                db.getShow(show.id)
             }
         }
     }
 
     "listShows" {
-        val shows = InternalGenerators.serverShowInfo.list().next()
-        val db =
-            mockDatabase(listShowsHandler = {
-                it shouldBe SHOW_ID
-                shows
-            })
-        testApplication {
-            setupApp(db)
-            inspecting(
-                mkClient().get("/api/show/list/$SHOW_ID") {
-                    url {
-                        protocol = URLProtocol.HTTPS
-                    }
-                },
+        Harness().run {
+            coEvery {
+                db.listShows(library.name)
+            } returns shows
+            testCall<Any?>(
+                "/api/show/list/${library.name}",
+                method = HttpMethod.Get,
+                setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK
-                runBlocking {
-                    body<List<ShowInfo?>>() shouldBe shows.map(ServerShowInfo::toShowInfo)
-                }
+                body<List<ShowInfo>>() shouldBe shows.map(ServerShowInfo::toShowInfo)
+            }
+            coVerify {
+                db.listShows(library.name)
             }
         }
     }
 }) {
     companion object {
-        private const val SHOW_ID = "FooShowId"
-
-        private fun ApplicationTestBuilder.mkClient() =
-            createClient {
-                install(ClientContentNegotiation) {
-                    json()
-                }
-            }
+        private class Harness(
+            user: ServerUser = ADMIN_USER,
+            sessionId: String = SESSION_ID,
+        ) : BaseHarness(user, sessionId) {
+            val show by lazy { InternalGenerators.serverShowInfo.next() }
+            val shows by lazy { InternalGenerators.serverShowInfo.list().next() }
+            val library by lazy { ApiGenerators.library.next() }
+        }
 
         private fun ApplicationTestBuilder.setupApp(db: Database) {
             install(ContentNegotiation) {
