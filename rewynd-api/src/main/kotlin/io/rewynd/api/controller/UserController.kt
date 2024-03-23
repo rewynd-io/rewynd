@@ -57,6 +57,7 @@ fun Route.userRoutes(db: Database) {
             }
         }
 
+        // TODO add to spec or remove
         route("/get") {
             install(mkAdminAuthZPlugin(db))
 

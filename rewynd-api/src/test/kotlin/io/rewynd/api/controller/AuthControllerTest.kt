@@ -209,7 +209,7 @@ internal class AuthControllerTest : StringSpec({
         ) : BaseHarness(user, sessionId) {
             val password by lazy { Arb.string(minSize = 2).next() }
             val salt by lazy { UtilGenerators.urlEncodedBase64.next() }
-            val hashedPass by lazy { hashPassword(password, salt) }
+            val hashedPass = hashPassword(password, salt)
             val userWithPass by lazy { user.copy(hashedPass = hashedPass, salt = salt) }
         }
 
