@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlinter)
+    alias(libs.plugins.kotlinx.kover)
 }
 
 group = "io.rewynd"
@@ -41,3 +42,6 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.lintKotlin { dependsOn(tasks.formatKotlin) }
+tasks.build {
+    dependsOn(tasks.koverHtmlReport)
+}

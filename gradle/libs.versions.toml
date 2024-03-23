@@ -49,6 +49,7 @@ nodeGradle = "7.0.2"
 lettuce = "6.3.2.RELEASE"
 margarita = "0.1.0"
 okio = "3.9.0"
+kotlinx-kover = "0.7.6"
 android-minSdk = "24"
 android-compileSdk = "34"
 
@@ -159,3 +160,4 @@ shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
 openapi-generator = { id = "org.openapi.generator", version.ref = "openapi" }
 node-gradle = { id = "com.github.node-gradle.node", version.ref = "nodeGradle" }
+kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinx-kover" }

@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow)
     alias(libs.plugins.kotlinter)
-}
+    alias(libs.plugins.kotlinx.kover)}
 
 group = "io.rewynd"
 version = "0.0.1"
@@ -88,3 +88,6 @@ tasks.shadowJar {
 }
 
 tasks.lintKotlin { dependsOn(tasks.formatKotlin) }
+tasks.build {
+    dependsOn(tasks.koverHtmlReport)
+}

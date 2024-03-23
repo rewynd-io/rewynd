@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.openapi.generator)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlinx.kover)
 }
 
 repositories {
@@ -130,4 +131,7 @@ tasks.jar {
 
 tasks.processResources {
     dependsOn.add(copySources)
+}
+tasks.build {
+    dependsOn(tasks.koverHtmlReport)
 }
