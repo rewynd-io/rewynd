@@ -64,12 +64,13 @@ open class BaseHarness(
             coEvery { getUser(user.user.username) } returns user
         }
     val cache = mockk<Cache>()
+    val cookieStorage by lazy { AcceptAllCookiesStorage() }
 
     inline fun <reified Req : Any?> testCall(
         path: String,
         request: Req? = null,
         method: HttpMethod = HttpMethod.Post,
-        crossinline clientSetup: ApplicationTestBuilder.() -> HttpClient = { mkClient() },
+        crossinline clientSetup: ApplicationTestBuilder.() -> HttpClient = { mkClient(cookieStorage) },
         crossinline setup: ApplicationTestBuilder.() -> Unit = {},
         noinline inspector: suspend HttpResponse.() -> Unit = {},
     ) {

@@ -4,10 +4,12 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
+import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.mockk
+import io.rewynd.common.database.Database
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.list
-import io.rewynd.test.mockDatabase
 import io.rewynd.test.uniqueBy
 
 internal class MediaOrderTest : StringSpec({
@@ -33,7 +35,10 @@ internal class MediaOrderTest : StringSpec({
             val uniqueEpisodes = episodes.uniqueBy { it.id }
             val sortedEpisodes = uniqueEpisodes.sort()
             val selected = sortedEpisodes.indices.random()
-            val db = mockDatabase(listEpisodesHandler = { uniqueEpisodes })
+            val db =
+                mockk<Database> {
+                    coEvery { listEpisodes(any()) } returns uniqueEpisodes
+                }
             getNextEpisodeInSeason(
                 db,
                 sortedEpisodes[selected],
@@ -50,7 +55,10 @@ internal class MediaOrderTest : StringSpec({
             InternalGenerators.serverEpisodeInfo,
             InternalGenerators.serverEpisodeInfo.list(),
         ) { episode, episodes ->
-            val db = mockDatabase(listEpisodesHandler = { episodes.uniqueBy { it.id }.filter { it.id != episode.id } })
+            val db =
+                mockk<Database> {
+                    coEvery { listEpisodes(any()) } returns episodes.uniqueBy { it.id }.filter { it.id != episode.id }
+                }
             getNextEpisodeInSeason(
                 db,
                 episode,

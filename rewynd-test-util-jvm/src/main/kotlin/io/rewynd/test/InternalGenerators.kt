@@ -39,6 +39,7 @@ import io.rewynd.test.UtilGenerators.duration
 import io.rewynd.test.UtilGenerators.instant
 import io.rewynd.test.UtilGenerators.long
 import io.rewynd.test.UtilGenerators.string
+import io.rewynd.test.UtilGenerators.urlEncodedBase64
 
 object InternalGenerators {
     val libraryData =
@@ -110,7 +111,10 @@ object InternalGenerators {
                 jobId = jobId.bind(),
             )
         }
-    val serverUser = Arb.bind<ServerUser>()
+    val serverUser =
+        arbitrary {
+            ServerUser(ApiGenerators.user.bind(), urlEncodedBase64.bind(), urlEncodedBase64.bind())
+        }
     val fileInfo = Arb.bind<FileInfo>()
     val serverVideoTrack = Arb.bind<ServerVideoTrack>()
     val serverAudioTrack = Arb.bind<ServerAudioTrack>()

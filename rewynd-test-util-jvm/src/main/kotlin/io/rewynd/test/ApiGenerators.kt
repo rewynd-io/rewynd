@@ -16,6 +16,7 @@ import io.rewynd.model.LibraryType
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.SubtitleTrack
+import io.rewynd.model.User
 import io.rewynd.model.VideoTrack
 import io.rewynd.test.UtilGenerators.double
 import io.rewynd.test.UtilGenerators.string
@@ -67,4 +68,5 @@ object ApiGenerators {
                 Exhaustive.enum<LibraryType>().toArb().bind(),
             )
         }
+    val user = Arb.bind<User>()
 }

@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
-import io.ktor.client.request.get
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -14,6 +13,7 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.mockk
 import io.rewynd.api.ADMIN_USER
 import io.rewynd.api.BaseHarness
 import io.rewynd.api.NON_ADMIN_USER
@@ -26,9 +26,9 @@ import io.rewynd.model.DeleteLibrariesRequest
 import io.rewynd.model.Library
 import io.rewynd.model.ScanLibrariesRequest
 import io.rewynd.test.ApiGenerators
+import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
 import io.rewynd.test.list
-import io.rewynd.test.mockJobQueue
 
 internal class LibraryControllerTest : StringSpec({
     "getLibrary" {
@@ -69,8 +69,6 @@ internal class LibraryControllerTest : StringSpec({
     }
 
     "deleteLibraries - success" {
-        val libraryIds = UtilGenerators.string.list().next()
-
         Harness().run {
             coEvery { db.deleteLibrary(any()) } returns true
             testCall(
@@ -117,6 +115,7 @@ internal class LibraryControllerTest : StringSpec({
 
     "createLibrary - success" {
         Harness().run {
+            coEvery { queue.submit(library) } returns jobId
             coEvery { db.upsertLibrary(library) } returns true
             testCall<Any?>(
                 "/api/lib/create",
@@ -156,6 +155,7 @@ internal class LibraryControllerTest : StringSpec({
 
     "scanLibrary - success" {
         Harness().run {
+            coEvery { queue.submit(library) } returns jobId
             testCall<Any?>(
                 "/api/lib/scan",
                 request = ScanLibrariesRequest(listOf(library.name)),
@@ -197,8 +197,10 @@ internal class LibraryControllerTest : StringSpec({
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
         ) : BaseHarness(user, sessionId) {
-            val queue: ScanJobQueue = mockJobQueue()
-            val library = ApiGenerators.library.next()
+            val queue: ScanJobQueue = mockk()
+            val library by lazy { ApiGenerators.library.next() }
+            val libraryIds by lazy { UtilGenerators.string.list().next() }
+            val jobId by lazy { InternalGenerators.jobId.next() }
 
             init {
                 coEvery { db.getLibrary(library.name) } returns library
@@ -207,7 +209,7 @@ internal class LibraryControllerTest : StringSpec({
 
         private fun ApplicationTestBuilder.setupApp(
             db: Database,
-            scanJobQueue: ScanJobQueue = mockJobQueue(),
+            scanJobQueue: ScanJobQueue = mockk {},
         ) {
             install(ContentNegotiation) {
                 json()

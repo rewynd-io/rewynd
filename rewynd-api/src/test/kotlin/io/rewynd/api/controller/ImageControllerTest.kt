@@ -14,6 +14,7 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.mockk
 import io.rewynd.api.ADMIN_USER
 import io.rewynd.api.BaseHarness
 import io.rewynd.api.SESSION_ID
@@ -25,7 +26,6 @@ import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerUser
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
-import io.rewynd.test.mockJobQueue
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -121,13 +121,10 @@ internal class ImageControllerTest : StringSpec({
             val imageInfo by lazy { InternalGenerators.serverImageInfo.next() }
             val jobId by lazy { InternalGenerators.jobId.next() }
             val queue: ImageJobQueue =
-                mockJobQueue(
-                    submitHandler = { jobId },
-                    monitorHandler = {
-                        it shouldBe jobId
-                        flowOf(WorkerEvent.Success(Json.encodeToString(byteArr)))
-                    },
-                )
+                mockk {
+                    coEvery { submit(any()) } returns jobId
+                    coEvery { monitor(jobId) } returns flowOf(WorkerEvent.Success(Json.encodeToString(byteArr)))
+                }
 
             init {
                 coEvery { cache.getImage(imageInfo.imageId) } returns byteArr
