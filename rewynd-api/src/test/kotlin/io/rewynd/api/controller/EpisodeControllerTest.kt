@@ -2,9 +2,7 @@ package io.rewynd.api.controller
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.property.arbitrary.next
-import io.ktor.client.call.body
-import io.ktor.client.request.get
+import io.kotest.property.arbitrary.arbitrary
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -14,24 +12,25 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockkStatic
-import io.rewynd.api.ADMIN_USER
 import io.rewynd.api.BaseHarness
-import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
 import io.rewynd.api.util.getNextEpisodeInSeason
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerEpisodeInfo
+import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerUser
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesByLastUpdatedResponse
+import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
+import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
 
 internal class EpisodeControllerTest : StringSpec({
     "getEpisode" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { db.getEpisode(episode.id) } returns episode
 
             testCall(
@@ -49,40 +48,37 @@ internal class EpisodeControllerTest : StringSpec({
     }
 
     "nextEpisode" {
-        val nextEp = InternalGenerators.serverEpisodeInfo.next()
-
-        Harness().run {
+        Harness.arb.checkAllRun {
             mockkStatic(::getNextEpisodeInSeason)
-            coEvery { getNextEpisodeInSeason(db, episode, false) } returns nextEp
+            coEvery { getNextEpisodeInSeason(db, episode, false) } returns otherEpisode
 
             testCall(
                 { getNextEpisode(episode.id) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe nextEp.toEpisodeInfo()
+                body() shouldBe otherEpisode.toEpisodeInfo()
             }
         }
     }
 
     "previousEpisode" {
-        val prevEp = InternalGenerators.serverEpisodeInfo.next()
-        Harness().run {
+        Harness.arb.checkAllRun {
             mockkStatic(::getNextEpisodeInSeason)
-            coEvery { getNextEpisodeInSeason(db, episode, true) } returns prevEp
+            coEvery { getNextEpisodeInSeason(db, episode, true) } returns otherEpisode
 
             testCall(
                 { getPreviousEpisode(episode.id) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe prevEp.toEpisodeInfo()
+                body() shouldBe otherEpisode.toEpisodeInfo()
             }
         }
     }
 
     "listEpisodes" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { db.listEpisodes(season.seasonInfo.id) } returns episodes
 
             testCall(
@@ -96,7 +92,7 @@ internal class EpisodeControllerTest : StringSpec({
     }
 
     "listByLastUpdated" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { db.listEpisodesByLastUpdated(cursor, ListEpisodesByLastUpdatedOrder.Oldest) } returns episodes
 
             testCall(
@@ -122,7 +118,7 @@ internal class EpisodeControllerTest : StringSpec({
     }
 
     "listByLastUpdated NumberFormatException" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             testCall(
                 {
                     listEpisodesByLastUpdated(
@@ -142,16 +138,31 @@ internal class EpisodeControllerTest : StringSpec({
 }) {
     companion object {
         class Harness(
-            user: ServerUser = ADMIN_USER,
-            sessionId: String = SESSION_ID,
+            user: ServerUser,
+            sessionId: String,
+            val episodes: List<ServerEpisodeInfo>,
+            val episode: ServerEpisodeInfo,
+            val otherEpisode: ServerEpisodeInfo,
+            val season: ServerSeasonInfo,
+            val cursor: Long,
         ) : BaseHarness(user, sessionId) {
-            val episodes by lazy { InternalGenerators.serverEpisodeInfo.list().next() }
-            val episode by lazy { InternalGenerators.serverEpisodeInfo.next() }
-            val season by lazy { InternalGenerators.serverSeasonInfo.next() }
-            val cursor by lazy { UtilGenerators.long.next() }
-
             init {
                 coEvery { db.getEpisode(episode.id) } returns episode
+            }
+
+            companion object {
+                val arb =
+                    arbitrary {
+                        Harness(
+                            user = InternalGenerators.serverUser.bind(),
+                            sessionId = ApiGenerators.sessionId.bind(),
+                            episodes = InternalGenerators.serverEpisodeInfo.list().bind(),
+                            episode = InternalGenerators.serverEpisodeInfo.bind(),
+                            otherEpisode = InternalGenerators.serverEpisodeInfo.bind(),
+                            season = InternalGenerators.serverSeasonInfo.bind(),
+                            cursor = UtilGenerators.long.bind(),
+                        )
+                    }
             }
         }
 

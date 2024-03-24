@@ -2,9 +2,8 @@ package io.rewynd.api.controller
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.property.arbitrary.next
-import io.ktor.client.call.body
-import io.ktor.client.request.get
+import io.kotest.property.arbitrary.arbitrary
+import io.kotest.property.arbitrary.map
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -14,21 +13,24 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import io.rewynd.api.ADMIN_USER
 import io.rewynd.api.BaseHarness
-import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
+import io.rewynd.api.setIsAdmin
+import io.rewynd.common.cache.queue.JobId
 import io.rewynd.common.cache.queue.RefreshScheduleJobQueue
 import io.rewynd.common.database.Database
+import io.rewynd.common.model.ServerScheduleInfo
 import io.rewynd.common.model.ServerUser
 import io.rewynd.common.toSchedule
 import io.rewynd.model.DeleteScheduleRequest
+import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
+import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
 
 internal class ScheduleControllerTest : StringSpec({
     "getSchedule" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             testCall(
                 { getSchedule(schedule.id) },
                 setup = { setupApp(db, queue) },
@@ -44,7 +46,7 @@ internal class ScheduleControllerTest : StringSpec({
     }
 
     "listSchedules" {
-        Harness().run {
+        Harness.arb.checkAllRun {
 
             testCall(
                 { listSchedules() },
@@ -61,7 +63,7 @@ internal class ScheduleControllerTest : StringSpec({
     }
 
     "createSchedule" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             testCall(
                 { createSchedule(schedule.toSchedule()) },
                 setup = { setupApp(db, queue) },
@@ -76,7 +78,7 @@ internal class ScheduleControllerTest : StringSpec({
     }
 
     "deleteSchedule" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { db.deleteSchedule(any()) } returns true
             testCall(
                 { deleteSchedule(DeleteScheduleRequest(schedules.map { it.id })) },
@@ -95,12 +97,12 @@ internal class ScheduleControllerTest : StringSpec({
 }) {
     companion object {
         class Harness(
-            user: ServerUser = ADMIN_USER,
-            sessionId: String = SESSION_ID,
+            user: ServerUser,
+            sessionId: String,
+            val schedule: ServerScheduleInfo,
+            val schedules: List<ServerScheduleInfo>,
+            val jobId: JobId,
         ) : BaseHarness(user, sessionId) {
-            val schedule by lazy { InternalGenerators.serverScheduleInfo.next() }
-            val schedules by lazy { InternalGenerators.serverScheduleInfo.list().next() }
-            val jobId by lazy { InternalGenerators.jobId.next() }
             val queue: RefreshScheduleJobQueue = mockk {}
 
             init {
@@ -108,6 +110,19 @@ internal class ScheduleControllerTest : StringSpec({
                 coEvery { db.getSchedule(schedule.id) } returns schedule
                 coEvery { db.upsertSchedule(schedule) } returns true
                 coEvery { db.listSchedules() } returns schedules
+            }
+
+            companion object {
+                val arb =
+                    arbitrary {
+                        Harness(
+                            InternalGenerators.serverUser.map { it.setIsAdmin(true) }.bind(),
+                            ApiGenerators.sessionId.bind(),
+                            InternalGenerators.serverScheduleInfo.bind(),
+                            InternalGenerators.serverScheduleInfo.list().bind(),
+                            InternalGenerators.jobId.bind(),
+                        )
+                    }
             }
         }
 

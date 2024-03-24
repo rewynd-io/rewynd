@@ -34,8 +34,8 @@ fun ApplicationTestBuilder.mkClient(cookieStorage: CookiesStorage = AcceptAllCoo
     }
 
 open class BaseHarness(
-    val user: ServerUser = ADMIN_USER,
-    val sessionId: String = SESSION_ID,
+    val user: ServerUser,
+    val sessionId: String,
 ) {
     val session: SessionStorage =
         MemorySessionStorage().apply {
@@ -86,3 +86,5 @@ open class BaseHarness(
 
     companion object
 }
+
+fun ServerUser.setIsAdmin(isAdmin: Boolean = true) = copy(user = user.copy(permissions = user.permissions.copy(isAdmin)))

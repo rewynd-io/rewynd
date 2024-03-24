@@ -2,7 +2,8 @@ package io.rewynd.api.controller
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.property.arbitrary.next
+import io.kotest.property.arbitrary.arbitrary
+import io.kotest.property.arbitrary.map
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -20,12 +21,14 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.UserProgress
 import io.rewynd.model.ListProgressRequest
 import io.rewynd.model.ListProgressResponse
+import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
+import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
 
 internal class ProgressControllerTest : StringSpec({
     "getUserProgress" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             testCall(
                 { getUserProgress(progress.id) },
                 setup = { setupApp(db) },
@@ -41,7 +44,7 @@ internal class ProgressControllerTest : StringSpec({
     }
 
     "listUserProgress" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { db.listRecentProgress(user.user.username, null, any(), any()) } returns progresses
 
             testCall(
@@ -64,7 +67,7 @@ internal class ProgressControllerTest : StringSpec({
     }
 
     "putUserProgress" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             testCall(
                 { putUserProgress(progress.toProgress()) },
                 setup = { setupApp(db) },
@@ -82,14 +85,29 @@ internal class ProgressControllerTest : StringSpec({
         class Harness(
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
+            val progress: UserProgress,
+            val progresses: List<UserProgress>,
+            val listReq: ListProgressRequest,
         ) : BaseHarness(user, sessionId) {
-            val progress by lazy { InternalGenerators.userProgress.next().copy(username = user.user.username) }
-            val progresses by lazy { InternalGenerators.userProgress.list().next() }
-            val listReq = ListProgressRequest()
-
             init {
                 coEvery { db.getProgress(progress.id, user.user.username) } returns progress
                 coEvery { db.upsertProgress(progress) } returns true
+            }
+
+            companion object {
+                val arb =
+                    arbitrary {
+                        val user = InternalGenerators.serverUser.bind()
+                        Harness(
+                            user = user,
+                            sessionId = ApiGenerators.sessionId.bind(),
+                            progress =
+                                InternalGenerators.userProgress.map { it.copy(username = user.user.username) }
+                                    .bind(),
+                            progresses = InternalGenerators.userProgress.list().bind(),
+                            listReq = ListProgressRequest(), // TODO Add arb for ListProgressRequest
+                        )
+                    }
             }
         }
 

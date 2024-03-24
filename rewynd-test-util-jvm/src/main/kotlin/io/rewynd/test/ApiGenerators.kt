@@ -17,6 +17,8 @@ import io.rewynd.model.CreateStreamRequest
 import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.model.MediaInfo
+import io.rewynd.model.NormalizationMethod
+import io.rewynd.model.NormalizationProps
 import io.rewynd.model.Progress
 import io.rewynd.model.SearchRequest
 import io.rewynd.model.SearchResponse
@@ -27,9 +29,11 @@ import io.rewynd.model.SubtitleTrack
 import io.rewynd.model.User
 import io.rewynd.model.VideoTrack
 import io.rewynd.test.UtilGenerators.double
+import io.rewynd.test.UtilGenerators.duration
 import io.rewynd.test.UtilGenerators.string
 
 object ApiGenerators {
+    val sessionId = Arb.string(minSize = 1)
     val streamId = Codepoint.alphanumeric().map { it.asString() } // TODO switch back to string.bind()
     val audioTrack = Arb.bind<AudioTrack>()
     val videoTrack = Arb.bind<VideoTrack>()
@@ -68,10 +72,13 @@ object ApiGenerators {
             )
         }
 
+    val libraryId = Codepoint.alphanumeric().map { it.asString() } // TODO switch back to string.bind()
+    val mediaId = Codepoint.alphanumeric().map { it.asString() } // TODO switch back to string.bind()
+
     val library =
         arbitrary {
             Library(
-                Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
+                libraryId.bind(),
                 string.list().bind(),
                 Exhaustive.enum<LibraryType>().toArb().bind(),
             )
@@ -107,6 +114,23 @@ object ApiGenerators {
         arbitrary {
             SearchResponse(searchResult.list().bind())
         }
+    val normalizationMethod = Exhaustive.enum<NormalizationMethod>().toArb()
 
-    val createStreamRequest = Arb.bind<CreateStreamRequest>()
+    val normalizationProps =
+        arbitrary {
+            NormalizationProps(normalizationMethod.bind())
+        }
+
+    val createStreamRequest =
+        arbitrary {
+            CreateStreamRequest(
+                library = libraryId.bind(),
+                id = mediaId.bind(),
+                audioTrack = audioTrack.bind().id,
+                videoTrack = videoTrack.bind().id,
+                subtitleTrack = subtitleTrack.bind().id,
+                startOffset = duration.bind().inWholeMilliseconds.toDouble(),
+                normalization = normalizationProps.bind(),
+            )
+        }
 }

@@ -4,7 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow)
     alias(libs.plugins.kotlinter)
-    alias(libs.plugins.kotlinx.kover)}
+    alias(libs.plugins.kotlinx.kover)
+}
 
 group = "io.rewynd"
 version = "0.0.1"
@@ -76,6 +77,7 @@ kotlin {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+//    maxHeapSize = "8g"
 }
 
 tasks.shadowJar {

@@ -3,7 +3,9 @@ package io.rewynd.api.controller
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
-import io.kotest.property.arbitrary.next
+import io.kotest.property.arbitrary.arbitrary
+import io.kotest.property.arbitrary.filter
+import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.string
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -17,22 +19,23 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import io.rewynd.api.ADMIN_USER
 import io.rewynd.api.BaseHarness
-import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
+import io.rewynd.api.setIsAdmin
 import io.rewynd.common.database.Database
 import io.rewynd.common.generateSalt
 import io.rewynd.common.hashPassword
 import io.rewynd.common.model.ServerUser
 import io.rewynd.model.ChangePasswordRequest
+import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
+import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
 
 internal class UserControllerTest : StringSpec({
     "listUsers" {
-        Harness().run {
+        Harness.arb.map { it.copy(userParam = it.user.setIsAdmin(true)) }.checkAllRun {
             testCall(
                 { listUsers() },
                 setup = { setupApp(db) },
@@ -47,7 +50,7 @@ internal class UserControllerTest : StringSpec({
     }
 
     "changePassword" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             val mockDb: Database =
                 mockk<Database> {}
             coEvery { mockDb.getUser(user.user.username) } returns userWithOldPass
@@ -76,22 +79,38 @@ internal class UserControllerTest : StringSpec({
     }
 }) {
     companion object {
-        private class Harness(
-            user: ServerUser = ADMIN_USER,
-            sessionId: String = SESSION_ID,
-        ) : BaseHarness(user, sessionId) {
-            val users by lazy { InternalGenerators.serverUser.list().next() }
-            val newPassword by lazy { Arb.string(minSize = 2).next() }
-            val oldPassword by lazy { Arb.string(minSize = 2).next() }
-            val oldSalt by lazy { UtilGenerators.urlEncodedBase64.next() }
-            val newSalt by lazy { UtilGenerators.urlEncodedBase64.next() }
-            val oldHashedPass = hashPassword(oldPassword, oldSalt)
-            val newHashedPass = hashPassword(newPassword, newSalt)
-            val userWithOldPass by lazy { user.copy(hashedPass = oldHashedPass, salt = oldSalt) }
-            val userWithNewPass by lazy { user.copy(hashedPass = newHashedPass, salt = newSalt) }
+        private data class Harness(
+            val userParam: ServerUser,
+            val sessionIdParam: String,
+            val users: List<ServerUser>,
+            val newPassword: String,
+            val oldPassword: String,
+            val oldSalt: String,
+            val newSalt: String,
+        ) : BaseHarness(userParam, sessionIdParam) {
+            val oldHashedPass: String = hashPassword(oldPassword, oldSalt)
+            val newHashedPass: String = hashPassword(newPassword, newSalt)
+            val userWithOldPass: ServerUser = user.copy(hashedPass = oldHashedPass, salt = oldSalt)
+            val userWithNewPass: ServerUser = user.copy(hashedPass = newHashedPass, salt = newSalt)
 
             init {
                 coEvery { db.listUsers() } returns users
+            }
+
+            companion object {
+                val arb =
+                    arbitrary {
+                        val oldPass = Arb.string(minSize = 2).bind()
+                        Harness(
+                            InternalGenerators.serverUser.bind(),
+                            ApiGenerators.sessionId.bind(),
+                            InternalGenerators.serverUser.list().bind(),
+                            oldPass,
+                            Arb.string(minSize = 2).filter { it != oldPass }.bind(),
+                            UtilGenerators.urlEncodedBase64.bind(),
+                            UtilGenerators.urlEncodedBase64.bind(),
+                        )
+                    }
             }
         }
 

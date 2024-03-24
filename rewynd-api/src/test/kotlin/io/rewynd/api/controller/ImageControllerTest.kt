@@ -2,6 +2,7 @@ package io.rewynd.api.controller
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -21,11 +22,15 @@ import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
 import io.rewynd.common.cache.Cache
 import io.rewynd.common.cache.queue.ImageJobQueue
+import io.rewynd.common.cache.queue.JobId
 import io.rewynd.common.cache.queue.WorkerEvent
 import io.rewynd.common.database.Database
+import io.rewynd.common.model.ServerImageInfo
 import io.rewynd.common.model.ServerUser
+import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
+import io.rewynd.test.checkAllRun
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -33,7 +38,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientCon
 
 internal class ImageControllerTest : StringSpec({
     "getImage - cached" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             testCall(
                 {
                     getImage(imageInfo.imageId)
@@ -52,7 +57,7 @@ internal class ImageControllerTest : StringSpec({
         }
     }
     "getImage - not cached" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { cache.getImage(imageInfo.imageId) } returns null
             testCall(
                 {
@@ -71,7 +76,7 @@ internal class ImageControllerTest : StringSpec({
     }
 
     "getImage - not found" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { cache.getImage(imageInfo.imageId) } returns null
             coEvery { db.getImage(imageInfo.imageId) } returns null
             testCall(
@@ -93,7 +98,7 @@ internal class ImageControllerTest : StringSpec({
     }
 
     "getImage - Job Error" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { cache.getImage(imageInfo.imageId) } returns null
             coEvery { db.getImage(imageInfo.imageId) } returns imageInfo
             coEvery { queue.monitor(jobId) } returns flowOf(WorkerEvent.Fail("FooReason"))
@@ -120,20 +125,31 @@ internal class ImageControllerTest : StringSpec({
         private class Harness(
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
+            val byteArr: ByteArray = UtilGenerators.byteArray.next(),
+            val imageInfo: ServerImageInfo = InternalGenerators.serverImageInfo.next(),
+            val jobId: JobId = InternalGenerators.jobId.next(),
         ) : BaseHarness(user, sessionId) {
-            val byteArr = UtilGenerators.byteArray.next()
-            val imageInfo by lazy { InternalGenerators.serverImageInfo.next() }
-            val jobId by lazy { InternalGenerators.jobId.next() }
-            val queue: ImageJobQueue =
-                mockk {
-                    coEvery { submit(any()) } returns jobId
-                    coEvery { monitor(jobId) } returns flowOf(WorkerEvent.Success(Json.encodeToString(byteArr)))
-                }
+            val queue: ImageJobQueue = mockk {}
 
             init {
+                coEvery { queue.submit(any()) } returns jobId
+                coEvery { queue.monitor(jobId) } returns flowOf(WorkerEvent.Success(Json.encodeToString(byteArr)))
                 coEvery { cache.getImage(imageInfo.imageId) } returns byteArr
                 coEvery { db.getImage(imageInfo.imageId) } returns imageInfo
                 coEvery { cache.expireImage(any(), any()) } returns Unit
+            }
+
+            companion object {
+                val arb =
+                    arbitrary {
+                        Harness(
+                            user = InternalGenerators.serverUser.bind(),
+                            sessionId = ApiGenerators.sessionId.bind(),
+                            byteArr = UtilGenerators.byteArray.bind(),
+                            imageInfo = InternalGenerators.serverImageInfo.bind(),
+                            jobId = InternalGenerators.jobId.bind(),
+                        )
+                    }
             }
         }
 

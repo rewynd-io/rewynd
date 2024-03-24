@@ -4,9 +4,9 @@ import io.kotest.core.config.AbstractProjectConfig
 import io.kotest.property.PropertyTesting
 
 object KotestProjectConfig : AbstractProjectConfig() {
-    override val parallelism = 10
+    override val parallelism = 16
 
     override suspend fun beforeProject() {
-        PropertyTesting.defaultIterationCount = 100
+        PropertyTesting.defaultIterationCount = 10
     }
 }

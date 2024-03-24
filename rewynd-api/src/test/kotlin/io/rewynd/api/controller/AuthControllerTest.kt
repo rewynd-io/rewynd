@@ -7,6 +7,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.next
 import io.kotest.property.arbitrary.string
 import io.ktor.http.HttpStatusCode
@@ -29,14 +30,16 @@ import io.rewynd.common.database.Database
 import io.rewynd.common.hashPassword
 import io.rewynd.common.model.ServerUser
 import io.rewynd.model.LoginRequest
+import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.MemorySessionStorage
 import io.rewynd.test.UtilGenerators
+import io.rewynd.test.checkAllRun
 
 internal class AuthControllerTest : StringSpec({
 
     "verify failure" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { db.getUser(any()) } returns null
             testCall(
                 { verify() },
@@ -48,7 +51,7 @@ internal class AuthControllerTest : StringSpec({
     }
 
     "verify success" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             testCall(
                 { verify() },
                 setup = { setupApp(db) },
@@ -71,7 +74,7 @@ internal class AuthControllerTest : StringSpec({
     }
 
     "logout logged-in user" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             testCall(
                 { logout() },
                 setup = { setupApp(db) },
@@ -99,7 +102,7 @@ internal class AuthControllerTest : StringSpec({
     }
 
     "login success" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             val sessionStore = MemorySessionStorage()
             coEvery { db.mkSessionStorage() } returns sessionStore
             coEvery { db.getUser(userWithPass.user.username) } returns userWithPass
@@ -124,7 +127,7 @@ internal class AuthControllerTest : StringSpec({
     }
 
     "login invalidPass" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             val sessionStore = MemorySessionStorage()
             coEvery { db.mkSessionStorage() } returns sessionStore
             coEvery { db.getUser(userWithPass.user.username) } returns userWithPass
@@ -150,7 +153,7 @@ internal class AuthControllerTest : StringSpec({
     }
 
     "login missing element" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             val sessionStore = MemorySessionStorage()
             coEvery { db.mkSessionStorage() } returns sessionStore
             coEvery { db.getUser(userWithPass.user.username) } returns userWithPass
@@ -179,7 +182,7 @@ internal class AuthControllerTest : StringSpec({
     }
 
     "no user found" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             val sessionStore = MemorySessionStorage()
             coEvery { db.mkSessionStorage() } returns sessionStore
             coEvery { db.getUser(userWithPass.user.username) } returns null
@@ -206,11 +209,27 @@ internal class AuthControllerTest : StringSpec({
         private class Harness(
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
+            val password: String = Arb.string(minSize = 2).next(),
+            val salt: String = UtilGenerators.urlEncodedBase64.next(),
+            val hashedPass: String = hashPassword(password, salt),
+            val userWithPass: ServerUser = user.copy(hashedPass = hashedPass, salt = salt),
         ) : BaseHarness(user, sessionId) {
-            val password by lazy { Arb.string(minSize = 2).next() }
-            val salt by lazy { UtilGenerators.urlEncodedBase64.next() }
-            val hashedPass = hashPassword(password, salt)
-            val userWithPass by lazy { user.copy(hashedPass = hashedPass, salt = salt) }
+            companion object {
+                val arb =
+                    arbitrary {
+                        val password = Arb.string(minSize = 2).bind()
+                        val salt = UtilGenerators.urlEncodedBase64.bind()
+                        val hashedPass = hashPassword(password, salt)
+                        Harness(
+                            user = InternalGenerators.serverUser.bind(),
+                            sessionId = ApiGenerators.sessionId.bind(),
+                            password = password,
+                            salt = salt,
+                            hashedPass = hashedPass,
+                            userWithPass = user.copy(hashedPass = hashedPass, salt = salt),
+                        )
+                    }
+            }
         }
 
         val user = InternalGenerators.serverUser.next()

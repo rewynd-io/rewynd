@@ -2,6 +2,7 @@ package io.rewynd.api.controller
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.next
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -18,13 +19,15 @@ import io.rewynd.api.plugins.configureSession
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerShowInfo
 import io.rewynd.common.model.ServerUser
+import io.rewynd.model.Library
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
+import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
 
 internal class ShowControllerTest : StringSpec({
     "getShow" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery {
                 db.getShow(show.id)
             } returns show
@@ -42,7 +45,7 @@ internal class ShowControllerTest : StringSpec({
     }
 
     "listShows" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery {
                 db.listShows(library.name)
             } returns shows
@@ -63,10 +66,22 @@ internal class ShowControllerTest : StringSpec({
         private class Harness(
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
+            val show: ServerShowInfo = InternalGenerators.serverShowInfo.next(),
+            val shows: List<ServerShowInfo> = InternalGenerators.serverShowInfo.list().next(),
+            val library: Library = ApiGenerators.library.next(),
         ) : BaseHarness(user, sessionId) {
-            val show by lazy { InternalGenerators.serverShowInfo.next() }
-            val shows by lazy { InternalGenerators.serverShowInfo.list().next() }
-            val library by lazy { ApiGenerators.library.next() }
+            companion object {
+                val arb =
+                    arbitrary {
+                        Harness(
+                            InternalGenerators.serverUser.bind(),
+                            ApiGenerators.sessionId.bind(),
+                            InternalGenerators.serverShowInfo.bind(),
+                            InternalGenerators.serverShowInfo.list().bind(),
+                            ApiGenerators.library.bind(),
+                        )
+                    }
+            }
         }
 
         private fun ApplicationTestBuilder.setupApp(db: Database) {

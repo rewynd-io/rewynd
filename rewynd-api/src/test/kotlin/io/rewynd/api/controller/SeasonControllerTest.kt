@@ -2,6 +2,7 @@ package io.rewynd.api.controller
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -19,13 +20,16 @@ import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerSeasonInfo
+import io.rewynd.common.model.ServerShowInfo
 import io.rewynd.common.model.ServerUser
+import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
+import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
 
 internal class SeasonControllerTest : StringSpec({
     "getSeason" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery {
                 db.getSeason(season.seasonInfo.id)
             } returns season
@@ -43,7 +47,7 @@ internal class SeasonControllerTest : StringSpec({
     }
 
     "listSeasons" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery {
                 db.listSeasons(show.id)
             } returns seasons
@@ -64,10 +68,22 @@ internal class SeasonControllerTest : StringSpec({
         private class Harness(
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
+            val season: ServerSeasonInfo = InternalGenerators.serverSeasonInfo.next(),
+            val seasons: List<ServerSeasonInfo> = InternalGenerators.serverSeasonInfo.list().next(),
+            val show: ServerShowInfo = InternalGenerators.serverShowInfo.next(),
         ) : BaseHarness(user, sessionId) {
-            val season by lazy { InternalGenerators.serverSeasonInfo.next() }
-            val seasons by lazy { InternalGenerators.serverSeasonInfo.list().next() }
-            val show by lazy { InternalGenerators.serverShowInfo.next() }
+            companion object {
+                val arb =
+                    arbitrary {
+                        Harness(
+                            InternalGenerators.serverUser.bind(),
+                            ApiGenerators.sessionId.bind(),
+                            InternalGenerators.serverSeasonInfo.bind(),
+                            InternalGenerators.serverSeasonInfo.list().bind(),
+                            InternalGenerators.serverShowInfo.bind(),
+                        )
+                    }
+            }
         }
 
         private fun ApplicationTestBuilder.setupApp(db: Database) {

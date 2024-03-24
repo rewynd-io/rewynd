@@ -3,8 +3,8 @@ package io.rewynd.api.controller
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.int
-import io.kotest.property.arbitrary.next
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -16,9 +16,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyAll
 import io.mockk.mockk
-import io.rewynd.api.ADMIN_USER
 import io.rewynd.api.BaseHarness
-import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
 import io.rewynd.api.util.toIndexM3u8
 import io.rewynd.api.util.toStreamM3u8
@@ -26,17 +24,24 @@ import io.rewynd.api.util.toSubsM3u8
 import io.rewynd.common.cache.queue.StreamJobQueue
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ClientStreamEvents
+import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerUser
+import io.rewynd.common.model.StreamMapping
+import io.rewynd.common.model.StreamMetadata
 import io.rewynd.common.model.StreamMetadataWrapper
+import io.rewynd.common.model.SubtitleMetadata
+import io.rewynd.model.CreateStreamRequest
+import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.DummyCacheLock
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
+import io.rewynd.test.checkAllRun
 
 internal class StreamControllerTest : StringSpec({
     "getHlsIndexM3u8" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { cache.getStreamMetadata(streamId) } returns metadataWrapper
             testCall(
                 { getHlsIndexM3u8(streamId) },
@@ -52,7 +57,7 @@ internal class StreamControllerTest : StringSpec({
     }
 
     "getHlsStreamM3u8" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { cache.getStreamMetadata(streamId) } returns metadataWrapper
             testCall(
                 { getHlsStreamM3u8(streamId) },
@@ -68,7 +73,7 @@ internal class StreamControllerTest : StringSpec({
     }
 
     "getHlsSubsM3u8" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { cache.getStreamMetadata(streamId) } returns metadataWrapper
             testCall(
                 { getHlsSubsM3u8(streamId) },
@@ -84,7 +89,7 @@ internal class StreamControllerTest : StringSpec({
     }
 
     "getInitMp4" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { cache.getInitMp4(streamId) } returns byteArr
             testCall(
                 { getHlsInitStream(streamId) },
@@ -100,7 +105,7 @@ internal class StreamControllerTest : StringSpec({
     }
 
     "getSegmentM4s" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { cache.getSegmentM4s(streamId, segmentId) } returns byteArr
             testCall(
                 { getHlsSegment(streamId, segmentId.toString()) },
@@ -116,7 +121,7 @@ internal class StreamControllerTest : StringSpec({
     }
 
     "getSegmentSubtitles" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { cache.getStreamMetadata(streamId) } returns metadataWrapper
             testCall(
                 { getHlsSubs(streamId, subtitleSegId.toString()) },
@@ -132,7 +137,7 @@ internal class StreamControllerTest : StringSpec({
     }
 
     "createStream" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { db.getLibrary(createStreamRequest.library) } returns showLibrary
             coEvery { cache.tryAcquire(any(), any()) } answers { DummyCacheLock() }
             coEvery { cache.getSessionStreamMapping(sessionId) } returns null
@@ -154,7 +159,7 @@ internal class StreamControllerTest : StringSpec({
     }
 
     "deleteStream" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { streamJobQueue.cancel(streamMapping.jobId) } returns Unit
             coEvery { cache.getSessionStreamMapping(sessionId) } returns streamMapping
             coEvery { cache.getStreamMetadata(streamMapping.streamId) } returns metadataWrapper
@@ -187,7 +192,8 @@ internal class StreamControllerTest : StringSpec({
     }
 
     "heartbeatStream" {
-        Harness().run {
+        Harness.arb.checkAllRun {
+
             coEvery { streamJobQueue.notify(metadata.jobId, ClientStreamEvents.Heartbeat) } returns Unit
             coEvery { cache.getSessionStreamMapping(sessionId) } returns streamMapping
             coEvery { cache.expireSessionStreamJobId(sessionId, any()) } returns Unit
@@ -228,25 +234,45 @@ internal class StreamControllerTest : StringSpec({
 }) {
     companion object {
         private class Harness(
-            user: ServerUser = ADMIN_USER,
-            sessionId: String = SESSION_ID,
+            user: ServerUser,
+            sessionId: String,
+            val streamId: String,
+            val subtitleMetadata: SubtitleMetadata,
+            val metadata: StreamMetadata,
+            val metadataWrapper: StreamMetadataWrapper,
+            val byteArr: ByteArray,
+            val segmentId: Int,
+            val subtitleSegId: Int,
+            val streamMapping: StreamMapping,
+            val createStreamRequest: CreateStreamRequest,
+            val episode: ServerEpisodeInfo,
+            val showLibrary: Library,
         ) : BaseHarness(user, sessionId) {
-            val streamJobQueue = mockk<StreamJobQueue> {}
-            val streamId = ApiGenerators.streamId.next()
-            val subtitleMetadata = InternalGenerators.subtitleMetadata.next()
-            val metadata =
-                InternalGenerators.streamMetadata.next()
-                    .copy(
-                        subtitles = subtitleMetadata,
-                    )
-            val metadataWrapper = StreamMetadataWrapper(metadata)
-            val byteArr = UtilGenerators.byteArray.next()
-            val segmentId = UtilGenerators.int.next()
-            val subtitleSegId = Arb.int(0 until subtitleMetadata.segments.size).next()
-            val streamMapping = InternalGenerators.streamMapping.next()
-            val createStreamRequest = ApiGenerators.createStreamRequest.next()
-            val episode = InternalGenerators.serverEpisodeInfo.next()
-            val showLibrary = ApiGenerators.library.next().copy(type = LibraryType.Show)
+            val streamJobQueue: StreamJobQueue = mockk {}
+
+            companion object {
+                val arb =
+                    arbitrary {
+                        val subtitleMetadata = InternalGenerators.subtitleMetadata.bind()
+                        val metadata =
+                            InternalGenerators.streamMetadata.bind().copy(subtitles = subtitleMetadata)
+                        Harness(
+                            user = InternalGenerators.serverUser.bind(),
+                            sessionId = ApiGenerators.sessionId.bind(),
+                            streamId = ApiGenerators.streamId.bind(),
+                            subtitleMetadata = subtitleMetadata,
+                            metadata = metadata,
+                            metadataWrapper = StreamMetadataWrapper(metadata),
+                            byteArr = UtilGenerators.byteArray.bind(),
+                            segmentId = UtilGenerators.int.bind(),
+                            subtitleSegId = Arb.int(subtitleMetadata.segments.indices).bind(),
+                            streamMapping = InternalGenerators.streamMapping.bind(),
+                            createStreamRequest = ApiGenerators.createStreamRequest.bind(),
+                            episode = InternalGenerators.serverEpisodeInfo.bind(),
+                            showLibrary = ApiGenerators.library.bind().copy(type = LibraryType.Show),
+                        )
+                    }
+            }
         }
 
         private fun ApplicationTestBuilder.setupApp(

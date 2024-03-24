@@ -2,6 +2,8 @@ package io.rewynd.api.controller
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.property.arbitrary.arbitrary
+import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
@@ -16,21 +18,23 @@ import io.mockk.mockk
 import io.rewynd.api.ADMIN_USER
 import io.rewynd.api.BaseHarness
 import io.rewynd.api.NON_ADMIN_USER
-import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
+import io.rewynd.common.cache.queue.JobId
 import io.rewynd.common.cache.queue.ScanJobQueue
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerUser
 import io.rewynd.model.DeleteLibrariesRequest
+import io.rewynd.model.Library
 import io.rewynd.model.ScanLibrariesRequest
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
+import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
 
 internal class LibraryControllerTest : StringSpec({
     "getLibrary" {
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { db.getLibrary(library.name) } returns library
             testCall(
                 {
@@ -50,7 +54,7 @@ internal class LibraryControllerTest : StringSpec({
 
     "listLibraries" {
         val libraries = ApiGenerators.library.list().next()
-        Harness().run {
+        Harness.arb.checkAllRun {
             coEvery { db.listLibraries() } returns libraries
             testCall(
                 { listLibraries() },
@@ -67,7 +71,7 @@ internal class LibraryControllerTest : StringSpec({
     }
 
     "deleteLibraries - success" {
-        Harness().run {
+        Harness.arb.map { it.copy(userParam = ADMIN_USER, sessionIdParam = it.sessionId) }.checkAllRun {
             coEvery { db.deleteLibrary(any()) } returns true
             testCall(
                 { deleteLibraries(DeleteLibrariesRequest(libraryIds)) },
@@ -92,7 +96,7 @@ internal class LibraryControllerTest : StringSpec({
     }
 
     "deleteLibraries - forbidden" {
-        Harness(NON_ADMIN_USER).run {
+        Harness.arb.map { it.copy(userParam = NON_ADMIN_USER, sessionIdParam = it.sessionId) }.checkAllRun {
             coEvery { db.upsertLibrary(library) } returns true
             testCall(
                 { deleteLibraries(DeleteLibrariesRequest(libraryIds)) },
@@ -110,7 +114,7 @@ internal class LibraryControllerTest : StringSpec({
     }
 
     "createLibrary - success" {
-        Harness().run {
+        Harness.arb.map { it.copy(userParam = ADMIN_USER, sessionIdParam = it.sessionId) }.checkAllRun {
             coEvery { queue.submit(library) } returns jobId
             coEvery { db.upsertLibrary(library) } returns true
             testCall(
@@ -130,7 +134,7 @@ internal class LibraryControllerTest : StringSpec({
     }
 
     "createLibrary - forbidden" {
-        Harness(NON_ADMIN_USER).run {
+        Harness.arb.map { it.copy(userParam = NON_ADMIN_USER, sessionIdParam = it.sessionId) }.checkAllRun {
             testCall(
                 { createLibrary(library) },
                 setup = {
@@ -148,7 +152,7 @@ internal class LibraryControllerTest : StringSpec({
     }
 
     "scanLibrary - success" {
-        Harness().run {
+        Harness.arb.map { it.copy(userParam = ADMIN_USER, sessionIdParam = it.sessionId) }.checkAllRun {
             coEvery { queue.submit(library) } returns jobId
             testCall(
                 { scanLibraries(ScanLibrariesRequest(listOf(library.name))) },
@@ -167,7 +171,7 @@ internal class LibraryControllerTest : StringSpec({
     }
 
     "scanLibrary - Forbidden" {
-        Harness(NON_ADMIN_USER).run {
+        Harness.arb.map { it.copy(userParam = NON_ADMIN_USER, sessionIdParam = it.sessionId) }.checkAllRun {
             testCall(
                 { scanLibraries(ScanLibrariesRequest(listOf(library.name))) },
                 setup = {
@@ -185,17 +189,30 @@ internal class LibraryControllerTest : StringSpec({
     }
 }) {
     companion object {
-        class Harness(
-            user: ServerUser = ADMIN_USER,
-            sessionId: String = SESSION_ID,
-        ) : BaseHarness(user, sessionId) {
+        data class Harness(
+            val userParam: ServerUser,
+            val sessionIdParam: String,
+            val library: Library,
+            val libraryIds: List<String>,
+            val jobId: JobId,
+        ) : BaseHarness(userParam, sessionIdParam) {
             val queue: ScanJobQueue = mockk()
-            val library by lazy { ApiGenerators.library.next() }
-            val libraryIds by lazy { UtilGenerators.string.list().next() }
-            val jobId by lazy { InternalGenerators.jobId.next() }
 
             init {
                 coEvery { db.getLibrary(library.name) } returns library
+            }
+
+            companion object {
+                val arb =
+                    arbitrary {
+                        Harness(
+                            userParam = InternalGenerators.serverUser.bind(),
+                            sessionIdParam = ApiGenerators.sessionId.bind(),
+                            library = ApiGenerators.library.bind(),
+                            libraryIds = UtilGenerators.string.list().bind(),
+                            jobId = InternalGenerators.jobId.bind(),
+                        )
+                    }
             }
         }
 
