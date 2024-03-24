@@ -14,6 +14,8 @@ import io.kotest.property.exhaustive.enum
 import io.rewynd.model.Actor
 import io.rewynd.model.AudioTrack
 import io.rewynd.model.CreateStreamRequest
+import io.rewynd.model.CreateUserRequest
+import io.rewynd.model.DeleteUsersRequest
 import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.model.MediaInfo
@@ -27,7 +29,9 @@ import io.rewynd.model.SearchResultType
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.SubtitleTrack
 import io.rewynd.model.User
+import io.rewynd.model.UserPermissions
 import io.rewynd.model.VideoTrack
+import io.rewynd.test.UtilGenerators.boolean
 import io.rewynd.test.UtilGenerators.double
 import io.rewynd.test.UtilGenerators.duration
 import io.rewynd.test.UtilGenerators.string
@@ -83,6 +87,9 @@ object ApiGenerators {
                 Exhaustive.enum<LibraryType>().toArb().bind(),
             )
         }
+
+    val username = Arb.string(minSize = 1)
+
     val user = Arb.bind<User>()
 
     val progress =
@@ -131,6 +138,22 @@ object ApiGenerators {
                 subtitleTrack = subtitleTrack.bind().id,
                 startOffset = duration.bind().inWholeMilliseconds.toDouble(),
                 normalization = normalizationProps.bind(),
+            )
+        }
+
+    val createUserRequest =
+        arbitrary {
+            CreateUserRequest(
+                username = username.bind(),
+                permissions = UserPermissions(UtilGenerators.boolean.bind()),
+                password = Arb.string(minSize = 2).bind(),
+            )
+        }
+
+    val deleteUsersRequest =
+        arbitrary {
+            DeleteUsersRequest(
+                username.list().bind(),
             )
         }
 }

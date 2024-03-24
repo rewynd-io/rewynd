@@ -27,6 +27,8 @@ import io.rewynd.common.generateSalt
 import io.rewynd.common.hashPassword
 import io.rewynd.common.model.ServerUser
 import io.rewynd.model.ChangePasswordRequest
+import io.rewynd.model.CreateUserRequest
+import io.rewynd.model.DeleteUsersRequest
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
@@ -45,6 +47,40 @@ internal class UserControllerTest : StringSpec({
             }
             coVerify {
                 db.listUsers()
+            }
+        }
+    }
+
+    "createUser" {
+        Harness.arb.map { it.copy(userParam = it.user.setIsAdmin(true)) }.checkAllRun {
+            coEvery { db.upsertUser(any()) } returns true
+            testCall(
+                { createUser(createUserRequest) },
+                setup = { setupApp(db) },
+            ) {
+                status shouldBe HttpStatusCode.OK.value
+            }
+            coVerify {
+                db.upsertUser(any())
+            }
+        }
+    }
+
+    "deleteUser" {
+        Harness.arb.map { it.copy(userParam = it.user.setIsAdmin(true)) }.checkAllRun {
+            coEvery { db.deleteUser(any()) } returns true
+            testCall(
+                { deleteUsers(deleteUsersRequest) },
+                setup = { setupApp(db) },
+            ) {
+                status shouldBe HttpStatusCode.OK.value
+            }
+            if (deleteUsersRequest.users.isNotEmpty()) {
+                coVerify {
+                    deleteUsersRequest.users.forEach {
+                        db.deleteUser(it)
+                    }
+                }
             }
         }
     }
@@ -87,6 +123,8 @@ internal class UserControllerTest : StringSpec({
             val oldPassword: String,
             val oldSalt: String,
             val newSalt: String,
+            val createUserRequest: CreateUserRequest,
+            val deleteUsersRequest: DeleteUsersRequest,
         ) : BaseHarness(userParam, sessionIdParam) {
             val oldHashedPass: String = hashPassword(oldPassword, oldSalt)
             val newHashedPass: String = hashPassword(newPassword, newSalt)
@@ -109,6 +147,8 @@ internal class UserControllerTest : StringSpec({
                             Arb.string(minSize = 2).filter { it != oldPass }.bind(),
                             UtilGenerators.urlEncodedBase64.bind(),
                             UtilGenerators.urlEncodedBase64.bind(),
+                            ApiGenerators.createUserRequest.bind(),
+                            ApiGenerators.deleteUsersRequest.bind(),
                         )
                     }
             }

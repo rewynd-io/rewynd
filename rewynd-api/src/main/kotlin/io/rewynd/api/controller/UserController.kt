@@ -57,20 +57,6 @@ fun Route.userRoutes(db: Database) {
             }
         }
 
-        // TODO add to spec or remove
-        route("/get") {
-            install(mkAdminAuthZPlugin(db))
-
-            get("/{username}") {
-                val user = call.parameters["username"]?.let { db.getUser(it) }?.user
-                if (user == null) {
-                    call.respond(HttpStatusCode.NotFound)
-                } else {
-                    call.respond(user)
-                }
-            }
-        }
-
         route("/create") {
             install(mkAdminAuthZPlugin(db))
 
