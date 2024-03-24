@@ -74,9 +74,9 @@ val copySources =
                     "val baseUrl: String",
                 )
                 .replace(
-                    // Fix invalid return type for getImage
-                    "getImage(imageId: kotlin.String): HttpResponse<org.openapitools.client.infrastructure.OctetByteArray>",
-                    "getImage(imageId: kotlin.String): HttpResponse<io.ktor.utils.io.ByteReadChannel>",
+                    // Fix invalid return type for binary responses
+                    "HttpResponse<org.openapitools.client.infrastructure.OctetByteArray>",
+                    "HttpResponse<io.ktor.utils.io.ByteReadChannel>",
                 )
                 .replace(
                     // TODO remove this and get gzip encoding working with empty responses

@@ -22,6 +22,7 @@ object UtilGenerators {
     val double = Arb.double()
     val boolean = Arb.boolean()
     val instant = Arb.instant()
+    val int = Arb.int()
 
     // TODO improve actual cron expressions
     val cron =

@@ -26,6 +26,7 @@ import io.rewynd.common.model.ServerShowInfo
 import io.rewynd.common.model.ServerSubtitleTrack
 import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.ServerVideoTrack
+import io.rewynd.common.model.StreamMapping
 import io.rewynd.common.model.StreamMetadata
 import io.rewynd.common.model.StreamProps
 import io.rewynd.common.model.StreamSegmentMetadata
@@ -84,7 +85,7 @@ object InternalGenerators {
     val subtitleMetadata =
         arbitrary {
             SubtitleMetadata(
-                segments = subtitleSegment.list().bind(),
+                segments = subtitleSegment.list(1..10).bind(),
                 complete = boolean.bind(),
             )
         }
@@ -231,6 +232,14 @@ object InternalGenerators {
                 id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
                 cronExpression = UtilGenerators.cron.bind(),
                 scanTasks = serverScanTask.list().bind(),
+            )
+        }
+
+    val streamMapping =
+        arbitrary {
+            StreamMapping(
+                string.bind(),
+                jobId.bind(),
             )
         }
 }

@@ -8,6 +8,7 @@ import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.asString
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.double
+import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.string
 import io.kotest.property.exhaustive.enum
 import io.rewynd.model.Actor
@@ -19,6 +20,7 @@ import io.rewynd.model.Progress
 import io.rewynd.model.SearchRequest
 import io.rewynd.model.SearchResponse
 import io.rewynd.model.SearchResult
+import io.rewynd.model.SearchResultType
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.SubtitleTrack
 import io.rewynd.model.User
@@ -27,7 +29,7 @@ import io.rewynd.test.UtilGenerators.double
 import io.rewynd.test.UtilGenerators.string
 
 object ApiGenerators {
-    val streamId = Arb.string()
+    val streamId = Codepoint.alphanumeric().map { it.asString() } // TODO switch back to string.bind()
     val audioTrack = Arb.bind<AudioTrack>()
     val videoTrack = Arb.bind<VideoTrack>()
     val subtitleTrack = Arb.bind<SubtitleTrack>()
@@ -89,7 +91,16 @@ object ApiGenerators {
             SearchRequest(string.bind())
         }
 
-    val searchResult = Arb.bind<SearchResult>()
+    val searchResult =
+        arbitrary {
+            SearchResult(
+                resultType = Exhaustive.enum<SearchResultType>().toArb().bind(), // TODO switch back to string.bind()
+                id = Codepoint.alphanumeric().bind().asString(),
+                title = string.bind(),
+                description = string.bind(),
+                score = Arb.double(0.0, 1.0).bind(),
+            )
+        }
 
     val searchResponse =
         arbitrary {

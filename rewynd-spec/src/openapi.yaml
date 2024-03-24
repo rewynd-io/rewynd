@@ -679,6 +679,10 @@ paths:
       responses:
         200:
           description: "Successfully got the HLS stream index."
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
 
   /api/stream/{streamId}/stream.m3u8:
     get:
@@ -695,6 +699,10 @@ paths:
       responses:
         200:
           description: "Successfully got the HLS video stream."
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
 
   /api/stream/{streamId}/subs.m3u8:
     get:
@@ -711,6 +719,10 @@ paths:
       responses:
         200:
           description: "Successfully got the HLS subtitles stream"
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
 
   /api/stream/{streamId}/{segmentId}.vtt:
     get:
@@ -733,6 +745,10 @@ paths:
       responses:
         200:
           description: "Successfully got the stream subtitles."
+          content:
+            text/vtt:
+              schema:
+                type: string
 
   /api/stream/{streamId}/init-stream.mp4:
     get:
@@ -749,6 +765,11 @@ paths:
       responses:
         200:
           description: "Successfully got the stream initial mp4."
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
 
   /api/stream/{streamId}/{segmentId}.m4s:
     get:
@@ -771,6 +792,11 @@ paths:
       responses:
         200:
           description: "Successfully got a stream segment."
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
 
   /api/image/{imageId}:
     get:
@@ -1193,6 +1219,8 @@ components:
           type: string
         score:
           type: number
+          maximum: 1.0
+          minimum: 0.0
       required:
         - resultType
         - id

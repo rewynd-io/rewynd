@@ -111,7 +111,7 @@ fun Route.streamRoutes(
         call.parameters["streamId"]?.let { streamId ->
             call.sessionId<UserSession>()?.let { sessionId ->
                 cache.getSessionStreamMapping(sessionId)?.let { streamMapping ->
-                    deleteStream(queue, streamMapping, cache)
+                    deleteStream(queue, streamMapping, cache, sessionId)
                     call.respond(HttpStatusCode.OK)
                 } ?: call.respond(HttpStatusCode.NotFound)
             } ?: call.respond(HttpStatusCode.Forbidden)
@@ -227,7 +227,7 @@ private fun CoroutineScope.createStream(
 ) {
     withLock(cache, "Lock:Session:$sessionId:Stream", 10.seconds, 10.seconds) {
         cache.getSessionStreamMapping(sessionId)?.let { streamMapping ->
-            deleteStream(queue, streamMapping, cache)
+            deleteStream(queue, streamMapping, cache, sessionId)
         }
 
         cache.putStreamMetadata(
@@ -264,6 +264,7 @@ private suspend fun deleteStream(
     queue: StreamJobQueue,
     streamMapping: StreamMapping,
     cache: Cache,
+    sessionId: String,
 ) = with(streamMapping) {
     queue.cancel(jobId)
     (0 until (cache.getStreamMetadata(streamId)?.streamMetadata?.segments?.size ?: 0)).forEach {
@@ -272,4 +273,5 @@ private suspend fun deleteStream(
     cache.delInitMp4(streamId)
     cache.delStreamMetadata(streamId)
     cache.delInitMp4(streamId)
+    cache.delSessionStreamMapping(sessionId)
 }
