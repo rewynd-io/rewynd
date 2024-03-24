@@ -13,6 +13,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.exhaustive.enum
 import io.rewynd.model.Actor
 import io.rewynd.model.AudioTrack
+import io.rewynd.model.CreateStreamRequest
 import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.model.MediaInfo
@@ -106,4 +107,6 @@ object ApiGenerators {
         arbitrary {
             SearchResponse(searchResult.list().bind())
         }
+
+    val createStreamRequest = Arb.bind<CreateStreamRequest>()
 }

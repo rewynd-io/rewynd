@@ -272,6 +272,5 @@ private suspend fun deleteStream(
     }
     cache.delInitMp4(streamId)
     cache.delStreamMetadata(streamId)
-    cache.delInitMp4(streamId)
     cache.delSessionStreamMapping(sessionId)
 }
