@@ -13,9 +13,21 @@ export function EpisodesLoader(props: EpisodesLoaderProps) {
   const [episodeInfos, setEpisodeInfos] = useState<EpisodeInfo[]>();
 
   useEffect(() => {
-    HttpClient.listEpisodes({ seasonId: props.seasonId }).then((it) =>
-      setEpisodeInfos(it),
-    );
+    (async () => {
+      let cursor: string | undefined = undefined;
+      const episodes: EpisodeInfo[] = [];
+      do {
+        const res = await HttpClient.listEpisodes({
+          listEpisodesRequest: {
+            seasonId: props.seasonId,
+            cursor: cursor,
+          },
+        });
+        cursor = res.cursor;
+        episodes.push(...res.page);
+      } while (cursor);
+      setEpisodeInfos(episodes);
+    })();
   }, [props.seasonId]);
 
   return <Loading waitFor={episodeInfos} render={(it) => props.onLoad(it)} />;

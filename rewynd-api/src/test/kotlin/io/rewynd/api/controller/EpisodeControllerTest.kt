@@ -22,6 +22,8 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesByLastUpdatedResponse
+import io.rewynd.model.ListEpisodesRequest
+import io.rewynd.model.ListEpisodesResponse
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
@@ -82,11 +84,11 @@ internal class EpisodeControllerTest : StringSpec({
             coEvery { db.listEpisodes(season.seasonInfo.id) } returns episodes
 
             testCall(
-                { listEpisodes(season.seasonInfo.id) },
+                { listEpisodes(ListEpisodesRequest(season.seasonInfo.id)) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe episodes.map(ServerEpisodeInfo::toEpisodeInfo)
+                body() shouldBe ListEpisodesResponse(episodes.map(ServerEpisodeInfo::toEpisodeInfo), episodes.lastOrNull()?.id)
             }
         }
     }

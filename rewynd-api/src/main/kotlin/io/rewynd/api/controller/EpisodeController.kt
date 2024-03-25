@@ -12,12 +12,15 @@ import io.rewynd.api.util.getNextEpisodeInSeason
 import io.rewynd.common.database.Database
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesByLastUpdatedResponse
+import io.rewynd.model.ListEpisodesRequest
+import io.rewynd.model.ListEpisodesResponse
 
 fun Route.episodeRoutes(db: Database) {
-    get("/episode/list/{seasonId}") {
-        call.parameters["seasonId"]?.let { seasonId ->
-            call.respond(db.listEpisodes(seasonId).map { it.toEpisodeInfo() })
-        } ?: call.respond(HttpStatusCode.BadRequest)
+    post("/episode/list") {
+        call.receive<ListEpisodesRequest>().let { request ->
+            val page = db.listEpisodes(request.seasonId, request.cursor).map { it.toEpisodeInfo() }
+            call.respond(ListEpisodesResponse(page, page.lastOrNull()?.id))
+        }
     }
     post("/episode/listByLastUpdated") {
         call.receive<ListEpisodesByLastUpdatedRequest>().let { request ->

@@ -485,27 +485,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/SeasonInfo"
 
-  /api/episode/list/{seasonId}:
-    get:
+  /api/episode/list:
+    post:
       operationId: listEpisodes
       security:
         - CookieAuth: []
-      parameters:
-        - name: seasonId
-          in: path
-          required: true
-          description: "The season for which to list all episodes for"
-          schema:
-            $ref: "#/components/schemas/SeasonId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListEpisodesRequest"
       responses:
         "200":
-          description: "Successful query. "
+          description: "Successful query."
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EpisodeInfo"
+                $ref: "#/components/schemas/ListEpisodesResponse"
 
   /api/episode/listByLastUpdated:
     post:
@@ -1196,6 +1192,28 @@ components:
       required:
         - text
 
+    ListEpisodesRequest:
+      type: object
+      properties:
+        seasonId:
+          $ref: "#/components/schemas/SeasonId"
+        cursor:
+          $ref: "#/components/schemas/ListEpisodesCursor"
+      required:
+        - seasonId
+
+    ListEpisodesResponse:
+      type: object
+      properties:
+        page:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeInfo"
+        cursor:
+          $ref: "#/components/schemas/ListEpisodesCursor"
+      required:
+        - page
+
     SearchResponse:
       type: object
       properties:
@@ -1277,6 +1295,8 @@ components:
     MediaId:
       type: string
     SeasonId:
+      type: string
+    ListEpisodesCursor:
       type: string
     ShowId:
       type: string

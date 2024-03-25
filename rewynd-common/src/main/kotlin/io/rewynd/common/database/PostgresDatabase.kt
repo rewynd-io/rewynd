@@ -2,6 +2,7 @@ package io.rewynd.common.database
 
 import io.rewynd.common.config.DatabaseConfig
 import io.rewynd.common.config.datasource
+import io.rewynd.common.database.PostgresDatabase.Episodes
 import io.rewynd.common.database.PostgresExtensions.upsert
 import io.rewynd.common.generateSalt
 import io.rewynd.common.hashPassword
@@ -294,9 +295,20 @@ class PostgresDatabase(
             } == 1
         }
 
-    override suspend fun listEpisodes(seasonId: String): List<ServerEpisodeInfo> =
+    override suspend fun listEpisodes(
+        seasonId: String,
+        cursor: String?,
+    ): List<ServerEpisodeInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes.select { Episodes.seasonId eq seasonId }.map { it.toServerEpisodeInfo() }
+            Episodes.selectAll()
+                .where {
+                    cursor?.let {
+                        Episodes.seasonId eq seasonId and (Episodes.episodeId greater it)
+                    } ?: (Episodes.seasonId eq seasonId)
+                }
+                .orderBy(Episodes.episodeId, SortOrder.ASC)
+                .limit(100)
+                .map { it.toServerEpisodeInfo() }
         }
 
     override suspend fun listEpisodesByLastUpdated(

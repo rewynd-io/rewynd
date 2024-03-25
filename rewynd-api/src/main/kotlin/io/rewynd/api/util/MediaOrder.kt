@@ -1,7 +1,9 @@
 package io.rewynd.api.util
 
 import io.rewynd.common.database.Database
+import io.rewynd.common.database.listAllEpisodes
 import io.rewynd.common.model.ServerEpisodeInfo
+import kotlinx.coroutines.flow.toList
 import java.text.Collator
 import java.util.Comparator
 import java.util.Locale
@@ -32,7 +34,7 @@ suspend fun getNextEpisodeInSeason(
     db: Database,
     serverEpisodeInfo: ServerEpisodeInfo,
     reverse: Boolean = false,
-) = db.listEpisodes(serverEpisodeInfo.seasonId).sort().let { seasonEpisodes ->
+) = db.listAllEpisodes(serverEpisodeInfo.seasonId).toList().sort().let { seasonEpisodes ->
     val chosenIndex =
         seasonEpisodes.indexOfFirst {
             it.id == serverEpisodeInfo.id

@@ -37,7 +37,7 @@ internal class MediaOrderTest : StringSpec({
             val selected = sortedEpisodes.indices.random()
             val db =
                 mockk<Database> {
-                    coEvery { listEpisodes(any()) } returns uniqueEpisodes
+                    coEvery { listEpisodes(any(), any()) } returnsMany listOf(uniqueEpisodes, emptyList())
                 }
             getNextEpisodeInSeason(
                 db,
@@ -57,7 +57,12 @@ internal class MediaOrderTest : StringSpec({
         ) { episode, episodes ->
             val db =
                 mockk<Database> {
-                    coEvery { listEpisodes(any()) } returns episodes.uniqueBy { it.id }.filter { it.id != episode.id }
+                    coEvery { listEpisodes(any(), any()) } returnsMany
+                        listOf(
+                            episodes.uniqueBy { it.id }
+                                .filter { it.id != episode.id },
+                            emptyList(),
+                        )
                 }
             getNextEpisodeInSeason(
                 db,

@@ -66,7 +66,10 @@ sealed interface Database {
 
     suspend fun deleteEpisode(episodeId: String): Boolean
 
-    suspend fun listEpisodes(seasonId: String): List<ServerEpisodeInfo>
+    suspend fun listEpisodes(
+        seasonId: String,
+        cursor: String? = null,
+    ): List<ServerEpisodeInfo>
 
     suspend fun listEpisodesByLastUpdated(
         cursor: Long?,

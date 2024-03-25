@@ -12,10 +12,12 @@ import io.ktor.utils.io.jvm.javaio.copyTo
 import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.client.RewyndClient
+import io.rewynd.client.listEpisodesFlow
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.Library
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
+import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListProgressRequest
 import io.rewynd.model.Progress
 import io.rewynd.model.SeasonInfo
@@ -197,11 +199,9 @@ class BrowserViewModel(
 
     fun loadEpisodes(seasonId: String) {
         this.viewModelScope.launch(Dispatchers.IO) {
-            episodes.postValue(
-                requireNotNull(
-                    client.listEpisodes(seasonId).body().sortedBy { it.episode },
-                ),
-            )
+            client.listEpisodesFlow(ListEpisodesRequest(seasonId)).collect {
+                episodes.postValue((episodes.value ?: emptyList()) + listOf(it))
+            }
         }
     }
 
