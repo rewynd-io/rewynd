@@ -2,7 +2,6 @@ package io.rewynd.common.database
 
 import io.rewynd.common.config.DatabaseConfig
 import io.rewynd.common.config.datasource
-import io.rewynd.common.database.PostgresDatabase.Episodes
 import io.rewynd.common.database.PostgresExtensions.upsert
 import io.rewynd.common.generateSalt
 import io.rewynd.common.hashPassword
@@ -47,7 +46,6 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.or
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -98,7 +96,7 @@ class PostgresDatabase(
 
     override suspend fun getUser(username: String): ServerUser? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Users.select { Users.username eq username }.limit(1).firstOrNull()?.toServerUser()
+            Users.selectAll().where { Users.username eq username }.limit(1).firstOrNull()?.toServerUser()
         }
 
     override suspend fun upsertUser(user: ServerUser): Boolean =
@@ -128,7 +126,7 @@ class PostgresDatabase(
 
     override suspend fun getLibrary(libraryId: String): Library? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Libraries.select { Libraries.libraryId eq libraryId }.firstOrNull()?.let {
+            Libraries.selectAll().where { Libraries.libraryId eq libraryId }.firstOrNull()?.let {
                 Library(
                     name = it[Libraries.libraryId],
                     type = it[Libraries.type],
@@ -166,7 +164,7 @@ class PostgresDatabase(
 
     override suspend fun getShow(showId: String): ServerShowInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Shows.select { Shows.showId eq showId }.firstOrNull()?.toServerShowInfo()
+            Shows.selectAll().where { Shows.showId eq showId }.firstOrNull()?.toServerShowInfo()
         }
 
     override suspend fun upsertShow(show: ServerShowInfo): Boolean =
@@ -216,9 +214,7 @@ class PostgresDatabase(
 
     override suspend fun getSeason(seasonId: String): ServerSeasonInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Seasons.select {
-                Seasons.seasonId eq seasonId
-            }.firstOrNull()?.toServerSeasonInfo()
+            Seasons.selectAll().where { Seasons.seasonId eq seasonId }.firstOrNull()?.toServerSeasonInfo()
         }
 
     override suspend fun upsertSeason(season: ServerSeasonInfo): Boolean =
@@ -246,12 +242,12 @@ class PostgresDatabase(
 
     override suspend fun listSeasons(showId: String): List<ServerSeasonInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Seasons.select { Seasons.showId eq showId }.map { it.toServerSeasonInfo() }
+            Seasons.selectAll().where { Seasons.showId eq showId }.map { it.toServerSeasonInfo() }
         }
 
     override suspend fun getEpisode(episodeId: String): ServerEpisodeInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes.select { Episodes.episodeId eq episodeId }.firstOrNull()?.toServerEpisodeInfo()
+            Episodes.selectAll().where { Episodes.episodeId eq episodeId }.firstOrNull()?.toServerEpisodeInfo()
         }
 
     override suspend fun upsertEpisode(episode: ServerEpisodeInfo): Boolean =
@@ -317,7 +313,7 @@ class PostgresDatabase(
     ): List<ServerEpisodeInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             if (cursor != null) {
-                Episodes.select {
+                Episodes.selectAll().where {
                     when (order) {
                         ListEpisodesByLastUpdatedOrder.Newest -> Episodes.lastUpdated.less(cursor)
                         ListEpisodesByLastUpdatedOrder.Oldest -> Episodes.lastUpdated.greater(cursor)
@@ -352,7 +348,7 @@ class PostgresDatabase(
 
     override suspend fun getSchedule(scheduleId: String): ServerScheduleInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Schedules.select { Schedules.scheduleId eq scheduleId }.firstOrNull()
+            Schedules.selectAll().where { Schedules.scheduleId eq scheduleId }.firstOrNull()
                 ?.toServerScheduleInfo()
         }
 
@@ -385,9 +381,7 @@ class PostgresDatabase(
 
     override suspend fun getImage(imageId: String): ServerImageInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Images.select {
-                Images.imageId eq imageId
-            }.firstOrNull()?.toServerImageInfo()
+            Images.selectAll().where { Images.imageId eq imageId }.firstOrNull()?.toServerImageInfo()
         }
 
     override suspend fun upsertImage(imageInfo: ServerImageInfo): Boolean =
@@ -432,9 +426,7 @@ class PostgresDatabase(
 
             override suspend fun read(id: String): String =
                 newSuspendedTransaction(currentCoroutineContext(), conn) {
-                    Sessions.select {
-                        Sessions.sessionId eq id
-                    }.firstOrNull()?.getOrNull(Sessions.value)
+                    Sessions.selectAll().where { Sessions.sessionId eq id }.firstOrNull()?.getOrNull(Sessions.value)
                         ?: throw NoSuchElementException("Session $id not found")
                 }
         }
@@ -479,7 +471,7 @@ class PostgresDatabase(
         updatedAfter: Instant?,
     ): LibraryIndex? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            LibraryIndicies.select {
+            LibraryIndicies.selectAll().where {
                 if (updatedAfter != null) {
                     LibraryIndicies.libraryId eq libraryId and (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
                 } else {
@@ -511,9 +503,7 @@ class PostgresDatabase(
         username: String,
     ): UserProgress? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Progression.select {
-                Progression.mediaId eq id
-            }.firstOrNull()?.toProgress()
+            Progression.selectAll().where { Progression.mediaId eq id }.firstOrNull()?.toProgress()
         }
 
     override suspend fun upsertProgress(progress: UserProgress): Boolean =
@@ -543,24 +533,24 @@ class PostgresDatabase(
         maxPercent: Double,
     ): List<UserProgress> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Progression.select {
+            Progression.selectAll().where {
                 (
-                    Progression.percent.lessEq(maxPercent) and
-                        Progression.percent.greaterEq(minPercent) and
-                        Progression.username.eq(username)
-                ).let {
-                    if (cursor != null) {
-                        it and (
-                            Progression.timestamp.less(cursor.timestamp.toLong()) or (
-                                Progression.timestamp.eq(
-                                    cursor.timestamp.toLong(),
-                                ) and Progression.mediaId.less(cursor.id)
-                            )
-                        )
-                    } else {
-                        it
+                        Progression.percent.lessEq(maxPercent) and
+                                Progression.percent.greaterEq(minPercent) and
+                                Progression.username.eq(username)
+                        ).let {
+                        if (cursor != null) {
+                            it and (
+                                    Progression.timestamp.less(cursor.timestamp.toLong()) or (
+                                            Progression.timestamp.eq(
+                                                cursor.timestamp.toLong(),
+                                            ) and Progression.mediaId.less(cursor.id)
+                                            )
+                                    )
+                        } else {
+                            it
+                        }
                     }
-                }
             }.orderBy(Progression.timestamp to SortOrder.ASC, Progression.mediaId to SortOrder.ASC)
                 .asFlow()
                 .map { it.toProgress() }
