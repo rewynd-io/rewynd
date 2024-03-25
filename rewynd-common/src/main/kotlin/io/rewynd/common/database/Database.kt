@@ -14,7 +14,6 @@ import io.rewynd.common.model.SessionStorage
 import io.rewynd.common.model.UserProgress
 import io.rewynd.model.Library
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
-import io.rewynd.model.Progress
 import kotlinx.datetime.Instant
 
 sealed interface Database {
@@ -139,7 +138,7 @@ sealed interface Database {
 
     suspend fun listRecentProgress(
         username: String,
-        cursor: Progress? = null,
+        cursor: Instant? = null,
         minPercent: Double = 0.0,
         maxPercent: Double = 1.0,
     ): List<UserProgress>

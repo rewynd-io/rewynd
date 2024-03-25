@@ -44,12 +44,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import java.util.Date
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -547,7 +547,7 @@ class PlayerService : Service() {
                             Progress(
                                 m.info.id,
                                 (currentTime.inWholeMilliseconds / 1000.0) / m.info.runTime,
-                                Date().time.toDouble(),
+                                Clock.System.now(),
                             ),
                         )
                     }.onFailure { log.error(it) { "Failed to putUserProgress" } }

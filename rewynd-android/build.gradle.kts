@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.androidx.gridlayout)
     implementation(libs.kotlin.serialization)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.coroutines.jdk8)
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.lifecycle.livedata.ktx)

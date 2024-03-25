@@ -217,7 +217,7 @@ object InternalGenerators {
                 username = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
                 id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
                 percent = Arb.double(0.0, 1.0).bind(),
-                timestamp = instant.bind().toEpochMilliseconds().toDouble(),
+                timestamp = instant.bind(),
             )
         }
 

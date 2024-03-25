@@ -251,7 +251,7 @@ export class HlsPlayerManager extends EventEmitter {
           const progress: Progress = {
             id: this.lastMediaSelection.info.id,
             percent: currPct,
-            timestamp: Date.now(),
+            timestamp: new Date(),
           };
           await HttpClient.putUserProgress({ progress: progress });
           return progress;

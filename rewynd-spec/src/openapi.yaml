@@ -1264,13 +1264,13 @@ components:
         limit:
           type: number
         cursor:
-          $ref: "#/components/schemas/Progress"
+          $ref: "#/components/schemas/ListProgressCursor"
 
     ListProgressResponse:
       type: object
       properties:
         cursor:
-          $ref: "#/components/schemas/Progress"
+          $ref: "#/components/schemas/ListProgressCursor"
         results:
           type: array
           items:
@@ -1391,6 +1391,13 @@ components:
         - startOffset
         - duration
 
+    Timestamp:
+      type: string
+      format: date-time
+
+    ListProgressCursor:
+      $ref: "#/components/schemas/Timestamp"
+
     Progress:
       type: object
       properties:
@@ -1400,8 +1407,7 @@ components:
           type: number
           description: "Progress through the media as a percentage (0 to 1)."
         timestamp:
-          type: number
-          description: "Epoch millis timestamp for when the progress was set."
+          $ref: "#/components/schemas/Timestamp"
       required:
         - id
         - percent

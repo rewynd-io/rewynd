@@ -97,7 +97,7 @@ object ApiGenerators {
             Progress(
                 string.bind(),
                 percent = Arb.double(0.0, 1.0).bind(),
-                timestamp = UtilGenerators.instant.bind().toEpochMilliseconds().toDouble(),
+                timestamp = UtilGenerators.instant.bind(),
             )
         }
 

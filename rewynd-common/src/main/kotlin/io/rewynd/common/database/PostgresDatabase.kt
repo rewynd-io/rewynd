@@ -23,7 +23,6 @@ import io.rewynd.common.model.UserProgress
 import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
-import io.rewynd.model.Progress
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.User
 import io.rewynd.model.UserPermissions
@@ -45,7 +44,6 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -510,7 +508,7 @@ class PostgresDatabase(
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Progression.upsert(Progression.mediaId) {
                 it[Progression.mediaId] = progress.id
-                it[Progression.timestamp] = progress.timestamp.toLong()
+                it[Progression.timestamp] = progress.timestamp.toEpochMilliseconds()
                 it[Progression.username] = progress.username
                 it[Progression.percent] = progress.percent
             }.insertedCount == 1
@@ -528,29 +526,23 @@ class PostgresDatabase(
 
     override suspend fun listRecentProgress(
         username: String,
-        cursor: Progress?,
+        cursor: Instant?,
         minPercent: Double,
         maxPercent: Double,
     ): List<UserProgress> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Progression.selectAll().where {
                 (
-                        Progression.percent.lessEq(maxPercent) and
-                                Progression.percent.greaterEq(minPercent) and
-                                Progression.username.eq(username)
-                        ).let {
-                        if (cursor != null) {
-                            it and (
-                                    Progression.timestamp.less(cursor.timestamp.toLong()) or (
-                                            Progression.timestamp.eq(
-                                                cursor.timestamp.toLong(),
-                                            ) and Progression.mediaId.less(cursor.id)
-                                            )
-                                    )
-                        } else {
-                            it
-                        }
+                    Progression.percent.lessEq(maxPercent) and
+                        Progression.percent.greaterEq(minPercent) and
+                        Progression.username.eq(username)
+                ).let {
+                    if (cursor != null) {
+                        it and Progression.timestamp.less(cursor.toEpochMilliseconds())
+                    } else {
+                        it
                     }
+                }
             }.orderBy(Progression.timestamp to SortOrder.ASC, Progression.mediaId to SortOrder.ASC)
                 .asFlow()
                 .map { it.toProgress() }
@@ -823,7 +815,7 @@ class PostgresDatabase(
             UserProgress(
                 id = this[Progression.mediaId],
                 percent = this[Progression.percent],
-                timestamp = this[Progression.timestamp].toDouble(),
+                timestamp = Instant.fromEpochMilliseconds(this[Progression.timestamp]),
                 username = this[Progression.username],
             )
     }

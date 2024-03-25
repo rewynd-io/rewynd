@@ -79,7 +79,7 @@ function isMovieInfo(obj: unknown): obj is MovieInfo {
 export function resetCompletedProgress(progress: Progress): Progress {
   return progress.percent <= 0.99
     ? progress
-    : { id: progress.id, percent: 0, timestamp: Date.now() };
+    : { id: progress.id, percent: 0, timestamp: new Date() };
 }
 
 export function isResponseError(obj: unknown): obj is ResponseError {

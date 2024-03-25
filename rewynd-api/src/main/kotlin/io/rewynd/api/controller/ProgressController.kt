@@ -25,7 +25,7 @@ fun Route.progressRoutes(db: Database) {
                     db.getProgress(mediaId, username)?.toProgress() ?: Progress(
                         mediaId,
                         0.0,
-                        Clock.System.now().toEpochMilliseconds().toDouble(),
+                        Clock.System.now(),
                     ),
                 )
             } ?: call.respond(HttpStatusCode.Forbidden)
