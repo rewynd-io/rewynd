@@ -13,3 +13,13 @@ suspend fun Database.listAllEpisodes(seasonId: String) =
             cursor = res.lastOrNull()?.id
         } while (cursor != null)
     }
+
+suspend fun Database.listAllSchedules() =
+    flow {
+        var cursor: String? = null
+        do {
+            val res = listSchedules(cursor = cursor)
+            emitAll(res.asFlow())
+            cursor = res.lastOrNull()?.id
+        } while (cursor != null)
+    }

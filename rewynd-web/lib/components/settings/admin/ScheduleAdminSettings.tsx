@@ -68,9 +68,16 @@ export function ScheduleAdminSettings() {
   const [deleteLibrariesDialogOpen, setDeleteLibrariesDialogOpen] =
     useState(false);
 
-  const updateLibrariesAndSchedules = () => {
+  const updateLibrariesAndSchedules = async () => {
     HttpClient.listLibraries().then((it) => setLibraries(it));
-    HttpClient.listSchedules().then((it) => setSchedules(it));
+    let scheduleCursor: string | undefined;
+    const schedules = [];
+    do {
+      const res = await HttpClient.listSchedules();
+      scheduleCursor = res.cursor;
+      schedules.push(...res.page);
+    } while (scheduleCursor);
+    setSchedules(schedules);
   };
 
   useEffect(() => {

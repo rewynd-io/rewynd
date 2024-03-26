@@ -23,6 +23,7 @@ import io.rewynd.common.model.ServerScheduleInfo
 import io.rewynd.common.model.ServerUser
 import io.rewynd.common.toSchedule
 import io.rewynd.model.DeleteScheduleRequest
+import io.rewynd.model.ListSchedulesRequest
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.checkAllRun
@@ -47,17 +48,19 @@ internal class ScheduleControllerTest : StringSpec({
 
     "listSchedules" {
         Harness.arb.checkAllRun {
-
             testCall(
-                { listSchedules() },
+                { listSchedules(listSchedulesRequest) },
                 setup = { setupApp(db, queue) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe schedules.map { it.toSchedule() }
+                body().let { body ->
+                    body.page shouldBe schedules.map { it.toSchedule() }
+                    body.cursor shouldBe schedules.lastOrNull()?.id
+                }
             }
 
             coVerify {
-                db.listSchedules()
+                db.listSchedules(listSchedulesRequest.cursor)
             }
         }
     }
@@ -102,6 +105,7 @@ internal class ScheduleControllerTest : StringSpec({
             val schedule: ServerScheduleInfo,
             val schedules: List<ServerScheduleInfo>,
             val jobId: JobId,
+            val listSchedulesRequest: ListSchedulesRequest,
         ) : BaseHarness(user, sessionId) {
             val queue: RefreshScheduleJobQueue = mockk {}
 
@@ -109,7 +113,7 @@ internal class ScheduleControllerTest : StringSpec({
                 coEvery { queue.submit(Unit) } returns jobId
                 coEvery { db.getSchedule(schedule.id) } returns schedule
                 coEvery { db.upsertSchedule(schedule) } returns true
-                coEvery { db.listSchedules() } returns schedules
+                coEvery { db.listSchedules(listSchedulesRequest.cursor) } returns schedules
             }
 
             companion object {
@@ -121,6 +125,7 @@ internal class ScheduleControllerTest : StringSpec({
                             InternalGenerators.serverScheduleInfo.bind(),
                             InternalGenerators.serverScheduleInfo.list().bind(),
                             InternalGenerators.jobId.bind(),
+                            ApiGenerators.listSchedulesRequest.bind(),
                         )
                     }
             }

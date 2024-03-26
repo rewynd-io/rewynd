@@ -282,19 +282,22 @@ paths:
                 $ref: "#/components/schemas/Schedule"
 
   /api/schedule/list:
-    get:
+    post:
       operationId: listSchedules
       security:
         - CookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListSchedulesRequest"
       responses:
         200:
           description: "Successfully listed schedules."
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Schedule"
+                $ref: "#/components/schemas/ListSchedulesResponse"
 
   /api/lib/delete:
     post:
@@ -1587,6 +1590,24 @@ components:
         - id
         - cronExpression
         - scanTasks
+
+    ListSchedulesRequest:
+      type: object
+      properties:
+        cursor:
+          $ref: "#/components/schemas/ScheduleId"
+
+    ListSchedulesResponse:
+      type: object
+      properties:
+        page:
+          type: array
+          items:
+            $ref: "#/components/schemas/Schedule"
+        cursor:
+          $ref: "#/components/schemas/ScheduleId"
+      required:
+        - page
 
     CronExpression:
       type: string

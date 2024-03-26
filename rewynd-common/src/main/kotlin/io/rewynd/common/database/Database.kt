@@ -41,7 +41,7 @@ sealed interface Database {
 
     suspend fun deleteSchedule(scheduleId: String): Boolean
 
-    suspend fun listSchedules(): List<ServerScheduleInfo>
+    suspend fun listSchedules(cursor: String?): List<ServerScheduleInfo>
 
     suspend fun getShow(showId: String): ServerShowInfo?
 

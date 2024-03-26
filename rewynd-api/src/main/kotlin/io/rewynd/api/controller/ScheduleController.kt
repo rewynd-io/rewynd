@@ -15,6 +15,8 @@ import io.rewynd.common.database.Database
 import io.rewynd.common.toSchedule
 import io.rewynd.common.toServerScheduleInfo
 import io.rewynd.model.DeleteScheduleRequest
+import io.rewynd.model.ListSchedulesRequest
+import io.rewynd.model.ListSchedulesResponse
 import io.rewynd.model.Schedule
 import org.quartz.CronExpression
 
@@ -26,8 +28,16 @@ fun Route.scheduleRoutes(
         route("/list") {
             install(mkAdminAuthZPlugin(db))
 
-            get {
-                call.respond(db.listSchedules())
+            post {
+                val req = call.receive<ListSchedulesRequest>()
+
+                val scheds = db.listSchedules(req.cursor)
+                call.respond(
+                    ListSchedulesResponse(
+                        scheds.map { it.toSchedule() },
+                        scheds.lastOrNull()?.id,
+                    ),
+                )
             }
         }
 

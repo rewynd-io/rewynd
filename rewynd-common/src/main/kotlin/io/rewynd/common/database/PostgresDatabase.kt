@@ -366,9 +366,15 @@ class PostgresDatabase(
             } == 1
         }
 
-    override suspend fun listSchedules(): List<ServerScheduleInfo> =
+    override suspend fun listSchedules(cursor: String?): List<ServerScheduleInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Schedules.selectAll().map {
+            Schedules.selectAll().let {
+                if (cursor != null) {
+                    it.where { Schedules.scheduleId greater cursor }
+                } else {
+                    it
+                }
+            }.orderBy(Schedules.scheduleId, SortOrder.ASC).map {
                 ServerScheduleInfo(
                     id = it[Schedules.scheduleId],
                     cronExpression = it[Schedules.cronExpression],

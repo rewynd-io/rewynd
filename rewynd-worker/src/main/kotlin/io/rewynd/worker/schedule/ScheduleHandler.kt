@@ -6,6 +6,7 @@ import io.rewynd.common.cache.queue.RefreshScheduleJobQueue
 import io.rewynd.common.cache.queue.ScanJobQueue
 import io.rewynd.common.cache.withLock
 import io.rewynd.common.database.Database
+import io.rewynd.common.database.listAllSchedules
 import io.rewynd.common.model.ServerScanTask
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -51,7 +52,7 @@ class ScheduleHandler(
         runBlocking {
             log.info { "Refreshing schedules" }
             scheduler.clear()
-            db.listSchedules().forEach { scheduleInfo ->
+            db.listAllSchedules().collect { scheduleInfo ->
                 scheduleInfo.scanTasks.forEachIndexed { index, task ->
                     scheduleScanJob(
                         task,
