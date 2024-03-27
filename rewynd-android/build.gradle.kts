@@ -27,8 +27,8 @@ android {
         applicationId = "io.rewynd.android"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.compileSdk.get().toInt()
-        versionCode = now.toEpochMilli().toInt()
-        versionName = now.toEpochMilli().toString()
+        versionCode = now.epochSecond.toInt()
+        versionName = now.epochSecond.toString()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
