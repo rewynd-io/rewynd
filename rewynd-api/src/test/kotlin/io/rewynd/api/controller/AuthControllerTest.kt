@@ -81,7 +81,7 @@ internal class AuthControllerTest : StringSpec({
             ) {
                 status shouldBe HttpStatusCode.OK.value
                 shouldThrow<NoSuchElementException> {
-                    session.read(SESSION_ID)
+                    sessionStorage.read(SESSION_ID)
                 }
             }
         }
@@ -95,7 +95,7 @@ internal class AuthControllerTest : StringSpec({
             ) {
                 status shouldBe HttpStatusCode.OK.value
                 shouldThrow<NoSuchElementException> {
-                    session.read(SESSION_ID)
+                    sessionStorage.read(SESSION_ID)
                 }
             }
         }

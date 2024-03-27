@@ -7,8 +7,6 @@ import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.string
-import io.ktor.client.call.body
-import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -91,7 +89,7 @@ internal class UserControllerTest : StringSpec({
                 mockk<Database> {}
             coEvery { mockDb.getUser(user.user.username) } returns userWithOldPass
             coEvery { mockDb.upsertUser(any()) } returns true
-            coEvery { mockDb.mkSessionStorage() } returns session
+            coEvery { mockDb.mkSessionStorage() } returns sessionStorage
             mockkStatic(::generateSalt)
             coEvery { generateSalt() } returns newSalt
             testCall(

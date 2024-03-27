@@ -6,7 +6,6 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
-import io.ktor.client.plugins.cookies.addCookie
 import io.ktor.http.Cookie
 import io.ktor.http.Url
 import io.ktor.serialization.kotlinx.json.json
@@ -37,23 +36,24 @@ open class BaseHarness(
     val user: ServerUser,
     val sessionId: String,
 ) {
-    val session: SessionStorage =
+    val session =
+        UserSession(
+            sessionId,
+            user.user.username,
+        )
+
+    val sessionStorage: SessionStorage =
         MemorySessionStorage().apply {
             runBlocking {
                 write(
                     sessionId,
-                    SESSION_SERIALIZER.serialize(
-                        UserSession(
-                            sessionId,
-                            user.user.username,
-                        ),
-                    ),
+                    SESSION_SERIALIZER.serialize(session),
                 )
             }
         }
     val db: Database =
         mockk<Database> {
-            coEvery { mkSessionStorage() } returns session
+            coEvery { mkSessionStorage() } returns sessionStorage
             coEvery { getUser(user.user.username) } returns user
         }
 

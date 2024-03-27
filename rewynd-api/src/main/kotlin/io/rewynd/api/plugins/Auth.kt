@@ -23,7 +23,7 @@ fun mkAuthNPlugin() =
     }
 
 fun mkAdminAuthZPlugin(db: Database) =
-    createRouteScopedPlugin(name = "AuthN") {
+    createRouteScopedPlugin(name = "AuthZ") {
         onCall {
             val isAdmin =
                 it.sessions.get<UserSession>()?.username?.let { user ->
