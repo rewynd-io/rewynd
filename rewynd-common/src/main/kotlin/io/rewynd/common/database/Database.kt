@@ -33,7 +33,7 @@ sealed interface Database {
 
     suspend fun deleteLibrary(libraryId: String): Boolean
 
-    suspend fun listLibraries(): List<Library>
+    suspend fun listLibraries(cursor: String?): List<Library>
 
     suspend fun getSchedule(scheduleId: String): ServerScheduleInfo?
 

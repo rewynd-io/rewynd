@@ -4,8 +4,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.map
-import io.kotest.property.arbitrary.next
-import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -25,6 +23,8 @@ import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerUser
 import io.rewynd.model.DeleteLibrariesRequest
 import io.rewynd.model.Library
+import io.rewynd.model.ListLibrariesRequest
+import io.rewynd.model.ListLibrariesResponse
 import io.rewynd.model.ScanLibrariesRequest
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
@@ -53,19 +53,18 @@ internal class LibraryControllerTest : StringSpec({
     }
 
     "listLibraries" {
-        val libraries = ApiGenerators.library.list().next()
         Harness.arb.checkAllRun {
-            coEvery { db.listLibraries() } returns libraries
+            coEvery { db.listLibraries(listLibrariesRequest.cursor) } returns libraries
             testCall(
-                { listLibraries() },
+                { listLibraries(listLibrariesRequest) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe libraries
+                body() shouldBe ListLibrariesResponse(libraries, libraries.lastOrNull()?.name)
             }
 
             coVerify {
-                db.listLibraries()
+                db.listLibraries(listLibrariesRequest.cursor)
             }
         }
     }
@@ -193,8 +192,10 @@ internal class LibraryControllerTest : StringSpec({
             val userParam: ServerUser,
             val sessionIdParam: String,
             val library: Library,
+            val libraries: List<Library>,
             val libraryIds: List<String>,
             val jobId: JobId,
+            val listLibrariesRequest: ListLibrariesRequest,
         ) : BaseHarness(userParam, sessionIdParam) {
             val queue: ScanJobQueue = mockk()
 
@@ -209,8 +210,10 @@ internal class LibraryControllerTest : StringSpec({
                             userParam = InternalGenerators.serverUser.bind(),
                             sessionIdParam = ApiGenerators.sessionId.bind(),
                             library = ApiGenerators.library.bind(),
+                            libraries = ApiGenerators.library.list().bind(),
                             libraryIds = UtilGenerators.string.list().bind(),
                             jobId = InternalGenerators.jobId.bind(),
+                            listLibrariesRequest = ApiGenerators.listLibrariesRequest.bind(),
                         )
                     }
             }

@@ -9,6 +9,7 @@ import {
   instanceOfEpisodeInfo,
   instanceOfMovieInfo,
 } from "@rewynd.io/rewynd-client-typescript";
+import { HttpClient } from "./const";
 
 export type Nil = undefined | null | void;
 
@@ -91,4 +92,30 @@ export function isResponseError(obj: unknown): obj is ResponseError {
     obj.name === "ResponseError" &&
     !!obj.response
   );
+}
+
+export async function loadAllLibraries() {
+  let cursor: string | undefined = undefined;
+  const libs = [];
+  do {
+    const res = await HttpClient.listLibraries({
+      listLibrariesRequest: { cursor: cursor },
+    });
+    cursor = res.cursor;
+    libs.push(...res.page);
+  } while (cursor);
+  return libs;
+}
+
+export async function loadAllSchedules() {
+  let cursor: string | undefined = undefined;
+  const schedules = [];
+  do {
+    const res = await HttpClient.listSchedules({
+      listSchedulesRequest: { cursor: cursor },
+    });
+    cursor = res.cursor;
+    schedules.push(...res.page);
+  } while (cursor);
+  return schedules;
 }

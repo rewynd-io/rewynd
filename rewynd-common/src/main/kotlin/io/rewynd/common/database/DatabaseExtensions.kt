@@ -1,25 +1,25 @@
 package io.rewynd.common.database
 
+import io.rewynd.common.model.ServerEpisodeInfo
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 
-suspend fun Database.listAllEpisodes(seasonId: String) =
-    flow {
-        var cursor: String? = null
-        do {
-            val res = listEpisodes(seasonId, cursor = cursor)
-            emitAll(res.asFlow())
-            cursor = res.lastOrNull()?.id
-        } while (cursor != null)
-    }
+private suspend fun <Item, Cursor> iterateWithCursor(
+    call: suspend (Cursor?) -> List<Item>,
+    cursorProp: List<Item>.() -> Cursor?,
+) = flow {
+    var cursor: Cursor? = null
+    do {
+        val res = call.invoke(cursor)
+        emitAll(res.asFlow())
+        cursor = res.cursorProp()
+    } while (cursor != null)
+}
 
-suspend fun Database.listAllSchedules() =
-    flow {
-        var cursor: String? = null
-        do {
-            val res = listSchedules(cursor = cursor)
-            emitAll(res.asFlow())
-            cursor = res.lastOrNull()?.id
-        } while (cursor != null)
-    }
+suspend fun Database.listAllEpisodes(seasonId: String) =
+    iterateWithCursor<ServerEpisodeInfo, String>({ listEpisodes(seasonId, it) }) { lastOrNull()?.id }
+
+suspend fun Database.listAllSchedules() = iterateWithCursor(this::listSchedules) { lastOrNull()?.id }
+
+suspend fun Database.listAllLibraries() = iterateWithCursor(this::listLibraries) { lastOrNull()?.name }

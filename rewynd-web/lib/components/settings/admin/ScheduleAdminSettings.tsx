@@ -16,7 +16,11 @@ import { Library, Schedule } from "@rewynd.io/rewynd-client-typescript";
 import { List } from "immutable";
 import { HttpClient } from "../../../const";
 import Cron from "react-cron-generator";
-import { isResponseError } from "../../../util";
+import {
+  isResponseError,
+  loadAllLibraries,
+  loadAllSchedules,
+} from "../../../util";
 import { LibraryLoader } from "../../loader/LibraryLoader";
 
 // TODO declare using value getter for type safety
@@ -69,15 +73,8 @@ export function ScheduleAdminSettings() {
     useState(false);
 
   const updateLibrariesAndSchedules = async () => {
-    HttpClient.listLibraries().then((it) => setLibraries(it));
-    let scheduleCursor: string | undefined;
-    const schedules = [];
-    do {
-      const res = await HttpClient.listSchedules();
-      scheduleCursor = res.cursor;
-      schedules.push(...res.page);
-    } while (scheduleCursor);
-    setSchedules(schedules);
+    loadAllLibraries().then(setLibraries);
+    loadAllSchedules().then(setSchedules);
   };
 
   useEffect(() => {

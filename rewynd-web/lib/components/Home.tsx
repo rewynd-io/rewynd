@@ -14,7 +14,7 @@ import { cardWidth, HttpClient } from "../const";
 import { EpisodeCard } from "./browser/card/EpisodeCard";
 import { WebLog } from "../log";
 import "../util";
-import { isNotNil } from "../util";
+import { isNotNil, loadAllLibraries } from "../util";
 import { ApiImage } from "./Image";
 import { Link } from "./Link";
 
@@ -32,7 +32,7 @@ export function Home() {
   const [newestEpisodes, setNewestEpisodes] = useState<EpisodeInfo[]>([]);
 
   useEffect(() => {
-    HttpClient.listLibraries().then((it) => setLibraries(it));
+    loadAllLibraries().then(setLibraries);
     HttpClient.listProgress({
       listProgressRequest: {
         minPercent: 0.05,

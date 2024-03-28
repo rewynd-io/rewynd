@@ -14,14 +14,19 @@ import io.rewynd.common.cache.queue.ScanJobQueue
 import io.rewynd.common.database.Database
 import io.rewynd.model.DeleteLibrariesRequest
 import io.rewynd.model.Library
+import io.rewynd.model.ListLibrariesRequest
+import io.rewynd.model.ListLibrariesResponse
 import io.rewynd.model.ScanLibrariesRequest
 
 fun Route.libRoutes(
     db: Database,
     scanJobQueue: ScanJobQueue,
 ) {
-    get("/lib/list") {
-        call.respond(db.listLibraries())
+    post("/lib/list") {
+        val req = call.receive<ListLibrariesRequest>()
+        val page = db.listLibraries(req.cursor)
+        val cursor = page.lastOrNull()?.name
+        call.respond(ListLibrariesResponse(page, cursor))
     }
     get("/lib/get/{lib}") {
         val lib = call.parameters["lib"]?.let { db.getLibrary(it) }

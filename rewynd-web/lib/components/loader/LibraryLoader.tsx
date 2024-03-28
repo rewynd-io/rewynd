@@ -1,7 +1,7 @@
 import { Library } from "@rewynd.io/rewynd-client-typescript";
 import { Loading } from "../Loading";
 import React, { ReactElement, useEffect, useState } from "react";
-import { HttpClient } from "../../const";
+import { loadAllLibraries } from "../../util";
 
 export interface LibraryLoaderProps {
   onLoad: (libraries: Library[]) => ReactElement;
@@ -12,7 +12,7 @@ export function LibraryLoader(props: LibraryLoaderProps) {
   const [libraries, setLibraries] = useState<Library[]>();
 
   useEffect(() => {
-    HttpClient.listLibraries().then((it) => setLibraries(it));
+    loadAllLibraries().then(setLibraries);
   }, []);
 
   return (

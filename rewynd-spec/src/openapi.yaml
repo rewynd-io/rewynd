@@ -328,19 +328,22 @@ paths:
           description: "Successfully began scanning the libraries."
 
   /api/lib/list:
-    get:
+    post:
       operationId: listLibraries
       security:
         - CookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListLibrariesRequest"
       responses:
         200:
           description: "Successfully listed libraries."
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Library"
+                $ref: "#/components/schemas/ListLibrariesResponse"
 
   /api/lib/get/{libraryId}:
     get:
@@ -1459,6 +1462,27 @@ components:
             type: string
       required:
         - libraryIds
+
+    ListLibrariesCursor:
+      type: string
+
+    ListLibrariesRequest:
+      type: object
+      properties:
+        cursor:
+          $ref: "#/components/schemas/ListLibrariesCursor"
+
+    ListLibrariesResponse:
+      type: object
+      properties:
+        page:
+          type: array
+          items:
+            $ref: "#/components/schemas/Library"
+        cursor:
+          $ref: "#/components/schemas/ListLibrariesCursor"
+      required:
+        - page
 
     Track:
       type: object

@@ -20,6 +20,7 @@ import type { LibraryType } from "@rewynd.io/rewynd-client-typescript";
 import { List } from "immutable";
 import { HttpClient } from "../../../const";
 import { MultiInput } from "../../MultiInput";
+import { loadAllLibraries } from "../../../util";
 
 const columns: GridColDef[] = [
   {
@@ -93,8 +94,7 @@ export function LibraryAdminSettings() {
   const [deleteLibrariesDialogOpen, setDeleteLibrariesDialogOpen] =
     useState(false);
 
-  const fetchLibraries = () =>
-    HttpClient.listLibraries().then((it) => setLibraries(it));
+  const fetchLibraries = () => loadAllLibraries().then(setLibraries);
 
   useEffect(() => {
     fetchLibraries().then();

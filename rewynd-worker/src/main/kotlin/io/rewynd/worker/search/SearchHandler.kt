@@ -3,6 +3,7 @@ package io.rewynd.worker.search
 import arrow.core.identity
 import io.rewynd.common.cache.queue.SearchJobHandler
 import io.rewynd.common.database.Database
+import io.rewynd.common.database.listAllLibraries
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerShowInfo
@@ -66,7 +67,7 @@ class SearchHandler(val db: Database) {
     }
 
     suspend fun updateIndicies() {
-        this.db.listLibraries().asFlow().mapNotNull { library ->
+        this.db.listAllLibraries().mapNotNull { library ->
             val existingIndex = libIndicies[library.name]
             db.getLibraryIndex(library.name, existingIndex?.lastUpdated)?.let { libraryIndex ->
                 val index = deserializeDirectory(libraryIndex.index)

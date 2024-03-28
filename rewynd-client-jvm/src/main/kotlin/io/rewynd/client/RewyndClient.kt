@@ -2,6 +2,8 @@ package io.rewynd.client
 
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
+import io.rewynd.model.ListLibrariesRequest
+import io.rewynd.model.ListLibrariesResponse
 import io.rewynd.model.ListSchedulesRequest
 import io.rewynd.model.ListSchedulesResponse
 import kotlinx.coroutines.flow.Flow
@@ -37,4 +39,9 @@ fun RewyndClient.listEpisodesFlow(listEpisodesRequest: ListEpisodesRequest) =
 fun RewyndClient.listSchedulesFlow(listSchedulesRequest: ListSchedulesRequest = ListSchedulesRequest()) =
     mkFlowMethod(listSchedulesRequest, this::listSchedules, ListSchedulesResponse::page) {
         it.cursor?.let { cursor -> listSchedulesRequest.copy(cursor = cursor) }
+    }
+
+fun RewyndClient.listLibrariesFlow(listLibrariesRequest: ListLibrariesRequest) =
+    mkFlowMethod(listLibrariesRequest, this::listLibraries, ListLibrariesResponse::page) {
+        it.cursor?.let { cursor -> listLibrariesRequest.copy(cursor = cursor) }
     }

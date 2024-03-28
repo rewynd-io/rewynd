@@ -149,9 +149,15 @@ class PostgresDatabase(
             } == 1
         }
 
-    override suspend fun listLibraries(): List<Library> =
+    override suspend fun listLibraries(cursor: String?): List<Library> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Libraries.selectAll().map {
+            Libraries.selectAll().let {
+                if (cursor != null) {
+                    it.where { Libraries.libraryId greater cursor }
+                } else {
+                    it
+                }
+            }.orderBy(Libraries.libraryId, SortOrder.ASC).map {
                 Library(
                     name = it[Libraries.libraryId],
                     type = it[Libraries.type],
