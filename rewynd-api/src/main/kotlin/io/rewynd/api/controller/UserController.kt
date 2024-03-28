@@ -21,6 +21,8 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.model.ChangePasswordRequest
 import io.rewynd.model.CreateUserRequest
 import io.rewynd.model.DeleteUsersRequest
+import io.rewynd.model.ListUsersRequest
+import io.rewynd.model.ListUsersResponse
 import io.rewynd.model.User
 import io.rewynd.model.UserPreferences
 import java.security.MessageDigest
@@ -52,8 +54,11 @@ fun Route.userRoutes(db: Database) {
         route("/list") {
             install(mkAdminAuthZPlugin(db))
 
-            get {
-                call.respond(db.listUsers().map { it.user })
+            post {
+                val req = call.receive<ListUsersRequest>()
+                val users = db.listUsers(req.cursor).map { it.user }
+                val cursor = users.lastOrNull()?.username
+                call.respond(ListUsersResponse(users, cursor))
             }
         }
 

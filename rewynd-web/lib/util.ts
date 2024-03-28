@@ -119,3 +119,16 @@ export async function loadAllSchedules() {
   } while (cursor);
   return schedules;
 }
+
+export async function loadAllUsers() {
+  let cursor: string | undefined = undefined;
+  const users = [];
+  do {
+    const res = await HttpClient.listUsers({
+      listUsersRequest: { cursor: cursor },
+    });
+    cursor = res.cursor;
+    users.push(...res.page);
+  } while (cursor);
+  return users;
+}

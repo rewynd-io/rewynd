@@ -13,6 +13,7 @@ import {
 import { HttpClient } from "../../../const";
 import "../../../declarations";
 import { UserPermissions } from "@rewynd.io/rewynd-client-typescript";
+import { loadAllUsers } from "../../../util";
 
 // TODO declare using value getter for type safety
 const columns: GridColDef[] = [
@@ -58,7 +59,7 @@ export function UserAdminSettings() {
   const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);
   const [deleteUsersDialogOpen, setDeleteUsersDialogOpen] = useState(false);
 
-  const fetchUsers = () => HttpClient.listUsers().then((it) => setUsers(it));
+  const fetchUsers = () => loadAllUsers().then(setUsers);
 
   useEffect(() => {
     fetchUsers();

@@ -27,6 +27,8 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.model.ChangePasswordRequest
 import io.rewynd.model.CreateUserRequest
 import io.rewynd.model.DeleteUsersRequest
+import io.rewynd.model.ListUsersRequest
+import io.rewynd.model.ListUsersResponse
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.UtilGenerators
@@ -36,15 +38,16 @@ import io.rewynd.test.list
 internal class UserControllerTest : StringSpec({
     "listUsers" {
         Harness.arb.map { it.copy(userParam = it.user.setIsAdmin(true)) }.checkAllRun {
+            val users = serverUsers.map { it.user }
             testCall(
-                { listUsers() },
+                { listUsers(listUsersReq) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe users.map { it.user }
+                body() shouldBe ListUsersResponse(users, users.lastOrNull()?.username)
             }
             coVerify {
-                db.listUsers()
+                db.listUsers(listUsersReq.cursor)
             }
         }
     }
@@ -116,13 +119,14 @@ internal class UserControllerTest : StringSpec({
         private data class Harness(
             val userParam: ServerUser,
             val sessionIdParam: String,
-            val users: List<ServerUser>,
+            val serverUsers: List<ServerUser>,
             val newPassword: String,
             val oldPassword: String,
             val oldSalt: String,
             val newSalt: String,
             val createUserRequest: CreateUserRequest,
             val deleteUsersRequest: DeleteUsersRequest,
+            val listUsersReq: ListUsersRequest,
         ) : BaseHarness(userParam, sessionIdParam) {
             val oldHashedPass: String = hashPassword(oldPassword, oldSalt)
             val newHashedPass: String = hashPassword(newPassword, newSalt)
@@ -130,7 +134,7 @@ internal class UserControllerTest : StringSpec({
             val userWithNewPass: ServerUser = user.copy(hashedPass = newHashedPass, salt = newSalt)
 
             init {
-                coEvery { db.listUsers() } returns users
+                coEvery { db.listUsers(listUsersReq.cursor) } returns serverUsers
             }
 
             companion object {
@@ -147,6 +151,7 @@ internal class UserControllerTest : StringSpec({
                             UtilGenerators.urlEncodedBase64.bind(),
                             ApiGenerators.createUserRequest.bind(),
                             ApiGenerators.deleteUsersRequest.bind(),
+                            ApiGenerators.listUsersRequest.bind(),
                         )
                     }
             }

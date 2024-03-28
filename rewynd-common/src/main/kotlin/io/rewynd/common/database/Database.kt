@@ -25,7 +25,7 @@ sealed interface Database {
 
     suspend fun deleteUser(username: String): Boolean
 
-    suspend fun listUsers(): List<ServerUser>
+    suspend fun listUsers(cursor: String?): List<ServerUser>
 
     suspend fun getLibrary(libraryId: String): Library?
 

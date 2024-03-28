@@ -115,9 +115,15 @@ class PostgresDatabase(
             } == 1
         }
 
-    override suspend fun listUsers(): List<ServerUser> =
+    override suspend fun listUsers(cursor: String?): List<ServerUser> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Users.selectAll().map {
+            Users.selectAll().let {
+                if (cursor != null) {
+                    it.where { Users.username greater cursor }
+                } else {
+                    it
+                }
+            }.orderBy(Users.username, SortOrder.ASC).map {
                 it.toServerUser()
             }
         }

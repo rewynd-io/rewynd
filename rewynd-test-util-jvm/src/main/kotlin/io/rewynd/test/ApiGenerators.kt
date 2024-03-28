@@ -20,6 +20,7 @@ import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.model.ListLibrariesRequest
 import io.rewynd.model.ListSchedulesRequest
+import io.rewynd.model.ListUsersRequest
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.NormalizationMethod
 import io.rewynd.model.NormalizationProps
@@ -167,5 +168,10 @@ object ApiGenerators {
     val listLibrariesRequest =
         arbitrary {
             ListLibrariesRequest(cursor = string.nullable().bind())
+        }
+
+    val listUsersRequest =
+        arbitrary {
+            ListUsersRequest(cursor = string.nullable().bind())
         }
 }

@@ -23,3 +23,5 @@ suspend fun Database.listAllEpisodes(seasonId: String) =
 suspend fun Database.listAllSchedules() = iterateWithCursor(this::listSchedules) { lastOrNull()?.id }
 
 suspend fun Database.listAllLibraries() = iterateWithCursor(this::listLibraries) { lastOrNull()?.name }
+
+suspend fun Database.listAllUsers() = iterateWithCursor(this::listUsers) { lastOrNull()?.user?.username }

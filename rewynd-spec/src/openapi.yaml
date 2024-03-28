@@ -41,19 +41,22 @@ paths:
           description: "User is not valid"
 
   /api/user/list:
-    get:
+    post:
       operationId: listUsers
       security:
         - CookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListUsersRequest"
       responses:
         200:
           description: "Successfully listed and returned a list of users."
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/ListUsersResponse"
 
   /api/user/create:
     post:
@@ -1147,6 +1150,24 @@ components:
           type: string
         password:
           type: string
+
+    ListUsersRequest:
+      type: object
+      properties:
+        cursor:
+          type: string
+
+    ListUsersResponse:
+      type: object
+      properties:
+        page:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        cursor:
+          type: string
+      required:
+        - page
 
     CreateUserRequest:
       type: object
