@@ -7,4 +7,4 @@ COPY ./build/libs/rewynd-worker-all.jar /rewynd/worker.jar
 
 WORKDIR /rewynd
 
-CMD ["java", "-jar", "/rewynd/worker.jar"]
+CMD ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=85", "-jar", "/rewynd/worker.jar"]

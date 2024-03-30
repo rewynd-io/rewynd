@@ -7,4 +7,4 @@ COPY ./build/libs/rewynd-api-all.jar /rewynd/api.jar
 
 WORKDIR /rewynd
 
-CMD ["java", "-jar", "/rewynd/api.jar"]
+CMD ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=85", "-jar", "/rewynd/api.jar"]
