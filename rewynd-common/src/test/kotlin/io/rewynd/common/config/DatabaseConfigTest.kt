@@ -2,25 +2,20 @@ package io.rewynd.common.config
 
 import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.property.forAll
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 internal class DatabaseConfigTest : StringSpec({
     "Postgres config should be parsed" {
-        forAll<DatabaseConfig.PostgresConfig> {
-            DatabaseConfig.fromConfig(
-                ConfigFactory.parseMap(
-                    mapOf(
-                        "postgres" to
-                            mapOf(
-                                "hostname" to it.hostname,
-                                "username" to it.username,
-                                "password" to it.password,
-                                "port" to it.port,
-                                "database" to it.database,
-                            ),
-                    ),
-                ),
-            ) == it
+        DatabaseConfig.fromConfig(
+            ConfigFactory.load("postgres-test"),
+        ).run {
+            shouldBeInstanceOf<DatabaseConfig.PostgresConfig>()
+            database shouldBe "rewynd"
+            password shouldBe "password"
+            username shouldBe "postgres"
+            hostname shouldBe "localhost"
+            port shouldBe 5432
         }
     }
 })

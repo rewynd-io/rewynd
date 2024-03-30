@@ -2,6 +2,7 @@ package io.rewynd.common.database
 
 import io.rewynd.common.KLog
 import io.rewynd.common.config.DatabaseConfig
+import io.rewynd.common.config.fromConfig
 import io.rewynd.common.model.LibraryIndex
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerImageInfo
@@ -144,9 +145,10 @@ sealed interface Database {
     ): List<UserProgress>
 
     companion object : KLog() {
-        fun fromConfig(config: DatabaseConfig) =
+        fun fromConfig(config: DatabaseConfig = DatabaseConfig.fromConfig()) =
             when (config) {
                 is DatabaseConfig.PostgresConfig -> PostgresDatabase(config)
+                is DatabaseConfig.SqliteConfig -> SqliteDatabase(config)
             }
     }
 }

@@ -1,6 +1,7 @@
 package io.rewynd.common.config
 
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigUtil
 import io.lettuce.core.RedisURI
 
 fun CacheConfig.RedisConfig.Companion.fromConfig(config: Config) =
@@ -47,6 +48,13 @@ fun CacheConfig.RedisClusterConfig.Companion.fromConfig(config: Config) =
     }
 
 fun CacheConfig.Companion.fromConfig(config: Config) =
-    requireNotNull(
-        CacheConfig.RedisConfig.fromConfig(config) ?: CacheConfig.RedisClusterConfig.fromConfig(config),
-    ) { "No cache configured" }
+    config.getConfig(
+        ConfigUtil.joinPath("rewynd", "cache"),
+    ).let {
+        requireNotNull(
+            sequenceOf(
+                { CacheConfig.RedisConfig.fromConfig(it) },
+                { CacheConfig.RedisClusterConfig.fromConfig(it) },
+            ).mapNotNull { it() }.firstOrNull(),
+        ) { "No cache configured" }
+    }

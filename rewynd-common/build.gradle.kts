@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
     implementation(libs.postgres)
+    implementation(libs.sqlite)
     implementation(libs.hikari.cp)
     implementation(libs.arrow.core)
     implementation(libs.arrow.fx.coroutines)
