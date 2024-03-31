@@ -38,3 +38,15 @@ steps:
       password:
         from_secret: forge-token
       auto_tag: true
+  publish omni:
+    image: codeberg.org/woodpecker-plugins/docker-buildx:latest
+    settings:
+      repo: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-omni
+      cache_from: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-omni:latest
+      registry: ${CI_FORGE_URL#*//}
+      dockerfile: ./rewynd-omni/Dockerfile
+      context: ./rewynd-omni
+      username: ${CI_REPO_OWNER}
+      password:
+        from_secret: forge-token
+      auto_tag: true

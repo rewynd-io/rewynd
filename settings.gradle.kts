@@ -8,6 +8,7 @@ include("rewynd-spec")
 include("rewynd-test-util-jvm")
 include("rewynd-web")
 include("rewynd-worker")
+include("rewynd-omni")
 
 pluginManagement {
     repositories {
