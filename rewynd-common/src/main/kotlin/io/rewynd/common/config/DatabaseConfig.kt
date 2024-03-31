@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigUtil
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
 import javax.sql.DataSource
 import kotlin.io.path.absolutePathString
@@ -70,11 +71,11 @@ fun DatabaseConfig.SqliteConfig.Companion.fromConfig(config: Config) =
         with(config.getConfig("sqlite")) {
             DatabaseConfig.SqliteConfig(
                 dbFile =
-                    if (hasPath("db-file")) {
-                        Path.of(getString("db-file"))
-                    } else {
-                        null
-                    },
+                if (hasPath("db-file")) {
+                    Path.of(getString("db-file"))
+                } else {
+                    null
+                },
             )
         }
     } else {
@@ -103,6 +104,7 @@ fun DatabaseConfig.PostgresConfig.Companion.fromConfig(config: Config) =
         null
     }
 
+private val log by lazy { KotlinLogging.logger { } }
 fun DatabaseConfig.Companion.fromConfig(config: Config = ConfigFactory.load()) =
     config.getConfig(
         ConfigUtil.joinPath("rewynd", "database"),
@@ -113,4 +115,4 @@ fun DatabaseConfig.Companion.fromConfig(config: Config = ConfigFactory.load()) =
                 { DatabaseConfig.SqliteConfig.fromConfig(it) },
             ).mapNotNull { it() }.firstOrNull(),
         ) { "No database configured" }
-    }
+    }.also { log.info { "Loaded $it" } }

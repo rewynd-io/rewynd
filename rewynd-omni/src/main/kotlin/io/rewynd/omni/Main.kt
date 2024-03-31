@@ -15,10 +15,8 @@ import kotlinx.coroutines.runBlocking
 
 fun main(): Unit =
     runBlocking(Dispatchers.IO) {
-        val config = ConfigFactory.load("omni")
-        val cache = Cache.fromConfig(config = CacheConfig.fromConfig(config))
-        println("Made Cache $cache")
-        val db = Database.fromConfig(config = DatabaseConfig.fromConfig(config))
+        val cache = Cache.fromConfig()
+        val db = Database.fromConfig()
         db.init()
 
         listOf(
