@@ -6,7 +6,6 @@ import io.rewynd.common.cache.queue.StreamJobHandler
 import io.rewynd.common.model.ClientStreamEvents
 import io.rewynd.common.model.StreamProps
 import io.rewynd.common.model.WorkerStreamEvents
-import io.rewynd.worker.log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,9 +17,12 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import mu.KotlinLogging
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
+
+private val log by lazy { KotlinLogging.logger { } }
 
 fun mkStreamJobHandler(cache: Cache): StreamJobHandler =
     { context ->

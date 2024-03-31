@@ -100,7 +100,7 @@ class StreamHeartbeat(
     }
 
     companion object {
-        private val log = KotlinLogging.logger { }
+        private val log by lazy { KotlinLogging.logger { } }
 
         fun PlayerMedia.copy(
             startOffset: Duration = this.startOffset,

@@ -49,7 +49,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger { }
+private val log by lazy { KotlinLogging.logger { } }
 
 fun Route.streamRoutes(
     db: Database,

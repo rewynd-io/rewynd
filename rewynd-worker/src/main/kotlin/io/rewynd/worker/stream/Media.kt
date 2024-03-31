@@ -10,7 +10,6 @@ import io.rewynd.common.model.StreamProps
 import io.rewynd.common.model.WorkerStreamEvents
 import io.rewynd.model.NormalizationMethod
 import io.rewynd.model.NormalizationProps
-import io.rewynd.worker.log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -24,9 +23,12 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import mu.KotlinLogging
 import net.kensand.margarita.Mp4Frag
 import okio.source
 import kotlin.time.Duration.Companion.hours
+
+private val log by lazy { KotlinLogging.logger { } }
 
 fun CoroutineScope.launchMediaJob(
     streamProps: StreamProps,

@@ -8,16 +8,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import mu.KotlinLogging
-
-private val log = KotlinLogging.logger { }
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun <K : Any, V : Any> RedisCoroutinesCommands<K, V>.blpopFlow(vararg keys: K) =
     flow {
         while (true) {
             val popped = this@blpopFlow.blpop(0, *keys)
-            log.info { "Received Job $popped" }
             emit(popped)
         }
     }.flowOn(Dispatchers.IO)
@@ -27,7 +23,6 @@ fun <K : Any, V : Any> RedisClusterCoroutinesCommands<K, V>.blpopFlow(vararg key
     flow {
         while (true) {
             val popped = this@blpopFlow.blpop(0, *keys)
-            log.info { "Received Job $popped" }
             emit(popped)
         }
     }.flowOn(Dispatchers.IO)
@@ -79,7 +74,6 @@ suspend fun <K : Any, V : Any> Flow<Map<K, V>>.xwrite(
     redis: RedisCoroutinesCommands<K, V>,
     key: K,
 ) = this.collect {
-    log.info { it }
     redis.xadd(key, it)
 }
 
@@ -88,6 +82,5 @@ suspend fun <K : Any, V : Any> Flow<Map<K, V>>.xwrite(
     redis: RedisClusterCoroutinesCommands<K, V>,
     key: K,
 ) = this.collect {
-    log.info { it }
     redis.xadd(key, it)
 }

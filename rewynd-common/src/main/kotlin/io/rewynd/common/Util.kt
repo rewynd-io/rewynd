@@ -10,8 +10,6 @@ import io.rewynd.model.Schedule
 import kotlinx.datetime.Instant
 import kotlinx.datetime.serializers.InstantComponentSerializer
 import kotlinx.serialization.Serializable
-import mu.KLogger
-import mu.KLogging
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.spec.KeySpec
@@ -36,11 +34,6 @@ fun hashPassword(
 ): String {
     val spec: KeySpec = PBEKeySpec(password.toCharArray(), decoder.decode(salt), 65536, 512)
     return encoder.encodeToString(factory.generateSecret(spec).encoded)
-}
-
-open class KLog : KLogging() {
-    val log: KLogger
-        get() = logger
 }
 
 fun md5(input: String): String {

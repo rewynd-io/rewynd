@@ -19,7 +19,6 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
 import java.io.Closeable
 import java.util.Base64
 import kotlin.time.Duration
@@ -197,8 +196,6 @@ interface CacheLock : Closeable {
         release()
     }
 }
-
-val log = KotlinLogging.logger { }
 
 fun <T> CoroutineScope.withLock(
     original: CacheLock,

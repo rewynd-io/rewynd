@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Instant
-import mu.KotlinLogging
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
@@ -35,8 +34,6 @@ import org.apache.lucene.search.spell.LuceneDictionary
 import org.apache.lucene.search.suggest.analyzing.BlendedInfixSuggester
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.roundToInt
-
-val log = KotlinLogging.logger { }
 
 data class SearchIndex(
     val suggester: BlendedInfixSuggester,

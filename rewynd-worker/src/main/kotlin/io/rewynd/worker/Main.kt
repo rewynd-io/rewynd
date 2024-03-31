@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.minutes
 val config by lazy { WorkerConfig.fromConfig() }
 val cache by lazy { Cache.fromConfig(config.cache) }
 
-val log = KotlinLogging.logger { }
+private val log by lazy { KotlinLogging.logger { } }
 
 fun main() =
     runBlocking(Dispatchers.IO) {

@@ -1,5 +1,6 @@
 package io.rewynd.worker
 
+import mu.KotlinLogging
 import org.apache.lucene.store.ByteBuffersDirectory
 import org.apache.lucene.store.Directory
 import org.apache.lucene.store.IOContext
@@ -9,6 +10,8 @@ import java.util.concurrent.TimeoutException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+
+private val log by lazy { KotlinLogging.logger { } }
 
 fun List<String>.execToString() =
     Runtime

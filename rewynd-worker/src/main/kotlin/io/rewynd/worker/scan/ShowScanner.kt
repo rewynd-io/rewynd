@@ -8,7 +8,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.rewynd.common.KLog
 import io.rewynd.common.database.Database
 import io.rewynd.common.md5
 import io.rewynd.common.model.FileInfo
@@ -39,6 +38,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Clock
+import mu.KotlinLogging
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
@@ -143,7 +143,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                     IndexWriterConfig(analyzer).apply { commitOnClose = true },
                 ),
             ) { acc, value ->
-                io.rewynd.worker.search.log.info { "Adding $value" }
+                log.info { "Adding $value" }
                 acc.addDocument(value)
                 acc
             }.close()
@@ -299,7 +299,8 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 }.associate { it.nameWithoutExtension to FileLocation.LocalFile(it.absolutePath) }
             val subtitleFileTracks =
                 subtitleFiles.mapValues { entry ->
-                    FfprobeResult.parseFile(Path(entry.value.path).toFile()).extractInfo().subtitleTracks.values.firstOrNull()
+                    FfprobeResult.parseFile(Path(entry.value.path).toFile())
+                        .extractInfo().subtitleTracks.values.firstOrNull()
                         ?.let {
                             SubtitleFileTrack(entry.value, it)
                         }
@@ -503,7 +504,9 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
 
     private fun File.id() = md5("${lib.name}:${this.absolutePath}")
 
-    companion object : KLog()
+    companion object {
+        private val log by lazy { KotlinLogging.logger { } }
+    }
 }
 
 private fun String.parseSeasonNumber(): Int? = split(" ").lastOrNull()?.toIntOrNull()
@@ -745,9 +748,11 @@ private fun ServerShowInfo.toDocument() =
     }
 
 private fun ServerEpisodeInfo.formatTitle() =
-    "$showName - S${"%02d".format(season?.roundToInt() ?: 0)}E${"%02d".format(
-        episode?.roundToInt() ?: 0,
-    )}${
+    "$showName - S${"%02d".format(season?.roundToInt() ?: 0)}E${
+        "%02d".format(
+            episode?.roundToInt() ?: 0,
+        )
+    }${
         episodeNumberEnd?.let {
             "-%02d".format(it.roundToInt())
         } ?: ""

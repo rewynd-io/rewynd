@@ -33,13 +33,11 @@ fun CacheConfig.RedisClusterConfig.Companion.fromConfig(config: Config) =
                 uris =
                     getString("hosts").split(",").mapNotNull {
                         val split = it.split(":")
-                        if (split.isEmpty() || split.size > 2) {
-                            CacheConfig.log.warn { "Invalid host:port combination: $it" }
-                            null
-                        } else {
-                            val port = split.getOrNull(1)?.toIntOrNull() ?: 6379
-                            RedisURI.create(split[0], port)
+                        check(split.size == 2) {
+                            "Invalid host:port combination: $it"
                         }
+                        val port = split[1].toInt()
+                        RedisURI.create(split[0], port)
                     },
             )
         }

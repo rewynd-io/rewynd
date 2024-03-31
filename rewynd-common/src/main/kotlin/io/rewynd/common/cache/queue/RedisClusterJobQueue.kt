@@ -8,7 +8,6 @@ import io.lettuce.core.api.coroutines
 import io.lettuce.core.cluster.RedisClusterClient
 import io.lettuce.core.cluster.api.coroutines
 import io.lettuce.core.cluster.api.coroutines.RedisClusterCoroutinesCommands
-import io.rewynd.common.KLog
 import io.rewynd.common.redis.blpopFlow
 import io.rewynd.common.redis.xreadFlow
 import kotlinx.coroutines.CancellationException
@@ -31,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import mu.KotlinLogging
 import kotlin.time.Duration.Companion.days
 
 class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
@@ -305,7 +305,9 @@ class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPay
         )
     }
 
-    companion object : KLog()
+    companion object {
+        private val log by lazy { KotlinLogging.logger { } }
+    }
 }
 
 suspend fun <T> RedisClusterClient.coUse(f: suspend (RedisClusterCoroutinesCommands<String, String>) -> T) {

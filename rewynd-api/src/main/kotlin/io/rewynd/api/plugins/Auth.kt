@@ -10,7 +10,7 @@ import io.rewynd.api.UserSession
 import io.rewynd.common.database.Database
 import mu.KotlinLogging
 
-private val log = KotlinLogging.logger { }
+private val log by lazy { KotlinLogging.logger { } }
 
 fun mkAuthNPlugin() =
     createRouteScopedPlugin(name = "AuthN") {

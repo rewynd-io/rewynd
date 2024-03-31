@@ -567,7 +567,7 @@ class PlayerService : Service() {
         } ?: Unit
 
     companion object {
-        private val log = KotlinLogging.logger { }
+        private val log by lazy { KotlinLogging.logger { } }
         const val PLAYER_SERVICE_INTENT_BUNDLE_PROPS_KEY = "PlayerServiceProps"
         const val PLAYER_SERVICE_NOTIFICATION_ID = 1
         const val PLAYER_SERVICE_NOTIFICATION_CHANNEL_ID = "RewyndServiceNotification"

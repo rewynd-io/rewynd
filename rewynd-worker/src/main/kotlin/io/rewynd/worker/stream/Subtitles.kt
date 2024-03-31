@@ -2,16 +2,18 @@ package io.rewynd.worker.stream
 
 import io.rewynd.common.model.StreamProps
 import io.rewynd.common.model.SubtitleSegment
-import io.rewynd.worker.log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.microseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+
+private val log by lazy { KotlinLogging.logger { } }
 
 data class Cue(val start: Duration, val end: Duration, val content: String)
 

@@ -11,7 +11,7 @@ import mu.KotlinLogging
 import org.slf4j.event.Level
 import java.util.UUID
 
-private val log = KotlinLogging.logger { }
+private val log by lazy { KotlinLogging.logger { } }
 
 fun Application.configureMonitoring() {
     install(CallLogging) {

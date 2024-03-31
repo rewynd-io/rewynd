@@ -1,6 +1,5 @@
 package io.rewynd.common.database
 
-import io.rewynd.common.KLog
 import io.rewynd.common.config.DatabaseConfig
 import io.rewynd.common.config.fromConfig
 import io.rewynd.common.model.LibraryIndex
@@ -144,7 +143,7 @@ sealed interface Database {
         maxPercent: Double = 1.0,
     ): List<UserProgress>
 
-    companion object : KLog() {
+    companion object {
         fun fromConfig(config: DatabaseConfig = DatabaseConfig.fromConfig()) =
             when (config) {
                 is DatabaseConfig.PostgresConfig -> PostgresDatabase(config)

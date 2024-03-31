@@ -6,7 +6,7 @@ import mu.KotlinLogging
 import kotlin.time.Duration.Companion.seconds
 
 object EpisodePlaybackMethodHandler {
-    private val log = KotlinLogging.logger { }
+    private val log by lazy { KotlinLogging.logger { } }
 
     suspend fun next(
         client: RewyndClient,

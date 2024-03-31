@@ -1,7 +1,6 @@
 package io.rewynd.common.config
 
 import io.lettuce.core.RedisURI
-import io.rewynd.common.KLog
 
 sealed interface CacheConfig {
     data class RedisConfig(
@@ -17,5 +16,5 @@ sealed interface CacheConfig {
         companion object
     }
 
-    companion object : KLog()
+    companion object
 }
