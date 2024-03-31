@@ -10,7 +10,7 @@ plugins {
 group = "io.rewynd"
 version = "0.0.1"
 application {
-    mainClass.set("io.rewynd.api.ApplicationKt")
+    mainClass.set("io.rewynd.api.MainKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
 
@@ -77,12 +77,11 @@ kotlin {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-//    maxHeapSize = "8g"
 }
 
 tasks.shadowJar {
     manifest {
-        attributes["Main-Class"] = "io.rewynd.api.ApplicationKt"
+        attributes["Main-Class"] = "io.rewynd.api.MainKt"
     }
     archiveVersion.set("")
     mergeServiceFiles()

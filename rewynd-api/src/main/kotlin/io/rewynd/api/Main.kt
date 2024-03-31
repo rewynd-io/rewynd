@@ -4,6 +4,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.cio.CIO
+import io.ktor.server.engine.embeddedServer
 import io.ktor.server.http.content.react
 import io.ktor.server.http.content.singlePageApplication
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -35,41 +37,25 @@ import io.rewynd.common.cache.queue.getScheduleRefreshJobQueue
 import io.rewynd.common.cache.queue.getSearchJobQueue
 import io.rewynd.common.cache.queue.getStreamJobQueue
 import io.rewynd.common.database.Database
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
-private val log by lazy { KotlinLogging.logger { } }
-fun Application.module(db: Database, cache: Cache) {
-    configureHTTP()
-    configureMonitoring()
-    configureSerialization()
 
-    configureSession(db, false) // TODO make config for this
-
-    install(StatusPages) {
-        exception<Throwable> { call, cause ->
-            log.error(cause) { "Error handling ${call.request.httpMethod} ${call.request.path()}" }
-            call.respondText(text = "Internal Server Error", status = HttpStatusCode.InternalServerError)
+fun main(): Unit =
+    runBlocking {
+        val config = ServerConfig.fromConfig()
+        val cache = Cache.fromConfig(config.cache)
+        val db = Database.fromConfig(config.database).apply {
+            runBlocking { init() }
         }
+        runApi(db, cache).join()
     }
-    routing {
-        route("/api") {
-            install(mkAuthNPlugin())
-            authRoutes(db)
-            libRoutes(db, cache.getScanJobQueue())
-            showRoutes(db)
-            seasonRoutes(db)
-            episodeRoutes(db)
-            userRoutes(db)
-            scheduleRoutes(db, cache.getScheduleRefreshJobQueue())
-            imageRoutes(db, cache, cache.getImageJobQueue())
-            streamRoutes(db, cache, cache.getStreamJobQueue())
-            searchRoutes(cache.getSearchJobQueue())
-            progressRoutes(db)
-        }
 
-        singlePageApplication {
-            useResources = true
-            react("")
-        }
+suspend fun runApi(db: Database, cache: Cache) = coroutineScope {
+    launch {
+        embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = {module(db, cache)})
+            .start(wait = true)
     }
 }
