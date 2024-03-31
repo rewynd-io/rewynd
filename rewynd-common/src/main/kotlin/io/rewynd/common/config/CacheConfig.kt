@@ -16,5 +16,7 @@ sealed interface CacheConfig {
         companion object
     }
 
+    data object MemoryConfig : CacheConfig
+
     companion object
 }

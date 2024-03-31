@@ -10,6 +10,7 @@ compose = "1.5.10"
 constraintlayoutCompose = "1.0.1"
 coreKtx = "1.12.0"
 espressoCore = "3.5.1"
+expiringmap = "0.5.11"
 gridlayout = "1.0.0"
 hikari = "5.1.0"
 jacksonDataformatXml = "2.17.0"
@@ -77,6 +78,7 @@ androidx-preference-ktx = { module = "androidx.preference:preference-ktx", versi
 androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
+expiringmap = { module = "net.jodah:expiringmap", version.ref = "expiringmap" }
 jackson-dataformat-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml", version.ref = "jacksonDataformatXml" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jacksonModuleKotlin" }
 lucene-analysis-common = { module = "org.apache.lucene:lucene-analysis-common", version.ref = "luceneCore" }

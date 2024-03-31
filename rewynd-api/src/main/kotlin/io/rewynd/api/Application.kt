@@ -36,9 +36,12 @@ import io.rewynd.common.cache.queue.getSearchJobQueue
 import io.rewynd.common.cache.queue.getStreamJobQueue
 import io.rewynd.common.database.Database
 
-
 private val log by lazy { KotlinLogging.logger { } }
-fun Application.module(db: Database, cache: Cache) {
+
+fun Application.module(
+    db: Database,
+    cache: Cache,
+) {
     configureHTTP()
     configureMonitoring()
     configureSerialization()

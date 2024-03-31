@@ -15,7 +15,7 @@ fun CacheConfig.RedisConfig.Companion.fromConfig(config: Config) =
             CacheConfig.RedisConfig(
                 hostname = getString("hostname"),
                 port = getInt("port"),
-            )
+            ).also { println(it) }
         }
     } else {
         null
@@ -31,16 +31,26 @@ fun CacheConfig.RedisClusterConfig.Companion.fromConfig(config: Config) =
     ) {
         with(config) {
             CacheConfig.RedisClusterConfig(
-                uris = getString("hosts").split(",").mapNotNull {
-                    val split = it.split(":")
-                    check(split.size == 2) {
-                        "Invalid host:port combination: $it"
-                    }
-                    val port = split[1].toInt()
-                    RedisURI.create(split[0], port)
-                },
+                uris =
+                    getString("hosts").split(",").mapNotNull {
+                        val split = it.split(":")
+                        check(split.size == 2) {
+                            "Invalid host:port combination: $it"
+                        }
+                        val port = split[1].toInt()
+                        RedisURI.create(split[0], port)
+                    },
             )
         }
+    } else {
+        null
+    }
+
+fun CacheConfig.MemoryConfig.fromConfig(config: Config) =
+    if (
+        config.hasPath("memory")
+    ) {
+        CacheConfig.MemoryConfig
     } else {
         null
     }
@@ -53,6 +63,7 @@ fun CacheConfig.Companion.fromConfig(config: Config = ConfigFactory.load()) =
             sequenceOf(
                 { CacheConfig.RedisConfig.fromConfig(it) },
                 { CacheConfig.RedisClusterConfig.fromConfig(it) },
+                { CacheConfig.MemoryConfig.fromConfig(it) },
             ).mapNotNull { it() }.firstOrNull(),
         ) { "No cache configured" }
     }

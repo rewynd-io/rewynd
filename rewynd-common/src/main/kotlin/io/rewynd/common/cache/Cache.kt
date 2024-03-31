@@ -181,6 +181,9 @@ sealed interface Cache {
                             config.uris,
                         ),
                     )
+
+                is CacheConfig.MemoryConfig ->
+                    MemoryCache()
             }
     }
 }

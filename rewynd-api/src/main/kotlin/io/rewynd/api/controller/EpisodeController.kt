@@ -36,7 +36,6 @@ fun Route.episodeRoutes(db: Database) {
                                 ?.toString(),
                         episodes = episodes.map { it.toEpisodeInfo() },
                     )
-                println(res)
                 call.respond(HttpStatusCode.OK, res)
             } catch (e: NumberFormatException) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid cursor: ${request.cursor}")

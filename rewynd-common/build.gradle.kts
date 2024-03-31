@@ -36,6 +36,8 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.property)
     testImplementation(libs.mockk)
+
+    implementation(libs.expiringmap)
 }
 
 tasks.withType<Test>().configureEach {

@@ -19,7 +19,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.minutes
 
-
 fun main() {
     val cache = Cache.fromConfig()
     val db = Database.fromConfig()
@@ -29,37 +28,39 @@ fun main() {
     runWorker(db, cache)
 }
 
-fun runWorker(db: Database, cache: Cache) =
-    runBlocking(Dispatchers.IO) {
-        val searchHandler = SearchHandler(db)
-        val searchUpdateJob =
-            launch(Dispatchers.IO) {
-                while (true) {
-                    searchHandler.updateIndicies()
-                    delay(1.minutes)
-                }
+fun runWorker(
+    db: Database,
+    cache: Cache,
+) = runBlocking(Dispatchers.IO) {
+    val searchHandler = SearchHandler(db)
+    val searchUpdateJob =
+        launch(Dispatchers.IO) {
+            while (true) {
+                searchHandler.updateIndicies()
+                delay(1.minutes)
             }
+        }
 
-        val scanQueue = cache.getScanJobQueue()
-        val streamQueue = cache.getStreamJobQueue()
-        val imageQueue = cache.getImageJobQueue()
-        val searchQueue = cache.getSearchJobQueue()
-        val scheduleRefreshJobQueue = cache.getScheduleRefreshJobQueue()
+    val scanQueue = cache.getScanJobQueue()
+    val streamQueue = cache.getStreamJobQueue()
+    val imageQueue = cache.getImageJobQueue()
+    val searchQueue = cache.getSearchJobQueue()
+    val scheduleRefreshJobQueue = cache.getScheduleRefreshJobQueue()
 
-        val scanJobHandler = scanQueue.register(mkScanJobHandler(db), this)
-        val streamJobHandler = streamQueue.register(mkStreamJobHandler(cache), this)
-        val searchJobHandler = searchQueue.register(searchHandler.jobHander, this)
-        val imageJobHandlers =
-            (0 until 100).map { imageQueue.register(mkImageJobHandler(cache), this) }
-        val scheduleJob = ScheduleHandler(db, cache, scanQueue, scheduleRefreshJobQueue).run(this)
+    val scanJobHandler = scanQueue.register(mkScanJobHandler(db), this)
+    val streamJobHandler = streamQueue.register(mkStreamJobHandler(cache), this)
+    val searchJobHandler = searchQueue.register(searchHandler.jobHander, this)
+    val imageJobHandlers =
+        (0 until 100).map { imageQueue.register(mkImageJobHandler(cache), this) }
+    val scheduleJob = ScheduleHandler(db, cache, scanQueue, scheduleRefreshJobQueue).run(this)
 
-        (
-                listOf(
-                    scanJobHandler,
-                    streamJobHandler,
-                    searchJobHandler,
-                    searchUpdateJob,
-                    scheduleJob,
-                ) + imageJobHandlers
-                ).joinAll()
-    }
+    (
+        listOf(
+            scanJobHandler,
+            streamJobHandler,
+            searchJobHandler,
+            searchUpdateJob,
+            scheduleJob,
+        ) + imageJobHandlers
+    ).joinAll()
+}
