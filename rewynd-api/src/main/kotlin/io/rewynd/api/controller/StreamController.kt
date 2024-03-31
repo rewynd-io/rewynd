@@ -151,7 +151,7 @@ fun Route.streamRoutes(
         if (metadata == null) {
             call.respond(StreamStatus.Canceled)
         } else if (streamMetadata == null) {
-            call.respond(StreamStatus.Available)
+            call.respond(StreamStatus.Pending)
         } else {
             val expire = Clock.System.now() + 2.minutes
             val allItemsExist = cache.heartbeatStream(streamMetadata, reqStreamId, expire, sessionId, queue)
