@@ -42,20 +42,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 
-
 fun main(): Unit =
     runBlocking {
-        val config = ServerConfig.fromConfig()
-        val cache = Cache.fromConfig(config.cache)
-        val db = Database.fromConfig(config.database).apply {
-            runBlocking { init() }
-        }
+        val cache = Cache.fromConfig()
+        val db = Database.fromConfig()
+        db.init()
+
         runApi(db, cache).join()
     }
 
 suspend fun runApi(db: Database, cache: Cache) = coroutineScope {
     launch {
-        embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = {module(db, cache)})
+        embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = { module(db, cache) })
             .start(wait = true)
     }
 }

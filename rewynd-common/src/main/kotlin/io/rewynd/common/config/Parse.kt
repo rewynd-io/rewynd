@@ -1,6 +1,7 @@
 package io.rewynd.common.config
 
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigUtil
 import io.lettuce.core.RedisURI
 
@@ -30,22 +31,21 @@ fun CacheConfig.RedisClusterConfig.Companion.fromConfig(config: Config) =
     ) {
         with(config) {
             CacheConfig.RedisClusterConfig(
-                uris =
-                    getString("hosts").split(",").mapNotNull {
-                        val split = it.split(":")
-                        check(split.size == 2) {
-                            "Invalid host:port combination: $it"
-                        }
-                        val port = split[1].toInt()
-                        RedisURI.create(split[0], port)
-                    },
+                uris = getString("hosts").split(",").mapNotNull {
+                    val split = it.split(":")
+                    check(split.size == 2) {
+                        "Invalid host:port combination: $it"
+                    }
+                    val port = split[1].toInt()
+                    RedisURI.create(split[0], port)
+                },
             )
         }
     } else {
         null
     }
 
-fun CacheConfig.Companion.fromConfig(config: Config) =
+fun CacheConfig.Companion.fromConfig(config: Config = ConfigFactory.load()) =
     config.getConfig(
         ConfigUtil.joinPath("rewynd", "cache"),
     ).let {

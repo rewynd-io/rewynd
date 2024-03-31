@@ -23,9 +23,8 @@ import kotlin.time.Duration.Companion.minutes
 
 fun main() =
     runBlocking(Dispatchers.IO) {
-        val config = WorkerConfig.fromConfig()
-        val db = Database.fromConfig(config.database)
-        val cache = Cache.fromConfig(config.cache)
+        val cache = Cache.fromConfig()
+        val db = Database.fromConfig()
         db.init()
 
         runWorker(db, cache).joinAll()

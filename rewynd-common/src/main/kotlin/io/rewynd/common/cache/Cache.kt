@@ -5,6 +5,7 @@ import io.lettuce.core.RedisClient
 import io.lettuce.core.cluster.RedisClusterClient
 import io.rewynd.common.cache.queue.JobQueue
 import io.rewynd.common.config.CacheConfig
+import io.rewynd.common.config.fromConfig
 import io.rewynd.common.config.uri
 import io.rewynd.common.model.StreamMapping
 import io.rewynd.common.model.StreamMetadataWrapper
@@ -165,7 +166,7 @@ sealed interface Cache {
         private val encoder by lazy { Base64.getEncoder() }
 
         @OptIn(ExperimentalLettuceCoroutinesApi::class)
-        fun fromConfig(config: CacheConfig) =
+        fun fromConfig(config: CacheConfig = CacheConfig.fromConfig()) =
             when (config) {
                 is CacheConfig.RedisConfig ->
                     RedisCache(
