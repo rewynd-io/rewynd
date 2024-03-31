@@ -3,6 +3,7 @@ package io.rewynd.common.cache.queue
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.lettuce.core.ScriptOutputType
 import io.lettuce.core.api.coroutines
 import io.lettuce.core.cluster.RedisClusterClient
@@ -30,7 +31,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
 import kotlin.time.Duration.Companion.days
 
 class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(

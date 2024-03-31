@@ -29,7 +29,7 @@ dependencies {
     implementation(libs.logback.classic)
     implementation(libs.slf4j.api)
     implementation(libs.lettuce.core)
-    implementation(libs.kotlin.logging.jvm)
+    implementation(libs.kotlin.logging)
 
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)

@@ -1,6 +1,6 @@
 package io.rewynd.worker
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.lucene.store.ByteBuffersDirectory
 import org.apache.lucene.store.Directory
 import org.apache.lucene.store.IOContext

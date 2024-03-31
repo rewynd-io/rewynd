@@ -8,6 +8,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.database.Database
 import io.rewynd.common.md5
 import io.rewynd.common.model.FileInfo
@@ -38,7 +39,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Clock
-import mu.KotlinLogging
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field

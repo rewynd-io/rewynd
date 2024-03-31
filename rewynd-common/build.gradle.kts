@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
     implementation(project(":rewynd-client-jvm"))
-    implementation(libs.kotlin.logging.jvm)
+    implementation(libs.kotlin.logging)
     implementation(libs.kotlinx.datetime)
 
     implementation(libs.exposed.core)

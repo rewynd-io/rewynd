@@ -1,8 +1,8 @@
 package io.rewynd.android.player
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
-import mu.KotlinLogging
 import kotlin.time.Duration.Companion.seconds
 
 object EpisodePlaybackMethodHandler {

@@ -1,5 +1,6 @@
 package io.rewynd.api.plugins
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.request.path
@@ -8,7 +9,6 @@ import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.rewynd.api.UserSession
 import io.rewynd.common.database.Database
-import mu.KotlinLogging
 
 private val log by lazy { KotlinLogging.logger { } }
 

@@ -3,6 +3,7 @@ package io.rewynd.android.client.cookie
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.http.Cookie
@@ -17,7 +18,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
 import java.util.concurrent.ConcurrentSkipListSet
 import kotlin.time.Duration.Companion.seconds
 

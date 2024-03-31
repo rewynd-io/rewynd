@@ -25,6 +25,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.exoplayer.util.EventLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.R
 import io.rewynd.android.browser.BrowserActivity
 import io.rewynd.android.browser.BrowserState
@@ -47,7 +48,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import kotlin.time.Duration

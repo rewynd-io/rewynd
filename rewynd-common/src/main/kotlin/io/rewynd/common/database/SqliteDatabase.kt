@@ -1,5 +1,6 @@
 package io.rewynd.common.database
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.config.DatabaseConfig
 import io.rewynd.common.config.datasource
 import io.rewynd.common.database.PostgresExtensions.upsert
@@ -38,7 +39,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils

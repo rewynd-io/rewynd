@@ -1,5 +1,6 @@
 package io.rewynd.worker.stream
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.cache.Cache
 import io.rewynd.common.cache.queue.JobContext
 import io.rewynd.common.cache.queue.StreamJobHandler
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import mu.KotlinLogging
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration

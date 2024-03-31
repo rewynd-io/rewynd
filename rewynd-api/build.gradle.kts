@@ -65,7 +65,7 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.property)
     testImplementation(libs.mockk)
-    implementation(libs.kotlin.logging.jvm)
+    implementation(libs.kotlin.logging)
 
     // Scheduling
     implementation(libs.quartz)

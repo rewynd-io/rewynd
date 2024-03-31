@@ -1,5 +1,6 @@
 package io.rewynd.worker
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.cache.Cache
 import io.rewynd.common.cache.queue.getImageJobQueue
 import io.rewynd.common.cache.queue.getScanJobQueue
@@ -17,7 +18,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import kotlin.time.Duration.Companion.minutes
 
 val config by lazy { WorkerConfig.fromConfig() }

@@ -1,6 +1,7 @@
 package io.rewynd.android.player
 
 import android.util.Log
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
 import io.rewynd.model.CreateStreamRequest
@@ -16,7 +17,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import mu.KotlinLogging
 import kotlin.time.Duration
 
 class StreamHeartbeat(

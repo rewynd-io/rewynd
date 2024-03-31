@@ -86,7 +86,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.preference.ktx)
-    implementation(libs.kotlin.logging.jvm)
     implementation(libs.kotlin.logging)
     implementation(libs.slf4j.api)
     implementation(libs.slf4j.jdk14)

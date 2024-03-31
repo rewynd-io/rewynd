@@ -19,7 +19,7 @@ kotlin = "1.9.23"
 dokka = "1.9.20"
 kotest = "5.8.1"
 kotestExtensions = "2.0.0"
-kotlinLoggingJvm = "3.0.5"
+kotlinLogging = "6.0.3"
 kotlinter = "4.3.0"
 kotlinxCollectionsImmutable = "0.3.7"
 kotlinxCoroutines = "1.8.0"
@@ -96,8 +96,7 @@ kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-extensions-property-datetime = { module = "io.kotest.extensions:kotest-property-datetime", version.ref = "kotestExtensions" }
-kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlinLoggingJvm" }
-kotlin-logging-jvm = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "kotlinLoggingJvm" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
 kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "kotlinxCoroutines" }

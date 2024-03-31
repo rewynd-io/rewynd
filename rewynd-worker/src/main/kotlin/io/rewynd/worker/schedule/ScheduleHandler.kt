@@ -1,5 +1,6 @@
 package io.rewynd.worker.schedule
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.cache.Cache
 import io.rewynd.common.cache.queue.RefreshScheduleJobHandler
 import io.rewynd.common.cache.queue.RefreshScheduleJobQueue
@@ -12,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import org.quartz.CronScheduleBuilder
 import org.quartz.JobBuilder
 import org.quartz.JobDataMap

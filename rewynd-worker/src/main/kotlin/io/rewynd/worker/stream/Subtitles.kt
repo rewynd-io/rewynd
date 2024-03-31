@@ -1,12 +1,12 @@
 package io.rewynd.worker.stream
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.model.StreamProps
 import io.rewynd.common.model.SubtitleSegment
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.microseconds

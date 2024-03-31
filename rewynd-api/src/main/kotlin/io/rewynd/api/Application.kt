@@ -1,5 +1,6 @@
 package io.rewynd.api
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -37,7 +38,6 @@ import io.rewynd.common.cache.queue.getSearchJobQueue
 import io.rewynd.common.cache.queue.getStreamJobQueue
 import io.rewynd.common.database.Database
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 
 val config by lazy { ServerConfig.fromConfig() }
 val cache by lazy { Cache.fromConfig(config.cache) }
