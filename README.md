@@ -1,4 +1,5 @@
 # Rewynd
+![Woodpecker CI pipeline status badge](https://woodpecker-codeberg.kensand.net/api/badges/7/status.svg)
 
 Rewynd is a self-hosted media streaming server akin to Jellyfin, Plex, or Emby. It consists of one or more workers and one or more api servers, which coordinate work using a Database and a Cache. 
 
