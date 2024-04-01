@@ -35,6 +35,7 @@ sealed interface Cache {
         deserializeResponse: (String) -> Response,
         deserializeClientEventPayload: (String) -> ClientEventPayload,
         deserializeWorkerEventPayload: (String) -> WorkerEventPayload,
+        itemExpiration: Duration,
     ): JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>
 
     suspend fun getStreamMetadata(id: String): StreamMetadataWrapper? = get("StreamMetadata:$id")?.let { Json.decodeFromString(it) }

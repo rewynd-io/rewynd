@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.lettuce.core.ScriptOutputType
-import io.lettuce.core.api.coroutines
 import io.lettuce.core.cluster.RedisClusterClient
 import io.lettuce.core.cluster.api.coroutines
 import io.lettuce.core.cluster.api.coroutines.RedisClusterCoroutinesCommands
@@ -31,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
 class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
@@ -44,6 +44,7 @@ class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPay
     private val deserializeResponse: (String) -> Response,
     private val deserializeClientEventPayload: (String) -> ClientEventPayload,
     private val deserializeWorkerEventPayload: (String) -> WorkerEventPayload,
+    private val itemExpiration: Duration,
 ) : JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload> {
     private val conn = redis.connect().coroutines()
     private val listId = "JobQueue:$id:List"
@@ -203,7 +204,7 @@ class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPay
                     e.localizedMessage,
                 ),
             ),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 
@@ -226,7 +227,7 @@ class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPay
                     ),
                 ),
             ),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 
@@ -249,7 +250,7 @@ class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPay
                     ),
                 ),
             ),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 
@@ -274,7 +275,7 @@ class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPay
             arrayOf(clientId(jobId)),
             "cancel",
             Json.encodeToString<ClientEvent>(ClientEvent.Cancel),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 
@@ -301,7 +302,7 @@ class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPay
             arrayOf(clientId(jobId)),
             "event",
             Json.encodeToString<ClientEvent>(ClientEvent.Event(serializeClientEventPayload(event))),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 

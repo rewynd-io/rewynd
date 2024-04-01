@@ -38,6 +38,7 @@ class RedisClusterCache(
         deserializeResponse: (String) -> Response,
         deserializeClientEventPayload: (String) -> ClientEventPayload,
         deserializeWorkerEventPayload: (String) -> WorkerEventPayload,
+        itemExpiration: Duration,
     ): JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload> =
         RedisClusterJobQueue(
             key,
@@ -50,6 +51,7 @@ class RedisClusterCache(
             deserializeResponse,
             deserializeClientEventPayload,
             deserializeWorkerEventPayload,
+            itemExpiration
         )
 
     override suspend fun put(

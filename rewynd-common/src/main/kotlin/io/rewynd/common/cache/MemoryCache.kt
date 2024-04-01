@@ -27,6 +27,7 @@ class MemoryCache : Cache {
         deserializeResponse: (String) -> Response,
         deserializeClientEventPayload: (String) -> ClientEventPayload,
         deserializeWorkerEventPayload: (String) -> WorkerEventPayload,
+        itemExpiration: Duration,
     ): JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload> =
         jobQueues.computeIfAbsent(key) {
             MemoryJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
@@ -34,6 +35,7 @@ class MemoryCache : Cache {
                 serializeClientEventPayload,
                 serializeWorkerEventPayload,
                 deserializeClientEventPayload,
+                itemExpiration
             )
         } as JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>
 

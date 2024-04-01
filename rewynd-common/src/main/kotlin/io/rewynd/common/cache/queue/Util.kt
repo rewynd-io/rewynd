@@ -10,6 +10,7 @@ import io.rewynd.model.Library
 import io.rewynd.model.SearchResponse
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration.Companion.days
 
 typealias SearchJobHandler = JobHandler<SearchProps, SearchResponse, Unit, Unit>
 typealias SearchJobQueue = JobQueue<SearchProps, SearchResponse, Unit, Unit>
@@ -33,6 +34,7 @@ fun Cache.getSearchJobQueue(): SearchJobQueue =
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
+        1.days,
     )
 
 fun Cache.getScheduleRefreshJobQueue(): RefreshScheduleJobQueue =
@@ -46,6 +48,7 @@ fun Cache.getScheduleRefreshJobQueue(): RefreshScheduleJobQueue =
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
+        1.days,
     )
 
 fun Cache.getStreamJobQueue(): StreamJobQueue =
@@ -59,6 +62,7 @@ fun Cache.getStreamJobQueue(): StreamJobQueue =
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
+        1.days,
     )
 
 fun Cache.getScanJobQueue(): ScanJobQueue =
@@ -72,6 +76,7 @@ fun Cache.getScanJobQueue(): ScanJobQueue =
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
+        1.days,
     )
 
 fun Cache.getImageJobQueue(): ImageJobQueue =
@@ -85,4 +90,5 @@ fun Cache.getImageJobQueue(): ImageJobQueue =
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
         { Json.decodeFromString(it) },
+        1.days,
     )

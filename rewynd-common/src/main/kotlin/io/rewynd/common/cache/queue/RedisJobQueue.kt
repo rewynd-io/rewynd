@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
 class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
@@ -43,6 +44,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
     private val deserializeResponse: (String) -> Response,
     private val deserializeClientEventPayload: (String) -> ClientEventPayload,
     private val deserializeWorkerEventPayload: (String) -> WorkerEventPayload,
+    private val itemExpiration: Duration,
 ) : JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload> {
     private val conn = redis.connect().coroutines()
     private val listId = "JobQueue:$id:List"
@@ -200,7 +202,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
                     e.localizedMessage,
                 ),
             ),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 
@@ -223,7 +225,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
                     ),
                 ),
             ),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 
@@ -246,7 +248,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
                     ),
                 ),
             ),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 
@@ -271,7 +273,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
             arrayOf(clientId(jobId)),
             "cancel",
             Json.encodeToString<ClientEvent>(ClientEvent.Cancel),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 
@@ -298,7 +300,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
             arrayOf(clientId(jobId)),
             "event",
             Json.encodeToString<ClientEvent>(ClientEvent.Event(serializeClientEventPayload(event))),
-            1.days.inWholeSeconds.toString(),
+            itemExpiration.inWholeSeconds.toString(),
         )
     }
 
