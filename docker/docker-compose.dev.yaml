@@ -19,3 +19,10 @@ services:
     command:
       - "--save ''"
       - "--notify-keyspace-events 'AKE'"
+
+  worker:
+    image: "codeberg.org/rewynd-io/rewynd-api:latest"
+    environment:
+      REDIS_HOSTNAME: cache
+      POSTGRES_HOSTNAME: db
+      entrypoint: "bash"
