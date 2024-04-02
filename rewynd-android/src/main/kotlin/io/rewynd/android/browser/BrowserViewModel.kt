@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -204,9 +205,9 @@ class BrowserViewModel(
 
     fun loadEpisodes(seasonId: String) {
         this.viewModelScope.launch(Dispatchers.IO) {
-            client.listEpisodesFlow(ListEpisodesRequest(seasonId)).collect {
-                episodes.postValue((episodes.value ?: emptyList()) + listOf(it))
-            }
+            episodes.postValue(
+                client.listEpisodesFlow(ListEpisodesRequest(seasonId)).toList()
+            )
         }
     }
 
