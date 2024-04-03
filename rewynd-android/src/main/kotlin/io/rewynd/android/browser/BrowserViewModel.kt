@@ -1,5 +1,6 @@
 package io.rewynd.android.browser
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -101,15 +102,14 @@ class BrowserViewModel(
         loadBrowserState()
     }
 
-    val libraries = MutableLiveData<List<Library>>(emptyList<Library>())
+    val libraries: MutableLiveData<List<Library>> = MutableLiveData(emptyList())
 
+    @SuppressLint("NullSafeMutableLiveData") // linter thinks client.loadLibraries().toList() returns nullable
     fun loadLibraries() {
         Log.i("LibraryLoader", "Loading Libs")
 
         this.viewModelScope.launch(Dispatchers.IO) {
-            client.listLibrariesFlow(ListLibrariesRequest()).collect {
-                libraries.postValue((libraries.value ?: emptyList()) + listOf(it))
-            }
+            libraries.postValue(client.listLibrariesFlow(ListLibrariesRequest()).toList())
             Log.i("LibraryLoader", "Loaded ${libraries.value}")
         }
     }
@@ -201,12 +201,13 @@ class BrowserViewModel(
         }
     }
 
-    val episodes = MutableLiveData<List<EpisodeInfo>>(emptyList<EpisodeInfo>())
+    val episodes: MutableLiveData<List<EpisodeInfo>> = MutableLiveData(emptyList())
 
+    @SuppressLint("NullSafeMutableLiveData") // linter thinks client.listEpisodesFlow().toList() returns nullable
     fun loadEpisodes(seasonId: String) {
         this.viewModelScope.launch(Dispatchers.IO) {
             episodes.postValue(
-                client.listEpisodesFlow(ListEpisodesRequest(seasonId)).toList()
+                client.listEpisodesFlow(ListEpisodesRequest(seasonId)).toList(),
             )
         }
     }
