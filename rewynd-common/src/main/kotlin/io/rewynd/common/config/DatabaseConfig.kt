@@ -71,11 +71,11 @@ fun DatabaseConfig.SqliteConfig.Companion.fromConfig(config: Config) =
         with(config.getConfig("sqlite")) {
             DatabaseConfig.SqliteConfig(
                 dbFile =
-                if (hasPath("db-file")) {
-                    Path.of(getString("db-file"))
-                } else {
-                    null
-                },
+                    if (hasPath("db-file")) {
+                        Path.of(getString("db-file"))
+                    } else {
+                        null
+                    },
             )
         }
     } else {
@@ -105,6 +105,7 @@ fun DatabaseConfig.PostgresConfig.Companion.fromConfig(config: Config) =
     }
 
 private val log by lazy { KotlinLogging.logger { } }
+
 fun DatabaseConfig.Companion.fromConfig(config: Config = ConfigFactory.load()) =
     config.getConfig(
         ConfigUtil.joinPath("rewynd", "database"),

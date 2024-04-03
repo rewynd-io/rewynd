@@ -1,10 +1,7 @@
 package io.rewynd.omni
 
-import com.typesafe.config.ConfigFactory
 import io.rewynd.api.runApi
 import io.rewynd.common.cache.Cache
-import io.rewynd.common.config.CacheConfig
-import io.rewynd.common.config.DatabaseConfig
 import io.rewynd.common.config.fromConfig
 import io.rewynd.common.database.Database
 import io.rewynd.worker.runWorker

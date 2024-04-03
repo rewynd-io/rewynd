@@ -51,7 +51,7 @@ class RedisClusterCache(
             deserializeResponse,
             deserializeClientEventPayload,
             deserializeWorkerEventPayload,
-            itemExpiration
+            itemExpiration,
         )
 
     override suspend fun put(

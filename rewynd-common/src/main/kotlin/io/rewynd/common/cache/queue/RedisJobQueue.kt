@@ -31,7 +31,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
 
 class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
     private val id: String,

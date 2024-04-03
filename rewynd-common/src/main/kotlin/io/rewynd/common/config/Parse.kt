@@ -33,14 +33,14 @@ fun CacheConfig.RedisClusterConfig.Companion.fromConfig(config: Config) =
         with(config) {
             CacheConfig.RedisClusterConfig(
                 uris =
-                getString("hosts").split(",").mapNotNull {
-                    val split = it.split(":")
-                    check(split.size == 2) {
-                        "Invalid host:port combination: $it"
-                    }
-                    val port = split[1].toInt()
-                    RedisURI.create(split[0], port)
-                },
+                    getString("hosts").split(",").mapNotNull {
+                        val split = it.split(":")
+                        check(split.size == 2) {
+                            "Invalid host:port combination: $it"
+                        }
+                        val port = split[1].toInt()
+                        RedisURI.create(split[0], port)
+                    },
             )
         }
     } else {
@@ -57,6 +57,7 @@ fun CacheConfig.MemoryConfig.fromConfig(config: Config) =
     }
 
 private val log by lazy { KotlinLogging.logger { } }
+
 fun CacheConfig.Companion.fromConfig(config: Config = ConfigFactory.load()) =
     config.getConfig(
         ConfigUtil.joinPath("rewynd", "cache"),

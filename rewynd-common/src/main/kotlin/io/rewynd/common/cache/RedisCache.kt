@@ -45,7 +45,7 @@ class RedisCache(
             deserializeResponse,
             deserializeClientEventPayload,
             deserializeWorkerEventPayload,
-            itemExpiration
+            itemExpiration,
         )
 
     override suspend fun put(

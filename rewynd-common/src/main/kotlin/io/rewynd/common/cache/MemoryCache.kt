@@ -35,7 +35,7 @@ class MemoryCache : Cache {
                 serializeClientEventPayload,
                 serializeWorkerEventPayload,
                 deserializeClientEventPayload,
-                itemExpiration
+                itemExpiration,
             )
         } as JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>
 
