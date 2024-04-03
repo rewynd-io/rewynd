@@ -109,7 +109,7 @@ class BrowserViewModel(
         Log.i("LibraryLoader", "Loading Libs")
 
         this.viewModelScope.launch(Dispatchers.IO) {
-            libraries.postValue(client.listLibrariesFlow(ListLibrariesRequest()).toList())
+            libraries.postValue(client.listLibrariesFlow(ListLibrariesRequest()).toList().sortedBy { it.name })
             Log.i("LibraryLoader", "Loaded ${libraries.value}")
         }
     }
@@ -207,7 +207,7 @@ class BrowserViewModel(
     fun loadEpisodes(seasonId: String) {
         this.viewModelScope.launch(Dispatchers.IO) {
             episodes.postValue(
-                client.listEpisodesFlow(ListEpisodesRequest(seasonId)).toList(),
+                client.listEpisodesFlow(ListEpisodesRequest(seasonId)).toList().sortedBy { it.episode },
             )
         }
     }
