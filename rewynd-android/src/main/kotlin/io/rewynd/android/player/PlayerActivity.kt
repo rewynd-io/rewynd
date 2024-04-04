@@ -37,6 +37,7 @@ import io.rewynd.android.component.player.PlayerControls
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class PlayerActivity : AppCompatActivity() {
@@ -241,6 +242,23 @@ class PlayerActivity : AppCompatActivity() {
             if (playerService?.player?.isPlaying == true) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
+        }
+    }
+
+    override fun onSaveInstanceState(bundle: Bundle) {
+        super.onSaveInstanceState(bundle)
+        lastProps?.let {
+            bundle.putString(
+                "media",
+                Json.encodeToString(it)
+            )
+        }
+    }
+
+    override fun onRestoreInstanceState(bundle: Bundle) {
+        super.onRestoreInstanceState(bundle)
+        bundle.getString("media")?.let {
+            lastProps = Json.decodeFromString(it)
         }
     }
 
