@@ -250,7 +250,7 @@ class PlayerActivity : AppCompatActivity() {
         lastProps?.let {
             bundle.putString(
                 "media",
-                Json.encodeToString(it)
+                Json.encodeToString(it),
             )
         }
     }

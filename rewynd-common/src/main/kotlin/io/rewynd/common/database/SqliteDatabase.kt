@@ -221,9 +221,6 @@ class SqliteDatabase(
                     it[Shows.rating] = show.rating
                     it[Shows.year] = show.year?.roundToInt()
                     it[Shows.runTime] = show.runTime
-                    it[Shows.episode] = show.episode?.roundToInt()
-                    it[Shows.episodeNumberEnd] = show.episodeNumberEnd?.roundToInt()
-                    it[Shows.season] = show.season?.roundToInt()
                     it[Shows.aired] = show.aired
                     it[Shows.genre] = show.genre
                     it[Shows.studio] = show.studio
@@ -821,9 +818,6 @@ class SqliteDatabase(
                 rating = this[Shows.rating],
                 year = this[Shows.year]?.toDouble(),
                 runTime = this[Shows.runTime],
-                episode = this[Shows.episode]?.toDouble(),
-                episodeNumberEnd = this[Shows.episodeNumberEnd]?.toDouble(),
-                season = this[Shows.season]?.toDouble(),
                 aired = this[Shows.aired]?.toDouble(),
                 genre = this[Shows.genre],
                 studio = this[Shows.studio],

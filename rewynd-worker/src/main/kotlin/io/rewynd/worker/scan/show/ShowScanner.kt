@@ -167,13 +167,6 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 rating = nfo?.rating?.toDouble(),
                 year = nfo?.year?.toDouble(),
                 runTime = nfo?.runTime?.toDouble(),
-                // TODO wat?
-                episode = null,
-                // TODO wat?
-                episodeNumberEnd = null,
-                // TODO wat?
-                season = null,
-                aired = null,
                 genre = nfo?.genre,
                 studio = nfo?.studio,
                 status = nfo?.status,
@@ -424,11 +417,11 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
             )
         }
 
-
     companion object {
         private val log by lazy { KotlinLogging.logger { } }
     }
 }
+
 private fun File.id(lib: Library) = md5("${lib.name}:${this.absolutePath}")
 
 private fun String.parseSeasonNumber(): Int? = split(" ").lastOrNull()?.toIntOrNull()

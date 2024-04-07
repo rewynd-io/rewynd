@@ -918,12 +918,6 @@ components:
           type: number
         runTime:
           type: number
-        episode:
-          type: number
-        episodeNumberEnd:
-          type: number
-        season:
-          type: number
         aired:
           type: number # TODO should be a date
         genre:
