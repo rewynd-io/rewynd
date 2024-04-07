@@ -1,11 +1,10 @@
-package io.rewynd.worker.scan
+package io.rewynd.worker.scan.show
 
 import arrow.core.identity
 import arrow.core.mapNotNull
 import arrow.fx.coroutines.parMapUnordered
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -15,19 +14,17 @@ import io.rewynd.common.model.FileInfo
 import io.rewynd.common.model.FileLocation
 import io.rewynd.common.model.LibraryData
 import io.rewynd.common.model.LibraryIndex
-import io.rewynd.common.model.ServerAudioTrack
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerImageInfo
 import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerShowInfo
-import io.rewynd.common.model.ServerSubtitleTrack
-import io.rewynd.common.model.ServerVideoTrack
 import io.rewynd.common.model.SubtitleFileTrack
-import io.rewynd.model.Actor
 import io.rewynd.model.Library
 import io.rewynd.model.SearchResultType
 import io.rewynd.model.SeasonInfo
+import io.rewynd.worker.ffprobe.FfprobeInfo
 import io.rewynd.worker.ffprobe.FfprobeResult
+import io.rewynd.worker.scan.Scanner
 import io.rewynd.worker.serialize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -59,26 +56,6 @@ import kotlin.time.Duration.Companion.seconds
 
 private val imageExtensions = setOf("jpg", "jpeg", "png")
 private val subtitleExtensions = setOf("srt", "wvtt", "vtt")
-private val subtitleCodecs = setOf("subrip", "srt", "webvtt", "wvtt")
-
-data class ShowScanResults(
-    val images: Set<ServerImageInfo> = emptySet(),
-    val shows: Set<ServerShowInfo> = emptySet(),
-    val seasons: Set<ServerSeasonInfo> = emptySet(),
-    val episodes: Set<ServerEpisodeInfo> = emptySet(),
-) {
-    operator fun plus(other: ShowScanResults) =
-        ShowScanResults(
-            images = this.images + other.images,
-            episodes = this.episodes + other.episodes,
-            seasons = this.seasons + other.seasons,
-            shows = this.shows + other.shows,
-        )
-
-    companion object {
-        val EMPTY = ShowScanResults()
-    }
-}
 
 class ShowScanner(private val lib: Library, private val db: Database) : Scanner {
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -161,7 +138,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
         showDir: File,
         lib: Library,
     ): ShowScanResults {
-        val showId = showDir.id()
+        val showId = showDir.id(lib)
         val nfo =
             Path(showDir.absolutePath, "tvshow.nfo").let {
                 if (it.exists()) it else null
@@ -224,7 +201,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
         seasonDir: File,
         showInfo: ServerShowInfo,
     ): ShowScanResults {
-        val seasonId = seasonDir.id()
+        val seasonId = seasonDir.id(lib)
         val nfo =
             Path(seasonDir.absolutePath, "season.nfo").let {
                 log.info { it }
@@ -283,7 +260,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
         showInfo: ServerShowInfo,
     ): ShowScanResults =
         try {
-            val episodeId = episodeFile.id()
+            val episodeId = episodeFile.id(lib)
             val curr = db.getEpisode(episodeId)
             val nfo =
                 Path(episodeFile.parent, "${episodeFile.nameWithoutExtension}.nfo").let {
@@ -368,61 +345,6 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
             log.info { "Processed ${episodeFile.absolutePath}" }
         }
 
-    data class SeasonNfo(
-        val title: String?,
-        val year: Int?,
-        val premiered: String?,
-        val releasedate: String?,
-        val seasonnumber: Int?,
-        @JacksonXmlElementWrapper(useWrapping = false) val actor: List<Actor>?,
-    )
-
-    data class EpisodeNfo(
-        val plot: String?,
-        val outline: String?,
-        val title: String?,
-        @JacksonXmlElementWrapper(useWrapping = false) val director: List<String>?,
-        @JacksonXmlElementWrapper(useWrapping = false) val writer: List<String>?,
-        @JacksonXmlElementWrapper(useWrapping = false) val credits: List<String>?,
-        val rating: Double?,
-        val year: Int?,
-        val runtime: Double?,
-        @JacksonXmlElementWrapper(useWrapping = false) val actor: List<Actor>?,
-        val episode: Int?,
-        val episodenumberend: Int?,
-        val season: Int?,
-        val aired: String?,
-    )
-
-    data class ShowNfo(
-        val plot: String?,
-        val outline: String?,
-        // TODO should be a Date
-        val dateadded: String?,
-        val title: String?,
-        val originaltitle: String?,
-        val rating: Number?,
-        val year: Number?,
-        // TODO could probably be an enum
-        val mpaa: String?,
-        val imdb_id: String?,
-        val tmdbid: String?,
-        val tvdbid: String?,
-        val tvrageid: String?,
-        // TODO should be a Date
-        val premiered: String?,
-        // TODO should be a Date
-        val releasedate: String?,
-        // TODO should be a Date
-        val enddate: String?,
-        val runTime: Number?,
-        val genre: String?,
-        val studio: String?,
-        @JacksonXmlElementWrapper(useWrapping = false) val tag: List<String>?,
-        @JacksonXmlElementWrapper(useWrapping = false) val actor: List<Actor>?,
-        val status: String?,
-    )
-
     private val xmlMapper =
         XmlMapper().apply {
             registerModule(
@@ -468,7 +390,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 location = FileLocation.LocalFile(it.absolutePath),
                 size = 0L,
                 libraryId = this@ShowScanner.lib.name,
-                imageId = it.id(),
+                imageId = it.id(lib),
                 lastUpdated = Clock.System.now(),
             )
         }
@@ -481,7 +403,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 location = FileLocation.LocalFile(it.absolutePath),
                 size = 0L,
                 libraryId = this@ShowScanner.lib.name,
-                imageId = it.id(),
+                imageId = it.id(lib),
                 lastUpdated = Clock.System.now(),
             )
         }
@@ -497,17 +419,17 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 location = FileLocation.LocalFile(it.absolutePath),
                 size = 0L,
                 libraryId = this@ShowScanner.lib.name,
-                imageId = it.id(),
+                imageId = it.id(lib),
                 lastUpdated = Clock.System.now(),
             )
         }
 
-    private fun File.id() = md5("${lib.name}:${this.absolutePath}")
 
     companion object {
         private val log by lazy { KotlinLogging.logger { } }
     }
 }
+private fun File.id(lib: Library) = md5("${lib.name}:${this.absolutePath}")
 
 private fun String.parseSeasonNumber(): Int? = split(" ").lastOrNull()?.toIntOrNull()
 
@@ -517,205 +439,6 @@ private fun ServerEpisodeInfo.toFfprobeInfo(): FfprobeInfo =
         this.videoTracks,
         this.subtitleTracks,
         this.runTime,
-    )
-
-data class FfprobeInfo(
-    val audioTracks: Map<String, ServerAudioTrack>,
-    val videoTracks: Map<String, ServerVideoTrack>,
-    val subtitleTracks: Map<String, ServerSubtitleTrack>,
-    val runTime: Double,
-)
-
-private fun FfprobeResult.extractInfo(): FfprobeInfo {
-    val audioTracks =
-        this.streams.filter { it.codecType == "audio" }.associate {
-            val name = "${it.index} - ${it.codecName} - ${it.tags?.language}"
-
-            name to
-                ServerAudioTrack(
-                    id = it.id,
-                    index = it.index,
-                    codecName = it.codecName,
-                    codecLongName = it.codecLongName,
-                    profile = it.profile,
-                    codecType = it.codecType,
-                    codecTagString = it.codecTagString,
-                    codecTag = it.codecTag,
-                    width = it.width,
-                    height = it.height,
-                    codedWidth = it.codedWidth,
-                    codedHeight = it.codedHeight,
-                    closedCaptions = it.closedCaptions,
-                    filmGrain = it.filmGrain,
-                    hasBFrames = it.hasBFrames,
-                    sampleAspectRatio = it.sampleAspectRatio,
-                    displayAspectRatio = it.displayAspectRatio,
-                    pixFmt = it.pixFmt,
-                    level = it.level,
-                    colorRange = it.colorRange,
-                    chromaLocation = it.chromaLocation,
-                    refs = it.refs,
-                    rFrameRate = it.rFrameRate,
-                    avgFrameRate = it.avgFrameRate,
-                    timeBase = it.timeBase,
-                    startPts = it.startPts,
-                    duration = it.duration,
-                    durationTs = it.durationTs,
-                    startTime = it.startTime,
-                    extradataSize = it.extradataSize,
-                    default = it.disposition?.default,
-                    dub = it.disposition?.dub,
-                    original = it.disposition?.original,
-                    comment = it.disposition?.comment,
-                    lyrics = it.disposition?.lyrics,
-                    karaoke = it.disposition?.karaoke,
-                    forced = it.disposition?.forced,
-                    hearingImpaired = it.disposition?.hearingImpaired,
-                    visualImpaired = it.disposition?.visualImpaired,
-                    cleanEffects = it.disposition?.cleanEffects,
-                    attachedPic = it.disposition?.attachedPic,
-                    timedThumbnails = it.disposition?.timedThumbnails,
-                    captions = it.disposition?.captions,
-                    descriptions = it.disposition?.descriptions,
-                    metadata = it.disposition?.metadata,
-                    dependent = it.disposition?.dependent,
-                    stillImage = it.disposition?.stillImage,
-                    creationTime = it.tags?.creationTime,
-                    language = it.tags?.language,
-                    encoder = it.tags?.encoder,
-                )
-        }
-    val videoTracks =
-        this.streams.filter { it.codecType == "video" }.associate {
-            val name = "${it.index} - ${it.codecName} - ${it.tags?.language}"
-
-            name to
-                ServerVideoTrack(
-                    id = it.id,
-                    index = it.index,
-                    codecName = it.codecName,
-                    codecLongName = it.codecLongName,
-                    profile = it.profile,
-                    codecType = it.codecType,
-                    codecTagString = it.codecTagString,
-                    codecTag = it.codecTag,
-                    width = it.width,
-                    height = it.height,
-                    codedWidth = it.codedWidth,
-                    codedHeight = it.codedHeight,
-                    closedCaptions = it.closedCaptions,
-                    filmGrain = it.filmGrain,
-                    hasBFrames = it.hasBFrames,
-                    sampleAspectRatio = it.sampleAspectRatio,
-                    displayAspectRatio = it.displayAspectRatio,
-                    pixFmt = it.pixFmt,
-                    level = it.level,
-                    colorRange = it.colorRange,
-                    chromaLocation = it.chromaLocation,
-                    refs = it.refs,
-                    rFrameRate = it.rFrameRate,
-                    avgFrameRate = it.avgFrameRate,
-                    timeBase = it.timeBase,
-                    startPts = it.startPts,
-                    duration = it.duration,
-                    durationTs = it.durationTs,
-                    startTime = it.startTime,
-                    extradataSize = it.extradataSize,
-                    default = it.disposition?.default,
-                    dub = it.disposition?.dub,
-                    original = it.disposition?.original,
-                    comment = it.disposition?.comment,
-                    lyrics = it.disposition?.lyrics,
-                    karaoke = it.disposition?.karaoke,
-                    forced = it.disposition?.forced,
-                    hearingImpaired = it.disposition?.hearingImpaired,
-                    visualImpaired = it.disposition?.visualImpaired,
-                    cleanEffects = it.disposition?.cleanEffects,
-                    attachedPic = it.disposition?.attachedPic,
-                    timedThumbnails = it.disposition?.timedThumbnails,
-                    captions = it.disposition?.captions,
-                    descriptions = it.disposition?.descriptions,
-                    metadata = it.disposition?.metadata,
-                    dependent = it.disposition?.dependent,
-                    stillImage = it.disposition?.stillImage,
-                    creationTime = it.tags?.creationTime,
-                    language = it.tags?.language,
-                    encoder = it.tags?.encoder,
-                )
-        }
-
-    val subtitleTracks =
-        this.streams.filter {
-            it.codecType == "subtitle" &&
-                subtitleCodecs.contains(
-                    it.codecName,
-                )
-        }.associate {
-            val name = "${it.index} - ${it.codecName} - ${it.tags?.language}"
-
-            name to
-                ServerSubtitleTrack(
-                    id = it.id,
-                    index = it.index,
-                    codecName = it.codecName,
-                    codecLongName = it.codecLongName,
-                    profile = it.profile,
-                    codecType = it.codecType,
-                    codecTagString = it.codecTagString,
-                    codecTag = it.codecTag,
-                    width = it.width,
-                    height = it.height,
-                    codedWidth = it.codedWidth,
-                    codedHeight = it.codedHeight,
-                    closedCaptions = it.closedCaptions,
-                    filmGrain = it.filmGrain,
-                    hasBFrames = it.hasBFrames,
-                    sampleAspectRatio = it.sampleAspectRatio,
-                    displayAspectRatio = it.displayAspectRatio,
-                    pixFmt = it.pixFmt,
-                    level = it.level,
-                    colorRange = it.colorRange,
-                    chromaLocation = it.chromaLocation,
-                    refs = it.refs,
-                    rFrameRate = it.rFrameRate,
-                    avgFrameRate = it.avgFrameRate,
-                    timeBase = it.timeBase,
-                    startPts = it.startPts,
-                    duration = it.duration,
-                    durationTs = it.durationTs,
-                    startTime = it.startTime,
-                    extradataSize = it.extradataSize,
-                    default = it.disposition?.default,
-                    dub = it.disposition?.dub,
-                    original = it.disposition?.original,
-                    comment = it.disposition?.comment,
-                    lyrics = it.disposition?.lyrics,
-                    karaoke = it.disposition?.karaoke,
-                    forced = it.disposition?.forced,
-                    hearingImpaired = it.disposition?.hearingImpaired,
-                    visualImpaired = it.disposition?.visualImpaired,
-                    cleanEffects = it.disposition?.cleanEffects,
-                    attachedPic = it.disposition?.attachedPic,
-                    timedThumbnails = it.disposition?.timedThumbnails,
-                    captions = it.disposition?.captions,
-                    descriptions = it.disposition?.descriptions,
-                    metadata = it.disposition?.metadata,
-                    dependent = it.disposition?.dependent,
-                    stillImage = it.disposition?.stillImage,
-                    creationTime = it.tags?.creationTime,
-                    language = it.tags?.language,
-                    encoder = it.tags?.encoder,
-                )
-        }
-
-    return FfprobeInfo(audioTracks, videoTracks, subtitleTracks, this.duration())
-}
-
-private fun FfprobeResult.duration() =
-    (
-        this.format?.duration ?: this.streams.mapNotNull {
-            it.duration
-        }.maxOrNull() ?: 0.0
     )
 
 private fun ServerSeasonInfo.toDocument() =
