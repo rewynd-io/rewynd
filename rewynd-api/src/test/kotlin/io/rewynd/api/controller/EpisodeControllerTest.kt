@@ -26,9 +26,9 @@ import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
-import io.rewynd.test.UtilGenerators
 import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
+import net.kensand.kielbasa.kotest.property.Generators
 
 internal class EpisodeControllerTest : StringSpec({
     "getEpisode" {
@@ -162,7 +162,7 @@ internal class EpisodeControllerTest : StringSpec({
                             episode = InternalGenerators.serverEpisodeInfo.bind(),
                             otherEpisode = InternalGenerators.serverEpisodeInfo.bind(),
                             season = InternalGenerators.serverSeasonInfo.bind(),
-                            cursor = UtilGenerators.long.bind(),
+                            cursor = Generators.long.bind(),
                         )
                     }
             }

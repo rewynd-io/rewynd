@@ -29,11 +29,11 @@ import io.rewynd.common.model.ServerImageInfo
 import io.rewynd.common.model.ServerUser
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
-import io.rewynd.test.UtilGenerators
 import io.rewynd.test.checkAllRun
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import net.kensand.kielbasa.kotest.property.Generators
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 
 internal class ImageControllerTest : StringSpec({
@@ -125,7 +125,7 @@ internal class ImageControllerTest : StringSpec({
         private class Harness(
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
-            val byteArr: ByteArray = UtilGenerators.byteArray.next(),
+            val byteArr: ByteArray = Generators.byteArray.next(),
             val imageInfo: ServerImageInfo = InternalGenerators.serverImageInfo.next(),
             val jobId: JobId = InternalGenerators.jobId.next(),
         ) : BaseHarness(user, sessionId) {
@@ -145,7 +145,7 @@ internal class ImageControllerTest : StringSpec({
                         Harness(
                             user = InternalGenerators.serverUser.bind(),
                             sessionId = ApiGenerators.sessionId.bind(),
-                            byteArr = UtilGenerators.byteArray.bind(),
+                            byteArr = Generators.byteArray.bind(),
                             imageInfo = InternalGenerators.serverImageInfo.bind(),
                             jobId = InternalGenerators.jobId.bind(),
                         )

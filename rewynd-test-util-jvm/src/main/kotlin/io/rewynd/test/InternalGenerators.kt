@@ -38,13 +38,13 @@ import io.rewynd.model.NormalizationProps
 import io.rewynd.test.ApiGenerators.actor
 import io.rewynd.test.ApiGenerators.mediaInfo
 import io.rewynd.test.ApiGenerators.seasonInfo
-import io.rewynd.test.UtilGenerators.boolean
-import io.rewynd.test.UtilGenerators.double
-import io.rewynd.test.UtilGenerators.duration
-import io.rewynd.test.UtilGenerators.instant
-import io.rewynd.test.UtilGenerators.long
-import io.rewynd.test.UtilGenerators.string
-import io.rewynd.test.UtilGenerators.urlEncodedBase64
+import net.kensand.kielbasa.kotest.property.Generators.boolean
+import net.kensand.kielbasa.kotest.property.Generators.double
+import net.kensand.kielbasa.kotest.property.Generators.duration
+import net.kensand.kielbasa.kotest.property.Generators.instant
+import net.kensand.kielbasa.kotest.property.Generators.long
+import net.kensand.kielbasa.kotest.property.Generators.string
+import net.kensand.kielbasa.kotest.property.Generators.urlEncodedBase64
 
 object InternalGenerators {
     val libraryData =
@@ -227,7 +227,7 @@ object InternalGenerators {
         arbitrary {
             ServerScheduleInfo(
                 id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
-                cronExpression = UtilGenerators.cron.bind(),
+                cronExpression = "0 0 3 * * ? *", // TODO make ARB for cron expression
                 scanTasks = serverScanTask.list().bind(),
             )
         }

@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotest.extensions.property.datetime)
+    implementation(libs.kielbasa.kotest.property)
 }
 
 kotlin {

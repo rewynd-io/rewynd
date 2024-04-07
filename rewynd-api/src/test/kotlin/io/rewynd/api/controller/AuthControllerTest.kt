@@ -33,8 +33,8 @@ import io.rewynd.model.LoginRequest
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.MemorySessionStorage
-import io.rewynd.test.UtilGenerators
 import io.rewynd.test.checkAllRun
+import net.kensand.kielbasa.kotest.property.Generators
 
 internal class AuthControllerTest : StringSpec({
 
@@ -210,7 +210,7 @@ internal class AuthControllerTest : StringSpec({
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
             val password: String = Arb.string(minSize = 2).next(),
-            val salt: String = UtilGenerators.urlEncodedBase64.next(),
+            val salt: String = Generators.urlEncodedBase64.next(),
             val hashedPass: String = hashPassword(password, salt),
             val userWithPass: ServerUser = user.copy(hashedPass = hashedPass, salt = salt),
         ) : BaseHarness(user, sessionId) {
@@ -218,7 +218,7 @@ internal class AuthControllerTest : StringSpec({
                 val arb =
                     arbitrary {
                         val password = Arb.string(minSize = 2).bind()
-                        val salt = UtilGenerators.urlEncodedBase64.bind()
+                        val salt = Generators.urlEncodedBase64.bind()
                         val hashedPass = hashPassword(password, salt)
                         Harness(
                             user = InternalGenerators.serverUser.bind(),

@@ -36,8 +36,8 @@ import io.rewynd.model.LibraryType
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.DummyCacheLock
 import io.rewynd.test.InternalGenerators
-import io.rewynd.test.UtilGenerators
 import io.rewynd.test.checkAllRun
+import net.kensand.kielbasa.kotest.property.Generators
 
 internal class StreamControllerTest : StringSpec({
     "getHlsIndexM3u8" {
@@ -263,8 +263,8 @@ internal class StreamControllerTest : StringSpec({
                             subtitleMetadata = subtitleMetadata,
                             metadata = metadata,
                             metadataWrapper = StreamMetadataWrapper(metadata),
-                            byteArr = UtilGenerators.byteArray.bind(),
-                            segmentId = UtilGenerators.int.bind(),
+                            byteArr = Generators.byteArray.bind(),
+                            segmentId = Generators.int.bind(),
                             subtitleSegId = Arb.int(subtitleMetadata.segments.indices).bind(),
                             streamMapping = InternalGenerators.streamMapping.bind(),
                             createStreamRequest = ApiGenerators.createStreamRequest.bind(),

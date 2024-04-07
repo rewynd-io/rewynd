@@ -65,6 +65,7 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.property)
     testImplementation(libs.mockk)
+    testImplementation(libs.kielbasa.kotest.property)
     implementation(libs.kotlin.logging)
 
     // Scheduling

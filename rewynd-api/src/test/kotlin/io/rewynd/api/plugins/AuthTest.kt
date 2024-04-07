@@ -22,8 +22,8 @@ import io.rewynd.api.setIsAdmin
 import io.rewynd.common.model.ServerUser
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.MemorySessionStorage
-import io.rewynd.test.UtilGenerators
 import io.rewynd.test.checkAllRun
+import net.kensand.kielbasa.kotest.property.Generators
 
 class AuthTest : StringSpec({
     "AuthNPlugin" {
@@ -119,14 +119,14 @@ class AuthTest : StringSpec({
                     arbitrary {
                         Harness(
                             InternalGenerators.serverUser.bind().setIsAdmin(true),
-                            UtilGenerators.string.bind(),
+                            Generators.string.bind(),
                         )
                     }
                 val nonAdminArb =
                     arbitrary {
                         Harness(
                             InternalGenerators.serverUser.bind().setIsAdmin(false),
-                            UtilGenerators.string.bind(),
+                            Generators.string.bind(),
                         )
                     }
                 val arb = Arb.bind<Harness>()

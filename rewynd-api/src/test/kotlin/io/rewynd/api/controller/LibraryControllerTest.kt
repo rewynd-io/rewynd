@@ -28,9 +28,9 @@ import io.rewynd.model.ListLibrariesResponse
 import io.rewynd.model.ScanLibrariesRequest
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
-import io.rewynd.test.UtilGenerators
 import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
+import net.kensand.kielbasa.kotest.property.Generators
 
 internal class LibraryControllerTest : StringSpec({
     "getLibrary" {
@@ -211,7 +211,7 @@ internal class LibraryControllerTest : StringSpec({
                             sessionIdParam = ApiGenerators.sessionId.bind(),
                             library = ApiGenerators.library.bind(),
                             libraries = ApiGenerators.library.list().bind(),
-                            libraryIds = UtilGenerators.string.list().bind(),
+                            libraryIds = Generators.string.list().bind(),
                             jobId = InternalGenerators.jobId.bind(),
                             listLibrariesRequest = ApiGenerators.listLibrariesRequest.bind(),
                         )

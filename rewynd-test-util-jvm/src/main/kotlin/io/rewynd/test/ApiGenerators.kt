@@ -35,10 +35,11 @@ import io.rewynd.model.SubtitleTrack
 import io.rewynd.model.User
 import io.rewynd.model.UserPermissions
 import io.rewynd.model.VideoTrack
-import io.rewynd.test.UtilGenerators.boolean
-import io.rewynd.test.UtilGenerators.double
-import io.rewynd.test.UtilGenerators.duration
-import io.rewynd.test.UtilGenerators.string
+import net.kensand.kielbasa.kotest.property.Generators.boolean
+import net.kensand.kielbasa.kotest.property.Generators.double
+import net.kensand.kielbasa.kotest.property.Generators.duration
+import net.kensand.kielbasa.kotest.property.Generators.instant
+import net.kensand.kielbasa.kotest.property.Generators.string
 
 object ApiGenerators {
     val sessionId = Arb.string(minSize = 1)
@@ -103,7 +104,7 @@ object ApiGenerators {
             Progress(
                 string.bind(),
                 percent = Arb.double(0.0, 1.0).bind(),
-                timestamp = UtilGenerators.instant.bind(),
+                timestamp = instant.bind(),
             )
         }
 
@@ -151,7 +152,7 @@ object ApiGenerators {
         arbitrary {
             CreateUserRequest(
                 username = username.bind(),
-                permissions = UserPermissions(UtilGenerators.boolean.bind()),
+                permissions = UserPermissions(boolean.bind()),
                 password = Arb.string(minSize = 2).bind(),
             )
         }

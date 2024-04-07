@@ -31,9 +31,9 @@ import io.rewynd.model.ListUsersRequest
 import io.rewynd.model.ListUsersResponse
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
-import io.rewynd.test.UtilGenerators
 import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
+import net.kensand.kielbasa.kotest.property.Generators
 
 internal class UserControllerTest : StringSpec({
     "listUsers" {
@@ -147,8 +147,8 @@ internal class UserControllerTest : StringSpec({
                             InternalGenerators.serverUser.list().bind(),
                             oldPass,
                             Arb.string(minSize = 2).filter { it != oldPass }.bind(),
-                            UtilGenerators.urlEncodedBase64.bind(),
-                            UtilGenerators.urlEncodedBase64.bind(),
+                            Generators.urlEncodedBase64.bind(),
+                            Generators.urlEncodedBase64.bind(),
                             ApiGenerators.createUserRequest.bind(),
                             ApiGenerators.deleteUsersRequest.bind(),
                             ApiGenerators.listUsersRequest.bind(),

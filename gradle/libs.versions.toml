@@ -16,6 +16,7 @@ hikari = "5.1.0"
 jacksonDataformatXml = "2.17.0"
 jacksonModuleKotlin = "2.17.0"
 junit = "4.13.2"
+kielbasaKotestProperty = "0.1.1"
 kotlin = "1.9.23"
 dokka = "1.9.20"
 kotest = "5.8.1"
@@ -81,6 +82,7 @@ arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref 
 expiringmap = { module = "net.jodah:expiringmap", version.ref = "expiringmap" }
 jackson-dataformat-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml", version.ref = "jacksonDataformatXml" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jacksonModuleKotlin" }
+kielbasa-kotest-property = { module = "net.kensand:kielbasa-kotest-property", version.ref = "kielbasaKotestProperty" }
 lucene-analysis-common = { module = "org.apache.lucene:lucene-analysis-common", version.ref = "luceneCore" }
 lucene-analysis-icu = { module = "org.apache.lucene:lucene-analysis-icu", version.ref = "luceneCore" }
 lucene-backward-codecs = { module = "org.apache.lucene:lucene-backward-codecs", version.ref = "luceneCore" }
