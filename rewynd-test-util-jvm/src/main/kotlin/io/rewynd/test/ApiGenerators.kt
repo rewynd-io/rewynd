@@ -20,6 +20,7 @@ import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.model.ListLibrariesRequest
 import io.rewynd.model.ListSchedulesRequest
+import io.rewynd.model.ListShowsRequest
 import io.rewynd.model.ListUsersRequest
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.NormalizationMethod
@@ -90,6 +91,8 @@ object ApiGenerators {
                 Exhaustive.enum<LibraryType>().toArb().bind(),
             )
         }
+
+    val listShowsRequest = Arb.bind<ListShowsRequest>()
 
     val username = Arb.string(minSize = 1)
 

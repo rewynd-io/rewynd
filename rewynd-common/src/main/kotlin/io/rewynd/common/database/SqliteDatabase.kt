@@ -241,11 +241,18 @@ class SqliteDatabase(
             }
         }
 
-    override suspend fun listShows(libraryId: String): List<ServerShowInfo> =
-        mutex.withLock {
-            newSuspendedTransaction(currentCoroutineContext(), conn) {
-                Shows.selectAll().map { it.toServerShowInfo() }
-            }
+    override suspend fun listShows(
+        libraryId: String,
+        cursor: String?,
+    ): List<ServerShowInfo> =
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            Shows.selectAll().where {
+                if (cursor == null) {
+                    Shows.libraryId eq libraryId
+                } else {
+                    (Shows.libraryId eq libraryId) and (Shows.showId greater cursor)
+                }
+            }.map { it.toServerShowInfo() }
         }
 
     override suspend fun getSeason(seasonId: String): ServerSeasonInfo? =

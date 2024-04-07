@@ -49,7 +49,10 @@ sealed interface Database {
 
     suspend fun deleteShow(showId: String): Boolean
 
-    suspend fun listShows(libraryId: String): List<ServerShowInfo>
+    suspend fun listShows(
+        libraryId: String,
+        cursor: String? = null,
+    ): List<ServerShowInfo>
 
     suspend fun getSeason(seasonId: String): ServerSeasonInfo?
 

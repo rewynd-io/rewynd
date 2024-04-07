@@ -214,9 +214,18 @@ class PostgresDatabase(
             Shows.deleteWhere { Shows.showId eq showId } == 1
         }
 
-    override suspend fun listShows(libraryId: String): List<ServerShowInfo> =
+    override suspend fun listShows(
+        libraryId: String,
+        cursor: String?,
+    ): List<ServerShowInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Shows.selectAll().map { it.toServerShowInfo() }
+            Shows.selectAll().where {
+                if (cursor == null) {
+                    Shows.libraryId eq libraryId
+                } else {
+                    (Shows.libraryId eq libraryId) and (Shows.showId greater cursor)
+                }
+            }.map { it.toServerShowInfo() }
         }
 
     override suspend fun getSeason(seasonId: String): ServerSeasonInfo? =

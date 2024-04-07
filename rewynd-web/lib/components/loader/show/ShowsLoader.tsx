@@ -1,7 +1,7 @@
 import { ShowInfo } from "@rewynd.io/rewynd-client-typescript";
 import { Loading } from "../../Loading";
 import React, { ReactElement, useEffect, useState } from "react";
-import { HttpClient } from "../../../const";
+import { loadAllShows } from "../../../util";
 
 export interface ShowLibraryLoaderProps {
   libraryId: string;
@@ -13,9 +13,7 @@ export function ShowsLoader(props: ShowLibraryLoaderProps) {
   const [showInfos, setShowInfos] = useState<ShowInfo[]>();
 
   useEffect(() => {
-    HttpClient.listShows({ libraryId: props.libraryId }).then((it) =>
-      setShowInfos(it),
-    );
+    loadAllShows(props.libraryId).then((it) => setShowInfos(it));
   }, [props.libraryId]);
 
   return (

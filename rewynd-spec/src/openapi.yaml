@@ -410,27 +410,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/MovieInfo"
 
-  /api/show/list/{libraryId}:
-    get:
+  /api/show/list:
+    post:
       operationId: listShows
-      parameters:
-        - name: libraryId
-          in: path
-          required: true
-          description: "The LibraryId within which to fetch the desired ShowInfo."
-          schema:
-            $ref: "#/components/schemas/LibraryId"
       security:
         - CookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListShowsRequest"
       responses:
         200:
           description: "Successfully listed shows."
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ShowInfo"
+                $ref: "#/components/schemas/ListShowsResponse"
 
   /api/show/get/{showId}:
     get:
@@ -866,6 +862,31 @@ components:
           $ref: "#/components/schemas/ListEpisodesByLastUpdatedCursor"
       required:
         - episodes
+
+    ListShowsCursor:
+      type: string
+
+    ListShowsRequest:
+      type: object
+      properties:
+        libraryId:
+          $ref: "#/components/schemas/LibraryId"
+        cursor:
+          $ref: "#/components/schemas/ListShowsCursor"
+      required:
+        - libraryId
+
+    ListShowsResponse:
+      type: object
+      properties:
+        page:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShowInfo"
+        cursor:
+          $ref: "#/components/schemas/ListShowsCursor"
+      required:
+        - page
 
     Actor:
       type: object

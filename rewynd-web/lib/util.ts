@@ -107,6 +107,19 @@ export async function loadAllLibraries() {
   return libs;
 }
 
+export async function loadAllShows(libraryId: string) {
+  let cursor: string | undefined = undefined;
+  const libs = [];
+  do {
+    const res = await HttpClient.listShows({
+      listShowsRequest: { cursor: cursor, libraryId: libraryId },
+    });
+    cursor = res.cursor;
+    libs.push(...res.page);
+  } while (cursor);
+  return libs;
+}
+
 export async function loadAllSchedules() {
   let cursor: string | undefined = undefined;
   const schedules = [];
