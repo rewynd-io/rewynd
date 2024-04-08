@@ -289,10 +289,21 @@ class SqliteDatabase(
             }
         }
 
-    override suspend fun listSeasons(showId: String): List<ServerSeasonInfo> =
+    override suspend fun listSeasons(
+        showId: String,
+        cursor: String?,
+    ): List<ServerSeasonInfo> =
         mutex.withLock {
             newSuspendedTransaction(currentCoroutineContext(), conn) {
-                Seasons.selectAll().where { Seasons.showId eq showId }.map { it.toServerSeasonInfo() }
+                Seasons.selectAll().where {
+                    if (cursor == null) {
+                        Seasons.showId eq showId
+                    } else {
+                        (Seasons.showId eq showId) and (Seasons.seasonId greater cursor)
+                    }
+                }.map {
+                    it.toServerSeasonInfo()
+                }
             }
         }
 

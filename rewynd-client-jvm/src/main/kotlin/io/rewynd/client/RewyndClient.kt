@@ -6,6 +6,8 @@ import io.rewynd.model.ListLibrariesRequest
 import io.rewynd.model.ListLibrariesResponse
 import io.rewynd.model.ListSchedulesRequest
 import io.rewynd.model.ListSchedulesResponse
+import io.rewynd.model.ListSeasonsRequest
+import io.rewynd.model.ListSeasonsResponse
 import io.rewynd.model.ListShowsRequest
 import io.rewynd.model.ListShowsResponse
 import kotlinx.coroutines.flow.Flow
@@ -51,4 +53,9 @@ fun RewyndClient.listLibrariesFlow(listLibrariesRequest: ListLibrariesRequest) =
 fun RewyndClient.listShowsFlow(listShowsRequest: ListShowsRequest) =
     mkFlowMethod(listShowsRequest, this::listShows, ListShowsResponse::page) {
         it.cursor?.let { cursor -> listShowsRequest.copy(cursor = cursor) }
+    }
+
+fun RewyndClient.listSeasonsFlow(listSeasonsRequest: ListSeasonsRequest) =
+    mkFlowMethod(listSeasonsRequest, this::listSeasons, ListSeasonsResponse::page) {
+        it.cursor?.let { cursor -> listSeasonsRequest.copy(cursor = cursor) }
     }

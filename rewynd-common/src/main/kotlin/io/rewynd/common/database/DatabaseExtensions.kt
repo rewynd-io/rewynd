@@ -1,6 +1,7 @@
 package io.rewynd.common.database
 
 import io.rewynd.common.model.ServerEpisodeInfo
+import io.rewynd.common.model.ServerSeasonInfo
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -19,6 +20,9 @@ private suspend fun <Item, Cursor> iterateWithCursor(
 
 suspend fun Database.listAllEpisodes(seasonId: String) =
     iterateWithCursor<ServerEpisodeInfo, String>({ listEpisodes(seasonId, it) }) { lastOrNull()?.id }
+
+suspend fun Database.listAllSeasons(showId: String) =
+    iterateWithCursor<ServerSeasonInfo, String>({ listSeasons(showId, it) }) { lastOrNull()?.seasonInfo?.id }
 
 suspend fun Database.listAllSchedules() = iterateWithCursor(this::listSchedules) { lastOrNull()?.id }
 

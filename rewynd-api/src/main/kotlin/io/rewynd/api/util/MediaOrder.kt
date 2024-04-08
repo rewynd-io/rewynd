@@ -2,6 +2,7 @@ package io.rewynd.api.util
 
 import io.rewynd.common.database.Database
 import io.rewynd.common.database.listAllEpisodes
+import io.rewynd.common.database.listAllSeasons
 import io.rewynd.common.model.ServerEpisodeInfo
 import kotlinx.coroutines.flow.toList
 import java.text.Collator
@@ -13,7 +14,8 @@ suspend fun getFirstEpisodeInNextSeason(
     serverEpisodeInfo: ServerEpisodeInfo,
     reverse: Boolean = false,
 ): ServerEpisodeInfo? =
-    db.listSeasons(serverEpisodeInfo.showId)
+    db.listAllSeasons(serverEpisodeInfo.showId)
+        .toList()
         .sortedBy { it.seasonInfo.seasonNumber }
         .let { seasons ->
             val chosenIndex =

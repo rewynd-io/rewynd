@@ -3,7 +3,6 @@ package io.rewynd.api.controller
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.arbitrary
-import io.kotest.property.arbitrary.next
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
@@ -22,6 +21,8 @@ import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerShowInfo
 import io.rewynd.common.model.ServerUser
+import io.rewynd.model.ListSeasonsRequest
+import io.rewynd.model.ListSeasonsResponse
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.checkAllRun
@@ -49,17 +50,21 @@ internal class SeasonControllerTest : StringSpec({
     "listSeasons" {
         Harness.arb.checkAllRun {
             coEvery {
-                db.listSeasons(show.id)
+                db.listSeasons(listSeasonsRequest.showId, listSeasonsRequest.cursor)
             } returns seasons
             testCall(
-                { listSeasons(show.id) },
+                { listSeasons(listSeasonsRequest) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe seasons.map(ServerSeasonInfo::seasonInfo)
+                body() shouldBe
+                    ListSeasonsResponse(
+                        seasons.map { it.seasonInfo },
+                        seasons.lastOrNull()?.seasonInfo?.id,
+                    )
             }
             coVerify {
-                db.listSeasons(show.id)
+                db.listSeasons(listSeasonsRequest.showId, listSeasonsRequest.cursor)
             }
         }
     }
@@ -68,9 +73,10 @@ internal class SeasonControllerTest : StringSpec({
         private class Harness(
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
-            val season: ServerSeasonInfo = InternalGenerators.serverSeasonInfo.next(),
-            val seasons: List<ServerSeasonInfo> = InternalGenerators.serverSeasonInfo.list().next(),
-            val show: ServerShowInfo = InternalGenerators.serverShowInfo.next(),
+            val season: ServerSeasonInfo,
+            val seasons: List<ServerSeasonInfo>,
+            val show: ServerShowInfo,
+            val listSeasonsRequest: ListSeasonsRequest,
         ) : BaseHarness(user, sessionId) {
             companion object {
                 val arb =
@@ -81,6 +87,7 @@ internal class SeasonControllerTest : StringSpec({
                             InternalGenerators.serverSeasonInfo.bind(),
                             InternalGenerators.serverSeasonInfo.list().bind(),
                             InternalGenerators.serverShowInfo.bind(),
+                            ApiGenerators.listSeasonsRequest.bind(),
                         )
                     }
             }

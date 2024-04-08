@@ -15,6 +15,7 @@ import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.client.RewyndClient
 import io.rewynd.client.listEpisodesFlow
 import io.rewynd.client.listLibrariesFlow
+import io.rewynd.client.listSeasonsFlow
 import io.rewynd.client.listShowsFlow
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.Library
@@ -23,6 +24,7 @@ import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListLibrariesRequest
 import io.rewynd.model.ListProgressRequest
+import io.rewynd.model.ListSeasonsRequest
 import io.rewynd.model.ListShowsRequest
 import io.rewynd.model.Progress
 import io.rewynd.model.SeasonInfo
@@ -197,7 +199,7 @@ class BrowserViewModel(
         this.viewModelScope.launch(Dispatchers.IO) {
             seasons.postValue(
                 requireNotNull(
-                    client.listSeasons(showId).body().sortedBy { it.seasonNumber },
+                    client.listSeasonsFlow(ListSeasonsRequest(showId = showId)).toList().sortedBy { it.seasonNumber },
                 ),
             )
         }

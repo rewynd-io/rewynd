@@ -120,6 +120,19 @@ export async function loadAllShows(libraryId: string) {
   return libs;
 }
 
+export async function loadAllSeasons(showId: string) {
+  let cursor: string | undefined = undefined;
+  const libs = [];
+  do {
+    const res = await HttpClient.listSeasons({
+      listSeasonsRequest: { cursor: cursor, showId: showId },
+    });
+    cursor = res.cursor;
+    libs.push(...res.page);
+  } while (cursor);
+  return libs;
+}
+
 export async function loadAllSchedules() {
   let cursor: string | undefined = undefined;
   const schedules = [];

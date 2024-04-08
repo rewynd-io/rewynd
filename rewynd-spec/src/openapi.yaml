@@ -448,27 +448,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/ShowInfo"
 
-  /api/season/list/{showId}:
-    get:
+  /api/season/list:
+    post:
       operationId: listSeasons
       security:
         - CookieAuth: []
-      parameters:
-        - name: showId
-          in: path
-          required: true
-          description: "The ShowId for which to fetch the desired SeasonInfos."
-          schema:
-            $ref: "#/components/schemas/ShowId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListSeasonsRequest"
       responses:
         200:
           description: "Successful query"
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/SeasonInfo"
+                $ref: "#/components/schemas/ListSeasonsResponse"
 
   /api/season/get/{seasonId}:
     get:
@@ -883,6 +879,31 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ShowInfo"
+        cursor:
+          $ref: "#/components/schemas/ListShowsCursor"
+      required:
+        - page
+
+    ListSeasonsCursor:
+      type: string
+
+    ListSeasonsRequest:
+      type: object
+      properties:
+        showId:
+          $ref: "#/components/schemas/ShowId"
+        cursor:
+          $ref: "#/components/schemas/ListSeasonsCursor"
+      required:
+        - showId
+
+    ListSeasonsResponse:
+      type: object
+      properties:
+        page:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeasonInfo"
         cursor:
           $ref: "#/components/schemas/ListShowsCursor"
       required:

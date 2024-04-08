@@ -20,6 +20,7 @@ import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
 import io.rewynd.model.ListLibrariesRequest
 import io.rewynd.model.ListSchedulesRequest
+import io.rewynd.model.ListSeasonsRequest
 import io.rewynd.model.ListShowsRequest
 import io.rewynd.model.ListUsersRequest
 import io.rewynd.model.MediaInfo
@@ -94,6 +95,8 @@ object ApiGenerators {
         }
 
     val listShowsRequest = Arb.bind<ListShowsRequest>()
+
+    val listSeasonsRequest = Arb.bind<ListSeasonsRequest>()
 
     val username = Arb.string(minSize = 1)
 
