@@ -28,6 +28,8 @@ import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
+import io.rewynd.test.nullable
+import kotlinx.datetime.Instant
 import net.kensand.kielbasa.kotest.property.Generators
 
 internal class EpisodeControllerTest : StringSpec({
@@ -95,7 +97,13 @@ internal class EpisodeControllerTest : StringSpec({
 
     "listByLastUpdated" {
         Harness.arb.checkAllRun {
-            coEvery { db.listEpisodesByLastUpdated(cursor, libraryIds, ListEpisodesByLastUpdatedOrder.Oldest) } returns episodes
+            coEvery {
+                db.listEpisodesByLastUpdated(
+                    cursor?.toEpochMilliseconds(),
+                    libraryIds,
+                    ListEpisodesByLastUpdatedOrder.Oldest,
+                )
+            } returns episodes
 
             testCall(
                 {
@@ -103,7 +111,7 @@ internal class EpisodeControllerTest : StringSpec({
                         ListEpisodesByLastUpdatedRequest(
                             ListEpisodesByLastUpdatedOrder.Oldest,
                             libraryIds,
-                            cursor = cursor.toString(),
+                            cursor = cursor?.toString(),
                         ),
                     )
                 },
@@ -113,14 +121,13 @@ internal class EpisodeControllerTest : StringSpec({
                 body() shouldBe
                     ListEpisodesByLastUpdatedResponse(
                         episodes.map(ServerEpisodeInfo::toEpisodeInfo),
-                        episodes.maxByOrNull { it.lastUpdated }?.lastUpdated?.toEpochMilliseconds()
-                            ?.toString(),
+                        episodes.maxByOrNull { it.lastUpdated }?.lastUpdated?.toString(),
                     )
             }
         }
     }
 
-    "listByLastUpdated NumberFormatException" {
+    "listByLastUpdated IllegalArgumentException" {
         Harness.arb.checkAllRun {
             testCall(
                 {
@@ -148,8 +155,8 @@ internal class EpisodeControllerTest : StringSpec({
             val episode: ServerEpisodeInfo,
             val otherEpisode: ServerEpisodeInfo,
             val season: ServerSeasonInfo,
-            val cursor: Long,
-            val libraryIds: List<String>,
+            val cursor: Instant?,
+            val libraryIds: List<String>?,
         ) : BaseHarness(user, sessionId) {
             init {
                 coEvery { db.getEpisode(episode.id) } returns episode
@@ -165,8 +172,8 @@ internal class EpisodeControllerTest : StringSpec({
                             episode = InternalGenerators.serverEpisodeInfo.bind(),
                             otherEpisode = InternalGenerators.serverEpisodeInfo.bind(),
                             season = InternalGenerators.serverSeasonInfo.bind(),
-                            cursor = Generators.long.bind(),
-                            libraryIds = Generators.string.list().bind(),
+                            cursor = Generators.instant.nullable().bind(),
+                            libraryIds = Generators.string.list().nullable().bind(),
                         )
                     }
             }

@@ -27,22 +27,22 @@ fun Route.episodeRoutes(db: Database) {
         call.receive<ListEpisodesByLastUpdatedRequest>().let { request ->
             try {
                 val cursor = request.cursor?.let { it1 -> Instant.parse(it1) }
-                val episodes = db.listEpisodesByLastUpdated(
-                    cursor?.toEpochMilliseconds(),
-                    request.libraryIds,
-                    request.order
-                )
+                val episodes =
+                    db.listEpisodesByLastUpdated(
+                        cursor?.toEpochMilliseconds(),
+                        request.libraryIds,
+                        request.order,
+                    )
                 val res =
                     ListEpisodesByLastUpdatedResponse(
                         cursor =
-                        episodes.maxByOrNull { it.lastUpdated }
-                            ?.lastUpdated
-                            ?.toEpochMilliseconds()
-                            ?.toString(),
+                            episodes.maxByOrNull { it.lastUpdated }
+                                ?.lastUpdated
+                                ?.toString(),
                         episodes = episodes.map { it.toEpisodeInfo() },
                     )
                 call.respond(HttpStatusCode.OK, res)
-            } catch (e: NumberFormatException) {
+            } catch (e: IllegalArgumentException) {
                 call.respond(HttpStatusCode.BadRequest, "Invalid cursor: ${request.cursor}")
             }
         }
@@ -67,14 +67,14 @@ fun Route.episodeRoutes(db: Database) {
     get("/episode/previous/{episodeId}") {
         call.parameters["episodeId"]?.let { db.getEpisode(it) }?.let { serverEpisodeInfo ->
             (
-                    getNextEpisodeInSeason(db, serverEpisodeInfo, true) ?: getFirstEpisodeInNextSeason(
-                        db,
-                        serverEpisodeInfo,
-                        true,
-                    )
-                    )?.let {
-                    call.respond(it.toEpisodeInfo())
-                }
+                getNextEpisodeInSeason(db, serverEpisodeInfo, true) ?: getFirstEpisodeInNextSeason(
+                    db,
+                    serverEpisodeInfo,
+                    true,
+                )
+            )?.let {
+                call.respond(it.toEpisodeInfo())
+            }
         } ?: call.respond(HttpStatusCode.NotFound)
     }
 }
