@@ -513,17 +513,10 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                order:
-                  $ref: "#/components/schemas/ListEpisodesByLastUpdatedOrder"
-                cursor:
-                  $ref: "#/components/schemas/ListEpisodesByLastUpdatedCursor"
-              required:
-                - order
+              $ref: "#/components/schemas/ListEpisodesByLastUpdatedRequest"
       responses:
         "200":
-          description: "Successful query. "
+          description: "Successful query."
           content:
             application/json:
               schema:
@@ -859,6 +852,20 @@ components:
       required:
         - episodes
 
+    ListEpisodesByLastUpdatedRequest:
+      type: object
+      properties:
+        libraryIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/LibraryId"
+        order:
+          $ref: "#/components/schemas/ListEpisodesByLastUpdatedOrder"
+        cursor:
+          $ref: "#/components/schemas/ListEpisodesByLastUpdatedCursor"
+      required:
+        - order
+
     ListShowsCursor:
       type: string
 
@@ -1076,6 +1083,8 @@ components:
           type: number # TODO should be a date
         episodeImageId:
           $ref: "#/components/schemas/ImageId"
+        lastUpdated:
+          $ref: "#/components/schemas/Timestamp"
       required:
         - id
         - seasonId
@@ -1086,6 +1095,7 @@ components:
         - audioTracks
         - videoTracks
         - subtitleTracks
+        - lastUpdated
 
     MovieInfo:
       type: object

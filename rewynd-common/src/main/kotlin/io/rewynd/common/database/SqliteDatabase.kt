@@ -379,27 +379,45 @@ class SqliteDatabase(
 
     override suspend fun listEpisodesByLastUpdated(
         cursor: Long?,
+        libraryIds: List<String>?,
         order: ListEpisodesByLastUpdatedOrder,
     ): List<ServerEpisodeInfo> =
-        mutex.withLock {
-            newSuspendedTransaction(currentCoroutineContext(), conn) {
-                if (cursor != null) {
-                    Episodes.selectAll().where {
-                        when (order) {
-                            ListEpisodesByLastUpdatedOrder.Newest -> Episodes.lastUpdated.less(cursor)
-                            ListEpisodesByLastUpdatedOrder.Oldest -> Episodes.lastUpdated.greater(cursor)
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            Episodes.selectAll().let { query ->
+                when {
+                    cursor != null && libraryIds != null -> {
+                        query.where {
+                            when (order) {
+                                ListEpisodesByLastUpdatedOrder.Newest -> Episodes.lastUpdated.less(cursor)
+                                ListEpisodesByLastUpdatedOrder.Oldest -> Episodes.lastUpdated.greater(cursor)
+                            } and Episodes.libraryId.inList(libraryIds)
                         }
                     }
-                } else {
-                    Episodes.selectAll()
-                }.orderBy(
-                    Episodes.lastUpdated,
-                    when (order) {
-                        ListEpisodesByLastUpdatedOrder.Newest -> SortOrder.DESC
-                        ListEpisodesByLastUpdatedOrder.Oldest -> SortOrder.ASC
-                    },
-                ).limit(100).take(100).map { it.toServerEpisodeInfo() }
-            }
+
+                    cursor == null && libraryIds != null -> {
+                        query.where {
+                            Episodes.libraryId.inList(libraryIds)
+                        }
+                    }
+
+                    cursor != null && libraryIds == null -> {
+                        query.where {
+                            when (order) {
+                                ListEpisodesByLastUpdatedOrder.Newest -> Episodes.lastUpdated.less(cursor)
+                                ListEpisodesByLastUpdatedOrder.Oldest -> Episodes.lastUpdated.greater(cursor)
+                            }
+                        }
+                    }
+
+                    else -> query
+                }
+            }.orderBy(
+                Episodes.lastUpdated,
+                when (order) {
+                    ListEpisodesByLastUpdatedOrder.Newest -> SortOrder.DESC
+                    ListEpisodesByLastUpdatedOrder.Oldest -> SortOrder.ASC
+                },
+            ).limit(100).map { it.toServerEpisodeInfo() }
         }
 
     override suspend fun getMovie(movieId: String): ServerMovieInfo? {

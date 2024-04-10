@@ -63,6 +63,7 @@ data class ServerEpisodeInfo(
             showName = showName,
             aired = aired,
             episodeImageId = episodeImageId,
+            lastUpdated = lastUpdated,
         )
 
     fun toServerMediaInfo(): ServerMediaInfo =

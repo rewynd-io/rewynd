@@ -95,14 +95,15 @@ internal class EpisodeControllerTest : StringSpec({
 
     "listByLastUpdated" {
         Harness.arb.checkAllRun {
-            coEvery { db.listEpisodesByLastUpdated(cursor, ListEpisodesByLastUpdatedOrder.Oldest) } returns episodes
+            coEvery { db.listEpisodesByLastUpdated(cursor, libraryIds, ListEpisodesByLastUpdatedOrder.Oldest) } returns episodes
 
             testCall(
                 {
                     listEpisodesByLastUpdated(
                         ListEpisodesByLastUpdatedRequest(
                             ListEpisodesByLastUpdatedOrder.Oldest,
-                            cursor.toString(),
+                            libraryIds,
+                            cursor = cursor.toString(),
                         ),
                     )
                 },
@@ -126,6 +127,7 @@ internal class EpisodeControllerTest : StringSpec({
                     listEpisodesByLastUpdated(
                         ListEpisodesByLastUpdatedRequest(
                             ListEpisodesByLastUpdatedOrder.Oldest,
+                            libraryIds,
                             "abc",
                         ),
                     )
@@ -133,7 +135,7 @@ internal class EpisodeControllerTest : StringSpec({
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.BadRequest.value
-                coVerify(inverse = true) { db.listEpisodesByLastUpdated(any(), any()) }
+                coVerify(inverse = true) { db.listEpisodesByLastUpdated(any(), any(), any()) }
             }
         }
     }
@@ -147,6 +149,7 @@ internal class EpisodeControllerTest : StringSpec({
             val otherEpisode: ServerEpisodeInfo,
             val season: ServerSeasonInfo,
             val cursor: Long,
+            val libraryIds: List<String>,
         ) : BaseHarness(user, sessionId) {
             init {
                 coEvery { db.getEpisode(episode.id) } returns episode
@@ -163,6 +166,7 @@ internal class EpisodeControllerTest : StringSpec({
                             otherEpisode = InternalGenerators.serverEpisodeInfo.bind(),
                             season = InternalGenerators.serverSeasonInfo.bind(),
                             cursor = Generators.long.bind(),
+                            libraryIds = Generators.string.list().bind(),
                         )
                     }
             }

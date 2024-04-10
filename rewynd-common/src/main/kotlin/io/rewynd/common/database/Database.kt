@@ -78,6 +78,7 @@ sealed interface Database {
 
     suspend fun listEpisodesByLastUpdated(
         cursor: Long?,
+        libraryIds: List<String>?,
         order: ListEpisodesByLastUpdatedOrder,
     ): List<ServerEpisodeInfo>
 

@@ -14,6 +14,7 @@ import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesByLastUpdatedResponse
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
+import kotlinx.datetime.Instant
 
 fun Route.episodeRoutes(db: Database) {
     post("/episode/list") {
@@ -25,15 +26,19 @@ fun Route.episodeRoutes(db: Database) {
     post("/episode/listByLastUpdated") {
         call.receive<ListEpisodesByLastUpdatedRequest>().let { request ->
             try {
-                val cursor = request.cursor?.toLong()
-                val episodes = db.listEpisodesByLastUpdated(cursor, request.order)
+                val cursor = request.cursor?.let { it1 -> Instant.parse(it1) }
+                val episodes = db.listEpisodesByLastUpdated(
+                    cursor?.toEpochMilliseconds(),
+                    request.libraryIds,
+                    request.order
+                )
                 val res =
                     ListEpisodesByLastUpdatedResponse(
                         cursor =
-                            episodes.maxByOrNull { it.lastUpdated }
-                                ?.lastUpdated
-                                ?.toEpochMilliseconds()
-                                ?.toString(),
+                        episodes.maxByOrNull { it.lastUpdated }
+                            ?.lastUpdated
+                            ?.toEpochMilliseconds()
+                            ?.toString(),
                         episodes = episodes.map { it.toEpisodeInfo() },
                     )
                 call.respond(HttpStatusCode.OK, res)
@@ -62,14 +67,14 @@ fun Route.episodeRoutes(db: Database) {
     get("/episode/previous/{episodeId}") {
         call.parameters["episodeId"]?.let { db.getEpisode(it) }?.let { serverEpisodeInfo ->
             (
-                getNextEpisodeInSeason(db, serverEpisodeInfo, true) ?: getFirstEpisodeInNextSeason(
-                    db,
-                    serverEpisodeInfo,
-                    true,
-                )
-            )?.let {
-                call.respond(it.toEpisodeInfo())
-            }
+                    getNextEpisodeInSeason(db, serverEpisodeInfo, true) ?: getFirstEpisodeInNextSeason(
+                        db,
+                        serverEpisodeInfo,
+                        true,
+                    )
+                    )?.let {
+                    call.respond(it.toEpisodeInfo())
+                }
         } ?: call.respond(HttpStatusCode.NotFound)
     }
 }

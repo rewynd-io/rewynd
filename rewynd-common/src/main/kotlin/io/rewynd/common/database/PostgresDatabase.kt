@@ -334,18 +334,38 @@ class PostgresDatabase(
 
     override suspend fun listEpisodesByLastUpdated(
         cursor: Long?,
+        libraryIds: List<String>?,
         order: ListEpisodesByLastUpdatedOrder,
     ): List<ServerEpisodeInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            if (cursor != null) {
-                Episodes.selectAll().where {
-                    when (order) {
-                        ListEpisodesByLastUpdatedOrder.Newest -> Episodes.lastUpdated.less(cursor)
-                        ListEpisodesByLastUpdatedOrder.Oldest -> Episodes.lastUpdated.greater(cursor)
+            Episodes.selectAll().let { query ->
+                when {
+                    cursor != null && libraryIds != null -> {
+                        query.where {
+                            when (order) {
+                                ListEpisodesByLastUpdatedOrder.Newest -> Episodes.lastUpdated.less(cursor)
+                                ListEpisodesByLastUpdatedOrder.Oldest -> Episodes.lastUpdated.greater(cursor)
+                            } and Episodes.libraryId.inList(libraryIds)
+                        }
                     }
+
+                    cursor == null && libraryIds != null -> {
+                        query.where {
+                            Episodes.libraryId.inList(libraryIds)
+                        }
+                    }
+
+                    cursor != null && libraryIds == null -> {
+                        query.where {
+                            when (order) {
+                                ListEpisodesByLastUpdatedOrder.Newest -> Episodes.lastUpdated.less(cursor)
+                                ListEpisodesByLastUpdatedOrder.Oldest -> Episodes.lastUpdated.greater(cursor)
+                            }
+                        }
+                    }
+
+                    else -> query
                 }
-            } else {
-                Episodes.selectAll()
             }.orderBy(
                 Episodes.lastUpdated,
                 when (order) {
