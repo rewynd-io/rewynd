@@ -1,9 +1,18 @@
 # Rewynd
-![Woodpecker CI pipeline status badge](https://woodpecker-codeberg.kensand.net/api/badges/7/status.svg)
+![Woodpecker CI pipeline status badge](https://woodpecker-codeberg.kensand.net/api/badges/7/status.svg)![License badge](https://img.shields.io/badge/License-AGPL--v3-blue)![Release badge](https://img.shields.io/gitea/v/release/rewynd-io/rewynd?gitea_url=https%3A%2F%2Fcodeberg.org
+)
 
-Rewynd is a self-hosted media streaming server akin to Jellyfin, Plex, or Emby. It consists of one or more workers and one or more api servers, which coordinate work using a Database and a Cache. 
+Rewynd is a self-hosted media streaming server akin to Jellyfin, Plex, or Emby. Rewynd is scalabe and supports multiple implementations of  databases and caches.
 
-An Android app and web UI is provided, and support for IOS is planned.
+An Android app and web UI is supported, and an iOS app is planned.
+
+## Running
+
+### Docker Omni Image
+This is the quickest way to evaluate Rewynd, but is not horizontally scalable. It uses SQLite and an in-memory cache.
+```shell
+docker run -v "./rewynd-db.sqlite:/rewynd/rewynd-db.sqlite" codeberg.org/rewynd-io/rewynd-omni:latest
+```
 
 ## Development
 
