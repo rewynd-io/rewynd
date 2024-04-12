@@ -6,17 +6,41 @@ import React, { PropsWithChildren } from "react";
 import { EpisodeInfo, Progress } from "@rewynd.io/rewynd-client-typescript";
 import { cardWidth } from "../../../const";
 import { formatEpisode, formatSeason } from "../../../util";
+import { UnpaddedButtonLink } from "../../styled/UnpaddedButtonLink";
 import formatShowRoute = WebRoutes.formatShowRoute;
 import formatSeasonRoute = WebRoutes.formatSeasonRoute;
 import formatEpisodeRoute = WebRoutes.formatEpisodeRoute;
 import formatPlayerRoute = WebRoutes.Player.formatEpisodeRoute;
-import { LinkProps } from "react-router-dom";
-import { Link } from "../../Link";
+
+const Text = styled(Typography)(({ theme }) => ({
+  fontSize: "1em",
+  display: "inline",
+  padding: "0",
+  color: theme.palette.primary.main,
+}));
+
+type RowProps = React.DetailedHTMLProps<
+  React.HTMLAttributes<HTMLDivElement>,
+  HTMLDivElement
+> &
+  PropsWithChildren;
+const Row = (props: RowProps) => (
+  <div
+    {...props}
+    style={{
+      ...(props.style ?? {}),
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "center",
+    }}
+  />
+);
 
 export interface EpisodeCardProps {
   readonly episode: EpisodeInfo;
   readonly progress?: Progress;
 }
+
 export function EpisodeCard(props: EpisodeCardProps) {
   const episodeRoute = formatEpisodeRoute(props.episode.id.toString());
   const seasonRoute = formatSeasonRoute(props.episode.seasonId.toString());
@@ -73,52 +97,3 @@ export function EpisodeCard(props: EpisodeCardProps) {
     </Grid>
   );
 }
-
-const UnpaddedButtonLink = (props: LinkProps) => (
-  <Link
-    style={{ padding: "0", fontSize: "1em" }}
-    sx={{ padding: "0" }}
-    {...props}
-  />
-);
-
-const Text = styled(Typography)(({ theme }) => ({
-  fontSize: "1em",
-  display: "inline",
-  padding: "0",
-  color: theme.palette.primary.main,
-}));
-
-export type RowProps = React.DetailedHTMLProps<
-  React.HTMLAttributes<HTMLDivElement>,
-  HTMLDivElement
-> &
-  PropsWithChildren;
-export const Row = (props: RowProps) => (
-  <div
-    {...props}
-    style={{
-      ...(props.style ?? {}),
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "center",
-    }}
-  />
-);
-
-export type ColProps = React.DetailedHTMLProps<
-  React.HTMLAttributes<HTMLDivElement>,
-  HTMLDivElement
-> &
-  PropsWithChildren;
-export const Col = (props: RowProps) => (
-  <div
-    {...props}
-    style={{
-      ...(props.style ?? {}),
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-    }}
-  />
-);
