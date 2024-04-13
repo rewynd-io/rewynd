@@ -125,7 +125,6 @@ export function Home() {
       <Grid width={"100%"} container direction={"column"}>
         <Grid
           container
-          item
           direction={"row"}
           justifyContent={"flex-start"}
           wrap={"nowrap"}
@@ -136,11 +135,11 @@ export function Home() {
         </Grid>
         <Grid
           container
-          item
+          xs={2}
           direction={"row"}
           justifyContent={"flex-start"}
           wrap={"nowrap"}
-          sx={{ overflowX: "scroll" }}
+          sx={{ overflowX: "scroll", maxWidth: undefined }}
           minHeight={"15em"}
           width={"100%"}
         >

@@ -133,6 +133,19 @@ export async function loadAllSeasons(showId: string) {
   return libs;
 }
 
+export async function loadAllEpisodes(seasonId: string) {
+  let cursor: string | undefined = undefined;
+  const libs = [];
+  do {
+    const res = await HttpClient.listEpisodes({
+      listEpisodesRequest: { cursor: cursor, seasonId: seasonId },
+    });
+    cursor = res.cursor;
+    libs.push(...res.page);
+  } while (cursor);
+  return libs;
+}
+
 export async function loadAllSchedules() {
   let cursor: string | undefined = undefined;
   const schedules = [];

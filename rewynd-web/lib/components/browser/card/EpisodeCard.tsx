@@ -47,7 +47,7 @@ export function EpisodeCard(props: EpisodeCardProps) {
   const showRoute = formatShowRoute(props.episode.showId.toString());
   const playerRoute = formatPlayerRoute(props.episode.id.toString());
   return (
-    <Grid item sx={{ width: "auto", minHeight: "15em" }}>
+    <Grid xs={2} sx={{ width: "auto", minHeight: "15em" }}>
       <ButtonLink
         to={playerRoute}
         style={{ width: "100%" }}
