@@ -32,6 +32,7 @@ fun BrowserRouter(mainViewModel: BrowserViewModel) {
                 (newestEpisodes ?: emptyList()).toImmutableList(),
                 loadImage = mainViewModel::loadImage,
             )
+
         is BrowserState.LibraryState ->
             LibraryBrowser(
                 (shows ?: emptyList()).toImmutableList(),
@@ -41,6 +42,7 @@ fun BrowserRouter(mainViewModel: BrowserViewModel) {
 
         is BrowserState.ShowState ->
             ShowBrowser(
+                state.showInfo,
                 (seasons ?: emptyList()).toImmutableList(),
                 mainViewModel::putBrowserState,
                 loadImage = mainViewModel::loadImage,
@@ -48,10 +50,12 @@ fun BrowserRouter(mainViewModel: BrowserViewModel) {
 
         is BrowserState.SeasonState ->
             SeasonBrowser(
+                state.seasonInfo,
                 (episodes ?: emptyList()).toImmutableList(),
                 mainViewModel::putBrowserState,
                 loadImage = mainViewModel::loadImage,
             )
+
         is BrowserState.EpisodeState ->
             EpisodeBrowser(
                 nextEpisode,
