@@ -9,7 +9,7 @@ import io.rewynd.android.browser.BrowserViewModel
 import kotlinx.collections.immutable.toImmutableList
 
 @Composable
-fun BrowserRouter(mainViewModel: BrowserViewModel) {
+fun BrowserRouter(mainViewModel: BrowserViewModel, onFinish: () -> Unit) {
     val mutableState by mainViewModel.browserState.collectAsState()
     val libraries by mainViewModel.libraries.observeAsState()
     val latestEpisodes by mainViewModel.latestEpisodes.observeAsState()
@@ -65,6 +65,7 @@ fun BrowserRouter(mainViewModel: BrowserViewModel) {
                 backStack.toImmutableList(),
                 mainViewModel.serverUrl,
                 loadImage = mainViewModel::loadImage,
+                onFinish = onFinish
             )
     }
 }

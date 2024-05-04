@@ -171,11 +171,6 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
-        this.intent = intent
-        super.onNewIntent(intent)
-    }
-
     override fun onResume() {
         super.onResume()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -218,7 +213,12 @@ class PlayerActivity : AppCompatActivity() {
 
             onBackPressedDispatcher.addCallback {
                 enterPip()
-                startActivity(Intent(this@PlayerActivity, BrowserActivity::class.java))
+                startActivity(Intent(this@PlayerActivity, BrowserActivity::class.java).apply {
+                    putExtra(
+                        BrowserActivity.BROWSER_STATE,
+                        Json.encodeToString(playerService?.browserState ?: emptyList())
+                    )
+                })
             }
 
             setContent {
