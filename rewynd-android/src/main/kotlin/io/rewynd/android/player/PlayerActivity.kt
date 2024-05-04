@@ -245,22 +245,6 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    override fun onSaveInstanceState(bundle: Bundle) {
-        super.onSaveInstanceState(bundle)
-        lastProps?.let {
-            bundle.putString(
-                "media",
-                Json.encodeToString(it),
-            )
-        }
-    }
-
-    override fun onRestoreInstanceState(bundle: Bundle) {
-        super.onRestoreInstanceState(bundle)
-        bundle.getString("media")?.let {
-            lastProps = Json.decodeFromString(it)
-        }
-    }
 
     companion object {
         const val PLAYER_ACTIVITY_PROPS_EXTRA_NAME = "PlayerActivityProps"
