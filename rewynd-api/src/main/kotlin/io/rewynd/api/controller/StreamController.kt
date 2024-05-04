@@ -180,7 +180,7 @@ private suspend fun Cache.heartbeatStream(
     sessionId: String?,
     queue: StreamJobQueue,
 ): Boolean {
-    (0 until streamMetadata.segments.size).asFlow().parMapUnordered {
+    streamMetadata.segments.indices.asFlow().parMapUnordered {
         expireSegmentM4s(
             reqStreamId,
             it,
@@ -194,7 +194,7 @@ private suspend fun Cache.heartbeatStream(
     }
 
     val allItemsExist =
-        (0 until streamMetadata.segments.size).asFlow().parMapUnordered {
+        streamMetadata.segments.indices.asFlow().parMapUnordered {
             existsSegmentM4s(
                 reqStreamId,
                 it,
@@ -267,7 +267,7 @@ private suspend fun deleteStream(
     sessionId: String,
 ) = with(streamMapping) {
     queue.cancel(jobId)
-    (0 until (cache.getStreamMetadata(streamId)?.streamMetadata?.segments?.size ?: 0)).forEach {
+    cache.getStreamMetadata(streamId)?.streamMetadata?.segments?.indices?.forEach {
         cache.delSegmentM4s(streamId, it)
     }
     cache.delInitMp4(streamId)

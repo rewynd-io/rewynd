@@ -61,7 +61,7 @@ fun mkStreamJobHandler(cache: Cache): StreamJobHandler =
 
 private suspend fun Cache.cleanupStream(streamProps: StreamProps) =
     withContext(NonCancellable) {
-        (0 until (getStreamMetadata(streamProps.id)?.streamMetadata?.segments?.size ?: 0)).forEach {
+        getStreamMetadata(streamProps.id)?.streamMetadata?.segments?.indices?.forEach {
             delSegmentM4s(streamProps.id, it)
         }
         delStreamMetadata(streamProps.id)

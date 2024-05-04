@@ -93,7 +93,7 @@ class PlayerService : Service() {
             client = client,
             onCanceled = {
                 log.info { "Heartbeat Cancelled" }
-                it.copy(startOffset = currentTime.inWholeMilliseconds / 1000.0)
+                it.copy(startOffset = currentPlayerTime.value.inWholeMilliseconds / 1000.0)
             },
             onAvailable = {
                 log.info { "Heartbeat Available" }
@@ -169,8 +169,10 @@ class PlayerService : Service() {
             ) {
                 log.info { "Got player events" }
                 super.onEvents(player, events)
-                currentPlayerTime.value = player.currentPosition.milliseconds
-                bufferedPosition.value = player.bufferedPosition.milliseconds
+                if(!events.contains(Player.EVENT_PLAYER_ERROR)) {
+                    currentPlayerTime.value = player.currentPosition.milliseconds
+                    bufferedPosition.value = player.bufferedPosition.milliseconds
+                }
                 createNotification()
             }
 
@@ -520,7 +522,7 @@ class PlayerService : Service() {
     private val currentTime: Duration
         get() =
             (
-                player.currentPosition + (
+                currentPlayerTime.value.inWholeMilliseconds + (
                     this.media.value?.startOffset?.inWholeMilliseconds
                         ?: 0
                 )

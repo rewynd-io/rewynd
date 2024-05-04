@@ -183,7 +183,7 @@ internal class StreamControllerTest : StringSpec({
                 cache.delSessionStreamMapping(sessionId)
             }
 
-            (0 until metadata.segments.size).forEach {
+            metadata.segments.indices.forEach {
                 coVerify {
                     cache.delSegmentM4s(streamMapping.streamId, it)
                 }
@@ -215,13 +215,13 @@ internal class StreamControllerTest : StringSpec({
 
             coVerifyAll {
                 cache.getStreamMetadata(streamId)
-                (0 until metadata.segments.size).forEach {
+                metadata.segments.indices.forEach {
                     cache.existsSegmentM4s(streamId, it)
                 }
                 cache.expireInitMp4(streamId, any())
                 cache.expireStreamMetadata(streamId, any())
                 cache.expireSessionStreamJobId(sessionId, any())
-                (0 until metadata.segments.size).forEach {
+                metadata.segments.indices.forEach {
                     cache.expireSegmentM4s(streamId, it, any())
                 }
                 cache.existsStreamMetadata(streamId)
