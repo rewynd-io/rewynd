@@ -13,10 +13,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.exoplayer.util.EventLogger
+import androidx.media3.ui.PlayerView
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.HttpClient
 import io.rewynd.android.model.PlayerMedia
-import io.rewynd.android.player.PlayerService.Companion
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import io.rewynd.client.RewyndClient
 import io.rewynd.model.Progress
@@ -34,7 +33,7 @@ class PlayerWrapper(
     httpClient: OkHttpClient,
     val client: RewyndClient,
     val onEvent: () -> Unit = {},
-    onNext: suspend (PlayerMedia) -> Unit = {},
+    onNext: suspend (player: PlayerWrapper) -> Unit = {},
 ) {
     private val datasourceFactory by lazy { OkHttpDataSource.Factory(httpClient) }
 
@@ -45,14 +44,14 @@ class PlayerWrapper(
     val media: MutableStateFlow<PlayerMedia?> = MutableStateFlow(null)
     val isPlayingState by lazy { MutableStateFlow(player.playWhenReady) }
 
-    val player: ExoPlayer by lazy {
+    private val player: ExoPlayer by lazy {
         ExoPlayer.Builder(context).build().apply {
             addListener(listener)
             addAnalyticsListener(EventLogger())
             playWhenReady = true
         }
-
     }
+
     private val listener =
         object : Player.Listener {
             override fun onEvents(
@@ -61,10 +60,8 @@ class PlayerWrapper(
             ) {
                 log.info { "Got player events" }
                 super.onEvents(player, events)
-                if (!events.contains(Player.EVENT_PLAYER_ERROR)) {
-                    currentPlayerTime.value = player.currentPosition.milliseconds
-                    bufferedPosition.value = player.bufferedPosition.milliseconds
-                }
+                currentPlayerTime.value = player.currentPosition.milliseconds
+                bufferedPosition.value = player.bufferedPosition.milliseconds
                 onEvent()
             }
 
@@ -83,9 +80,12 @@ class PlayerWrapper(
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 this@PlayerWrapper.playbackState.value = playbackState
-                if (playbackState == Player.STATE_ENDED) {
-                    runBlocking {
-                        this@PlayerWrapper.media.value?.let { onNext(it) }
+                runBlocking {
+                    when (playbackState) {
+                        Player.STATE_ENDED -> this@PlayerWrapper.media.value?.let { onNext(this@PlayerWrapper) }
+                        Player.STATE_BUFFERING -> {}
+                        Player.STATE_IDLE -> {}
+                        Player.STATE_READY -> {}
                     }
                     Unit
                 }
@@ -126,10 +126,11 @@ class PlayerWrapper(
         player.prepare()
     }
 
-    fun stop() = runBlocking {
-        player.stop()
-        heartbeat.unload()
-    }
+    fun stop() =
+        runBlocking {
+            player.stop()
+            heartbeat.unload()
+        }
 
     fun pause() {
         player.pause()
@@ -139,13 +140,14 @@ class PlayerWrapper(
         player.play()
     }
 
-    fun load(playerMedia: PlayerMedia) = runBlocking {
-        this@PlayerWrapper.isLoading.value = true
-        media.value = playerMedia
+    fun load(playerMedia: PlayerMedia) =
+        runBlocking {
+            this@PlayerWrapper.isLoading.value = true
+            media.value = playerMedia
 
-        heartbeat.load(playerMedia.toCreateStreamRequest())
-        this@PlayerWrapper.onEvent()
-    }
+            heartbeat.load(playerMedia.toCreateStreamRequest())
+            this@PlayerWrapper.onEvent()
+        }
 
     @OptIn(UnstableApi::class) // HlsMediaSource is unstable
     private val heartbeat by lazy {
@@ -191,7 +193,6 @@ class PlayerWrapper(
     val currentOffsetTime: Duration
         get() = this.currentPlayerTime.value + (this.media.value?.startOffset ?: Duration.ZERO)
 
-
     fun seek(desired: Duration) =
         this.media.value?.let { playerMedia ->
             if (desired > playerMedia.startOffset && desired < playerMedia.startOffset + this.player.duration.milliseconds) {
@@ -203,6 +204,14 @@ class PlayerWrapper(
             }
         } ?: Unit
 
+    fun getPlayerView(context: Context): PlayerView =
+        PlayerView(context).apply {
+            this.player = this@PlayerWrapper.player
+        }
+
+    fun seekBack() = player.seekBack()
+
+    fun seekForward() = player.seekForward()
 
     companion object {
         private val log = KotlinLogging.logger { }

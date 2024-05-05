@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.ui.PlayerView
 import io.rewynd.android.browser.BrowserActivity
 import io.rewynd.android.component.player.PlayerControls
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
@@ -171,6 +170,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        this.intent = intent
+        super.onNewIntent(intent)
+    }
+
     override fun onResume() {
         super.onResume()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -213,12 +217,14 @@ class PlayerActivity : AppCompatActivity() {
 
             onBackPressedDispatcher.addCallback {
                 enterPip()
-                startActivity(Intent(this@PlayerActivity, BrowserActivity::class.java).apply {
-                    putExtra(
-                        BrowserActivity.BROWSER_STATE,
-                        Json.encodeToString(playerService?.browserState ?: emptyList())
-                    )
-                })
+                startActivity(
+                    Intent(this@PlayerActivity, BrowserActivity::class.java).apply {
+                        putExtra(
+                            BrowserActivity.BROWSER_STATE,
+                            Json.encodeToString(playerService?.browserState ?: emptyList()),
+                        )
+                    },
+                )
             }
 
             setContent {
@@ -239,12 +245,11 @@ class PlayerActivity : AppCompatActivity() {
                     }) { updatePictureInPictureParams() }
                 } ?: CircularProgressIndicator()
             }
-            if (playerService?.player?.isPlaying == true) {
+            if (playerService?.isPlayingState?.value == true) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
         }
     }
-
 
     companion object {
         const val PLAYER_ACTIVITY_PROPS_EXTRA_NAME = "PlayerActivityProps"
@@ -300,8 +305,7 @@ fun PlayerWrapper(
                         viewModel.setAreControlsVisible(areControlsVisible.not())
                     }.background(Color.Black).fillMaxHeight().fillMaxWidth(),
                 factory = { context ->
-                    PlayerView(context).apply {
-                        this.player = serviceInterface.player
+                    serviceInterface.getPlayerView(context).apply {
                         useController = false
                         this.addOnLayoutChangeListener { view: View, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int ->
                             view.useRect()
