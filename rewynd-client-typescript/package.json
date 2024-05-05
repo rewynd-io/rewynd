@@ -17,8 +17,7 @@
     "@openapitools/openapi-generator-cli": "^2.7.0",
     "@rewynd.io/rewynd-spec": "file:../rewynd-spec",
     "@types/node": "^20.11.0",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^7.0.0",
+    "typescript-eslint": "^7.0.0",
     "eslint": "^9.0.0",
     "openapi-types": "^12.1.3",
     "prettier": "^3.2.2",
@@ -52,6 +51,20 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
+    }
+  },
+  "overrides": {
+    "eslint-plugin-react": {
+      "eslint": "^9.0.0"
+    },
+    "typescript-eslint": {
+      "eslint": "^9.0.0"
+    },
+    "@typescript-eslint/utils": {
+      "@eslint-community/eslint-utils": "^4.4.0"
+    },
+    "@eslint-community/eslint-utils": {
+      "eslint": "^9.0.0"
     }
   }
 }
