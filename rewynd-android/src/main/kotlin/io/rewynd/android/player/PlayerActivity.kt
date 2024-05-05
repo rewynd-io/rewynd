@@ -170,7 +170,7 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         this.intent = intent
         super.onNewIntent(intent)
     }
