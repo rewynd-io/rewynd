@@ -35,8 +35,9 @@ fun EpisodeBrowser(
     episodeInfo: EpisodeInfo,
     backStack: ImmutableList<BrowserState>,
     serverUrl: ServerUrl,
-    modifier: Modifier = Modifier,
     loadImage: suspend (String) -> Bitmap?,
+    modifier: Modifier = Modifier,
+    onFinish: () -> Unit,
 ) {
     Column(modifier.verticalScroll(rememberScrollState())) {
         val context = LocalContext.current
@@ -71,6 +72,7 @@ fun EpisodeBrowser(
                     )
                 },
             )
+            onFinish()
         }) {
             ApiImage(episodeInfo.episodeImageId, loadImage = loadImage)
         }

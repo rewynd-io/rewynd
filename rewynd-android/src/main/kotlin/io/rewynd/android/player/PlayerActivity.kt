@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.ui.PlayerView
 import io.rewynd.android.browser.BrowserActivity
 import io.rewynd.android.component.player.PlayerControls
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
@@ -218,7 +217,14 @@ class PlayerActivity : AppCompatActivity() {
 
             onBackPressedDispatcher.addCallback {
                 enterPip()
-                startActivity(Intent(this@PlayerActivity, BrowserActivity::class.java))
+                startActivity(
+                    Intent(this@PlayerActivity, BrowserActivity::class.java).apply {
+                        putExtra(
+                            BrowserActivity.BROWSER_STATE,
+                            Json.encodeToString(playerService?.browserState ?: emptyList()),
+                        )
+                    },
+                )
             }
 
             setContent {
@@ -239,26 +245,9 @@ class PlayerActivity : AppCompatActivity() {
                     }) { updatePictureInPictureParams() }
                 } ?: CircularProgressIndicator()
             }
-            if (playerService?.player?.isPlaying == true) {
+            if (playerService?.isPlayingState?.value == true) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
-        }
-    }
-
-    override fun onSaveInstanceState(bundle: Bundle) {
-        super.onSaveInstanceState(bundle)
-        lastProps?.let {
-            bundle.putString(
-                "media",
-                Json.encodeToString(it),
-            )
-        }
-    }
-
-    override fun onRestoreInstanceState(bundle: Bundle) {
-        super.onRestoreInstanceState(bundle)
-        bundle.getString("media")?.let {
-            lastProps = Json.decodeFromString(it)
         }
     }
 
@@ -316,8 +305,7 @@ fun PlayerWrapper(
                         viewModel.setAreControlsVisible(areControlsVisible.not())
                     }.background(Color.Black).fillMaxHeight().fillMaxWidth(),
                 factory = { context ->
-                    PlayerView(context).apply {
-                        this.player = serviceInterface.player
+                    serviceInterface.getPlayerView(context).apply {
                         useController = false
                         this.addOnLayoutChangeListener { view: View, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int ->
                             view.useRect()

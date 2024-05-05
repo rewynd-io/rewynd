@@ -30,7 +30,7 @@ class BrowserActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(
-            BROWSER_SAVED_INSTANCE_STATE,
+            BROWSER_STATE,
             Json.encodeToString(viewModel.browserState.value),
         )
     }
@@ -42,7 +42,7 @@ class BrowserActivity : AppCompatActivity() {
             viewModel.popBrowserState()
         }
 
-        val stateStr = savedInstanceState?.getString(BROWSER_SAVED_INSTANCE_STATE)
+        val stateStr = savedInstanceState?.getString(BROWSER_STATE) ?: intent.getStringExtra(BROWSER_STATE)
 
         if (stateStr != null) {
             viewModel.initBrowserState(Json.decodeFromString(stateStr))
@@ -53,11 +53,11 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         setContent {
-            BrowserRouter(viewModel)
+            BrowserRouter(viewModel, this::finish)
         }
     }
 
     companion object {
-        const val BROWSER_SAVED_INSTANCE_STATE = "BrowserSavedInstanceState"
+        const val BROWSER_STATE = "BrowserState"
     }
 }

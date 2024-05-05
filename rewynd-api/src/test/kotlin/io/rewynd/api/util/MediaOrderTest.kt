@@ -23,7 +23,7 @@ internal class MediaOrderTest : StringSpec({
 
     "sort by name" {
         val alphabet = "abcdefghijklmnopqrstuvwxyz"
-        checkAll(InternalGenerators.serverEpisodeInfo.list(0 until 26)) { episodes ->
+        checkAll(InternalGenerators.serverEpisodeInfo.list(alphabet.toList().indices)) { episodes ->
             val expected =
                 episodes.mapIndexed { index, ep -> ep.copy(episode = null, title = alphabet[index].toString()) }
             expected.shuffled().sort() shouldBe expected
