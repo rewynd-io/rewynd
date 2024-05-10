@@ -155,7 +155,7 @@ class PlayerWrapper(
             client = client,
             onCanceled = {
                 log.info { "Heartbeat Cancelled" }
-                it.copy(startOffset = currentPlayerTime.value.inWholeMilliseconds / 1000.0)
+                it.copy(startOffset = currentOffsetTime.inWholeMilliseconds / 1000.0)
             },
             onAvailable = {
                 log.info { "Heartbeat Available" }
