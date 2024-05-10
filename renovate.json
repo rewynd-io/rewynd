@@ -1,11 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    ":enableVulnerabilityAlerts",
-    ":maintainLockFilesWeekly",
-    "docker:disable",
-    ":automergeAll",
-    "group:all"
+    "https://codeberg.org/kensand/renovate-presets/raw/branch/main/default.json"
   ]
 }
