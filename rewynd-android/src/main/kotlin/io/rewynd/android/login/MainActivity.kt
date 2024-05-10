@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import io.rewynd.android.browser.BrowserActivity
 import io.rewynd.android.component.LoginInput
-import io.rewynd.android.component.ServerWrapper
 
 class MainActivity : AppCompatActivity() {
     private val viewModel by lazy {
@@ -25,8 +24,7 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             val loginState by viewModel.loginState.collectAsState()
-            when (val state = loginState) {
-                is LoginState.ServerSelect -> ServerWrapper(state, viewModel)
+            when (loginState) {
                 is LoginState.LoggedIn -> {
                     startActivity(Intent(this, BrowserActivity::class.java))
                 }

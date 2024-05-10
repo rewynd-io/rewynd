@@ -1,19 +1,13 @@
 package io.rewynd.android.login
 
-import io.rewynd.android.client.ServerUrl
-
 sealed interface LoginState {
-    val serverUrl: ServerUrl
+    data object LoggedOut : LoginState
 
-    data class ServerSelect(override val serverUrl: ServerUrl) : LoginState
+    data object LoggedOutVerificationFailed : LoginState
 
-    data class LoggedOut(override val serverUrl: ServerUrl) : LoginState
+    data object PendingLogin : LoginState
 
-    data class LoggedOutVerificationFailed(override val serverUrl: ServerUrl) : LoginState
+    data object PendingVerification : LoginState
 
-    data class PendingLogin(override val serverUrl: ServerUrl) : LoginState
-
-    data class PendingVerification(override val serverUrl: ServerUrl) : LoginState
-
-    data class LoggedIn(override val serverUrl: ServerUrl) : LoginState
+    data object LoggedIn : LoginState
 }

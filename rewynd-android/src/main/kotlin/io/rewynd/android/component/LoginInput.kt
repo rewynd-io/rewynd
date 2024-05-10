@@ -4,30 +4,43 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.constraintlayout.compose.ConstraintLayout
+import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.login.MainViewModel
-import io.rewynd.model.LoginRequest
 
 @Composable
 fun LoginInput(
     mainViewModel: MainViewModel,
     modifier: Modifier = Modifier,
 ) = ConstraintLayout {
-    val (usernameRef, passwordRef, buttonRef) = createRefs()
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val (usernameRef, passwordRef, buttonRef, serverRef) = createRefs()
+    val serverUrlState by mainViewModel.serverUrl.collectAsState()
+    val username by mainViewModel.username.collectAsState()
+    val password by mainViewModel.password.collectAsState()
+    val server = serverUrlState.value
+    TextField(
+        label = { Text(text = "Server URL") },
+        value = server,
+        onValueChange = { mainViewModel.serverUrl.value = ServerUrl(it) },
+        modifier =
+            modifier.constrainAs(serverRef) {
+                top.linkTo(parent.top)
+                bottom.linkTo(usernameRef.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            },
+    )
     TextField(
         label = { Text(text = "username") },
         value = username,
-        onValueChange = { username = it },
+        onValueChange = { mainViewModel.username.value = it },
         modifier =
             modifier.constrainAs(usernameRef) {
-                top.linkTo(parent.top)
+                top.linkTo(serverRef.bottom)
                 bottom.linkTo(passwordRef.top)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
@@ -36,7 +49,7 @@ fun LoginInput(
     TextField(
         label = { Text(text = "password") },
         value = password,
-        onValueChange = { password = it },
+        onValueChange = { mainViewModel.password.value = it },
         modifier =
             modifier.constrainAs(passwordRef) {
                 top.linkTo(usernameRef.bottom)
@@ -47,7 +60,7 @@ fun LoginInput(
     )
     Button(
         {
-            mainViewModel.login(LoginRequest(username = username, password = password))
+            mainViewModel.login()
         },
         content = {
             Text("Connect")

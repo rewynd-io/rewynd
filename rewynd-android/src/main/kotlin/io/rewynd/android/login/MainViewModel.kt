@@ -4,20 +4,10 @@ import android.app.Application
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import io.ktor.client.HttpClientConfig
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.cookies.HttpCookies
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.kotlinx.json.json
 import io.rewynd.android.client.ServerUrl
-import io.rewynd.android.client.cookie.PersistentCookiesStorage
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.client.RewyndClient
 import io.rewynd.model.LoginRequest
@@ -26,94 +16,69 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(
     application: Application,
-    val prefs: SharedPreferences =
+    private val prefs: SharedPreferences =
         PreferenceManager.getDefaultSharedPreferences(
             application.applicationContext,
         ),
 ) : AndroidViewModel(application) {
-    val loginState: MutableStateFlow<LoginState> =
+    val loginState: MutableStateFlow<LoginState> = MutableStateFlow(LoginState.LoggedOut)
+
+    val serverUrl: MutableStateFlow<ServerUrl> =
         MutableStateFlow(
-            prefs.getString(
-                SERVER_URL,
-                null,
-            )?.let { LoginState.LoggedOut(ServerUrl(it)) } ?: LoginState.ServerSelect(
-                ServerUrl("https://"),
-            ),
+            prefs.getString(SERVER_URL, null)?.let { ServerUrl(it) } ?: ServerUrl("https://"),
         )
-    private val clientConfig: ((HttpClientConfig<*>) -> Unit) = {
-        it.install(ContentNegotiation) {
-            json()
-        }
-        it.install(Logging) {
-            logger =
-                object : Logger {
-                    override fun log(message: String) {
-                        Log.v("RewyndClient", message)
-                    }
-                }
-            level = LogLevel.ALL
-        }
-        it.install(HttpCookies) {
-            this.storage = PersistentCookiesStorage.INSTANCE
-        }
-    }
+
+    val username: MutableStateFlow<String> = MutableStateFlow("")
+    val password: MutableStateFlow<String> = MutableStateFlow("")
 
     fun verify() {
+        loginState.value = LoginState.PendingVerification
         this.viewModelScope.launch {
-            val serverUrl = loginState.value.serverUrl
-            loginState.value = LoginState.PendingVerification(serverUrl)
             loginState.value =
                 try {
-                    val client: RewyndClient = mkRewyndClient(serverUrl)
+                    val client: RewyndClient = mkRewyndClient(serverUrl.value)
 
                     when (client.verify().status) {
                         HttpStatusCode.OK.value -> {
                             setLoggedIn()
                         }
-                        else -> LoginState.LoggedOutVerificationFailed(serverUrl)
+
+                        else -> LoginState.LoggedOutVerificationFailed
                     }
                 } catch (e: Exception) {
                     Log.i("Login", "Login verification failed")
-                    LoginState.LoggedOutVerificationFailed(serverUrl)
+                    LoginState.LoggedOutVerificationFailed
                 }
         }
     }
 
-    fun login(req: LoginRequest) {
-        val serverUrl = loginState.value.serverUrl
-        loginState.value = LoginState.PendingLogin((serverUrl))
+    fun login() {
+        loginState.value = LoginState.PendingLogin
         Log.i("Login", "Logging in")
         this.viewModelScope.launch {
             loginState.value =
-                when (mkRewyndClient(serverUrl).login(req).status) {
-                    HttpStatusCode.OK.value -> {
-                        setLoggedIn()
+                try {
+                    when (mkRewyndClient(serverUrl.value).login(LoginRequest(username.value, password.value)).status) {
+                        HttpStatusCode.OK.value -> {
+                            setLoggedIn()
+                        }
+
+                        else -> LoginState.LoggedOut
                     }
-                    else -> LoginState.LoggedOut(serverUrl)
+                } catch (e: Exception) {
+                    LoginState.LoggedOutVerificationFailed
                 }
         }
     }
 
     private fun setLoggedIn(): LoginState.LoggedIn {
-        val serverUrl = loginState.value.serverUrl
         prefs.edit().apply {
-            putString(SERVER_URL, serverUrl.value)
+            putString(SERVER_URL, serverUrl.value.value)
         }.apply()
-        return LoginState.LoggedIn(serverUrl)
+        return LoginState.LoggedIn
     }
 
     companion object {
-        class MainViewModelFactory(
-            private val application: Application,
-            private val serverUrl: ServerUrl,
-        ) :
-            ViewModelProvider.NewInstanceFactory() {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                MainViewModel(
-                    application,
-                ) as T
-        }
-
         const val SERVER_URL = "ServerUrl"
     }
 }
