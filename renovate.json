@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "gitea>kensand/renovate-config"
+    "https://codeberg.org/kensand/renovate-config/raw/branch/main/default.json"
   ]
 }
