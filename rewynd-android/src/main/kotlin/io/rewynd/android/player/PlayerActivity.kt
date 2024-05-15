@@ -339,23 +339,40 @@ fun PlayerWrapper(
                 runTime = media.runTime,
                 onAudioChanged = {
                     MainScope().launch {
-                        serviceInterface.loadMedia(media.copy(audioTrackName = it))
+                        serviceInterface.loadMedia(
+                            media.copy(
+                                audioTrackName = it,
+                                startOffset = media.startOffset + currentPlayerTime,
+                            ),
+                        )
                     }
                 },
                 onVideoChanged = {
                     MainScope().launch {
-                        serviceInterface.loadMedia(media.copy(videoTrackName = it))
+                        serviceInterface.loadMedia(
+                            media.copy(
+                                videoTrackName = it,
+                                startOffset = media.startOffset + currentPlayerTime,
+                            ),
+                        )
                     }
                 },
                 onSubtitleChanged = {
                     MainScope().launch {
-                        serviceInterface.loadMedia(media.copy(subtitleTrackName = it))
+                        serviceInterface.loadMedia(
+                            media.copy(
+                                subtitleTrackName = it,
+                                startOffset = media.startOffset + currentPlayerTime,
+                            ),
+                        )
                     }
                 },
                 currentMedia = media,
                 onNormalizationChanged = {
                     MainScope().launch {
-                        serviceInterface.loadMedia(media.copy(normalizationMethod = it))
+                        serviceInterface.loadMedia(
+                            media.copy(normalizationMethod = it, startOffset = media.startOffset + currentPlayerTime),
+                        )
                     }
                 },
             )
