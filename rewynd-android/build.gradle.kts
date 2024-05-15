@@ -90,6 +90,8 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.slf4j.jdk14)
     implementation(libs.kotlinx.collections.immutable)
+    implementation(libs.arrow.core)
+    implementation(libs.arrow.fx.coroutines)
 }
 
 tasks.lintKotlin { dependsOn(tasks.formatKotlin) }

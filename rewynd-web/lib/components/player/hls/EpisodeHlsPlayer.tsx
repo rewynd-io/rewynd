@@ -1,6 +1,7 @@
 import {
   CreateStreamRequest,
   EpisodeInfo,
+  NextEpisodeOrder,
   Progress,
 } from "@rewynd.io/rewynd-client-typescript";
 import { Navigate, useNavigate, useParams } from "react-router";
@@ -14,9 +15,9 @@ import {
 } from "../../../store/slice/EpisodeSlice";
 import { HttpClient } from "../../../const";
 import { WebRoutes } from "../../../routes";
-import formatEpisodeRoute = WebRoutes.Player.formatEpisodeRoute;
 import { useUser } from "../../../store/slice/UserSlice";
 import { resetCompletedProgress } from "../../../util";
+import formatEpisodeRoute = WebRoutes.Player.formatEpisodeRoute;
 
 export function EpisodeHlsPlayer() {
   const { episodeId } = useParams();
@@ -57,18 +58,22 @@ export function EpisodeHlsPlayer() {
   ) => {
     console.log(`Handling next - ${JSON.stringify(last)}`);
     // don't depend on anything from react - it might not be up-to-date if not in focus
-    const next = await HttpClient.getNextEpisode({
-      episodeId: last.id,
-    });
+    const next = (
+      await HttpClient.getNextEpisode({
+        getNextEpisodeRequest: {
+          episodeId: last.id,
+        },
+      })
+    ).episodeInfo;
     if (next) {
       const [perc, nextNext]: [number | undefined, string | undefined] =
         await Promise.all([
           HttpClient.getUserProgress({ id: next.id }).then(
             (it: Progress) => resetCompletedProgress(it)?.percent,
           ),
-          HttpClient.getNextEpisode({ episodeId: next.id }).then(
-            (it: EpisodeInfo) => it.id,
-          ),
+          HttpClient.getNextEpisode({
+            getNextEpisodeRequest: { episodeId: next.id },
+          }).then((it) => it.episodeInfo.id),
         ]);
       saveEpisodeMapping(episodeId, next.id);
 
@@ -109,11 +114,15 @@ export function EpisodeHlsPlayer() {
           HttpClient.getUserProgress({ id: episodeId }).then(
             (it: Progress) => resetCompletedProgress(it)?.percent,
           ),
-          HttpClient.getNextEpisode({ episodeId: episodeId })
-            .then((it: EpisodeInfo) => it.id)
+          HttpClient.getNextEpisode({
+            getNextEpisodeRequest: { episodeId: episodeId },
+          })
+            .then((it) => it.episodeInfo.id)
             .catch(() => undefined),
-          HttpClient.getPreviousEpisode({ episodeId: episodeId })
-            .then((it: EpisodeInfo) => it.id)
+          HttpClient.getNextEpisode({
+            getNextEpisodeRequest: { episodeId: episodeId },
+          })
+            .then((it) => it.episodeInfo.id)
             .catch(() => undefined),
         ]);
         const epState: EpisodeState = {
@@ -142,9 +151,14 @@ export function EpisodeHlsPlayer() {
       onPrevious={
         prevId
           ? async (last: CreateStreamRequest) => {
-              const prev = await HttpClient.getPreviousEpisode({
-                episodeId: last.id,
-              });
+              const prev = (
+                await HttpClient.getNextEpisode({
+                  getNextEpisodeRequest: {
+                    episodeId: last.id,
+                    order: NextEpisodeOrder.Previous,
+                  },
+                })
+              ).episodeInfo;
               if (prev) {
                 const [perc, prevPrev]: [
                   number | undefined,
@@ -153,9 +167,9 @@ export function EpisodeHlsPlayer() {
                   HttpClient.getUserProgress({ id: prev.id }).then(
                     (it: Progress) => resetCompletedProgress(it)?.percent,
                   ),
-                  HttpClient.getPreviousEpisode({ episodeId: prev.id }).then(
-                    (it: EpisodeInfo) => it.id,
-                  ),
+                  HttpClient.getNextEpisode({
+                    getNextEpisodeRequest: { episodeId: prev.id },
+                  }).then((it) => it.episodeInfo.id),
                 ]);
                 saveEpisodeMapping(episodeId, prev.id);
 

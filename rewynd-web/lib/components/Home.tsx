@@ -87,13 +87,15 @@ export function Home() {
             results?.map(async (prog) => {
               try {
                 const res = await HttpClient.getNextEpisode({
-                  episodeId: prog.id,
+                  getNextEpisodeRequest: {
+                    episodeId: prog.id,
+                  },
                 });
                 const resProgress = await HttpClient.getUserProgress({
-                  id: res.id,
+                  id: res.episodeInfo.id,
                 });
                 if (resProgress.percent <= 0.05) {
-                  return { progress: resProgress, episode: res };
+                  return { progress: resProgress, episode: res.episodeInfo };
                 } else {
                   return undefined;
                 }

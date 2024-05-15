@@ -19,11 +19,14 @@ import io.rewynd.common.database.Database
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerUser
+import io.rewynd.model.GetNextEpisodeRequest
+import io.rewynd.model.GetNextEpisodeResponse
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesByLastUpdatedResponse
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
+import io.rewynd.model.NextEpisodeOrder
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.checkAllRun
@@ -57,11 +60,11 @@ internal class EpisodeControllerTest : StringSpec({
             coEvery { getNextEpisodeInSeason(db, episode, false) } returns otherEpisode
 
             testCall(
-                { getNextEpisode(episode.id) },
+                { getNextEpisode(GetNextEpisodeRequest(episode.id)) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe otherEpisode.toEpisodeInfo()
+                body() shouldBe GetNextEpisodeResponse(otherEpisode.toEpisodeInfo())
             }
         }
     }
@@ -72,11 +75,11 @@ internal class EpisodeControllerTest : StringSpec({
             coEvery { getNextEpisodeInSeason(db, episode, true) } returns otherEpisode
 
             testCall(
-                { getPreviousEpisode(episode.id) },
+                { getNextEpisode(GetNextEpisodeRequest(episode.id, NextEpisodeOrder.previous)) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe otherEpisode.toEpisodeInfo()
+                body() shouldBe GetNextEpisodeResponse(otherEpisode.toEpisodeInfo())
             }
         }
     }

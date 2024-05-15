@@ -3,6 +3,7 @@ package io.rewynd.android.player
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
+import io.rewynd.model.GetNextEpisodeRequest
 import kotlin.time.Duration.Companion.seconds
 
 object EpisodePlaybackMethodHandler {
@@ -13,7 +14,7 @@ object EpisodePlaybackMethodHandler {
         playerMedia: PlayerMedia.Episode,
     ): PlayerMedia.Episode? =
         try {
-            client.getNextEpisode(playerMedia.info.id).body().let { episodeInfo ->
+            client.getNextEpisode(GetNextEpisodeRequest(playerMedia.info.id)).body().episodeInfo.let { episodeInfo ->
                 val progress = client.getUserProgress(episodeInfo.id).body().percent.takeIf { it < 0.95 } ?: 0.0
                 PlayerMedia.Episode(
                     playbackMethod = playerMedia.playbackMethod,
@@ -36,7 +37,7 @@ object EpisodePlaybackMethodHandler {
         playerMedia: PlayerMedia.Episode,
     ): PlayerMedia.Episode? =
         try {
-            client.getPreviousEpisode(playerMedia.info.id).body().let { episodeInfo ->
+            client.getNextEpisode(GetNextEpisodeRequest(playerMedia.info.id)).body().episodeInfo.let { episodeInfo ->
                 val progress = client.getUserProgress(episodeInfo.id).body().percent.takeIf { it < 0.95 } ?: 0.0
                 PlayerMedia.Episode(
                     playbackMethod = playerMedia.playbackMethod,

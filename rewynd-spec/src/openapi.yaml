@@ -542,45 +542,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/EpisodeInfo"
 
-  /api/episode/previous/{episodeId}:
-    get:
-      operationId: getPreviousEpisode
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: episodeId
-          in: path
-          required: true
-          description: "The id for the current episode, for which the previous EpisodeInfo will be returned"
-          schema:
-            $ref: "#/components/schemas/MediaId"
-      responses:
-        "200":
-          description: "Successful query. "
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EpisodeInfo"
-
-  /api/episode/next/{episodeId}:
-    get:
+  /api/episode/next:
+    post:
       operationId: getNextEpisode
       security:
         - CookieAuth: []
-      parameters:
-        - name: episodeId
-          in: path
-          required: true
-          description: "The id for the current episode, for which the subsequent EpisodeInfo will be returned"
-          schema:
-            $ref: "#/components/schemas/MediaId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetNextEpisodeRequest"
       responses:
         "200":
-          description: "Successful query. "
+          description: "Successful query."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EpisodeInfo"
+                $ref: "#/components/schemas/GetNextEpisodeResponse"
 
   /api/search/get:
     post:
@@ -878,6 +856,30 @@ components:
           $ref: "#/components/schemas/ListShowsCursor"
       required:
         - libraryId
+
+    NextEpisodeOrder:
+      type: string
+      enum:
+        - "next"
+        - "previous"
+
+    GetNextEpisodeRequest:
+      type: object
+      properties:
+        episodeId:
+          $ref: "#/components/schemas/EpisodeId"
+        order:
+          $ref: "#/components/schemas/NextEpisodeOrder"
+      required:
+        - episodeId
+
+    GetNextEpisodeResponse:
+      type: object
+      properties:
+        episodeInfo:
+          $ref: "#/components/schemas/EpisodeInfo"
+      required:
+        - episodeInfo
 
     ListShowsResponse:
       type: object
@@ -1374,6 +1376,8 @@ components:
     ShowId:
       type: string
     LibraryId:
+      type: string
+    EpisodeId:
       type: string
     MovieId:
       type: string

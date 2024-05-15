@@ -10,10 +10,13 @@ import io.ktor.server.routing.post
 import io.rewynd.api.util.getFirstEpisodeInNextSeason
 import io.rewynd.api.util.getNextEpisodeInSeason
 import io.rewynd.common.database.Database
+import io.rewynd.model.GetNextEpisodeRequest
+import io.rewynd.model.GetNextEpisodeResponse
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesByLastUpdatedResponse
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
+import io.rewynd.model.NextEpisodeOrder
 import kotlinx.datetime.Instant
 
 fun Route.episodeRoutes(db: Database) {
@@ -64,16 +67,19 @@ fun Route.episodeRoutes(db: Database) {
             }
         } ?: call.respond(HttpStatusCode.NotFound)
     }
-    get("/episode/previous/{episodeId}") {
-        call.parameters["episodeId"]?.let { db.getEpisode(it) }?.let { serverEpisodeInfo ->
+
+    post("/episode/next") {
+        val getNextEpisodeRequest = call.receive<GetNextEpisodeRequest>()
+        db.getEpisode(getNextEpisodeRequest.episodeId)?.let { serverEpisodeInfo ->
+            val reverse = getNextEpisodeRequest.order == NextEpisodeOrder.previous
             (
-                getNextEpisodeInSeason(db, serverEpisodeInfo, true) ?: getFirstEpisodeInNextSeason(
+                getNextEpisodeInSeason(db, serverEpisodeInfo, reverse) ?: getFirstEpisodeInNextSeason(
                     db,
                     serverEpisodeInfo,
-                    true,
+                    reverse,
                 )
             )?.let {
-                call.respond(it.toEpisodeInfo())
+                call.respond(GetNextEpisodeResponse(it.toEpisodeInfo()))
             }
         } ?: call.respond(HttpStatusCode.NotFound)
     }

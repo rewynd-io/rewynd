@@ -9,6 +9,7 @@ import android.util.LruCache
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import arrow.core.raise.either
 import io.ktor.utils.io.jvm.javaio.copyTo
 import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.mkRewyndClient
@@ -18,6 +19,7 @@ import io.rewynd.client.listLibrariesFlow
 import io.rewynd.client.listSeasonsFlow
 import io.rewynd.client.listShowsFlow
 import io.rewynd.model.EpisodeInfo
+import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.Library
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
@@ -26,6 +28,7 @@ import io.rewynd.model.ListLibrariesRequest
 import io.rewynd.model.ListProgressRequest
 import io.rewynd.model.ListSeasonsRequest
 import io.rewynd.model.ListShowsRequest
+import io.rewynd.model.NextEpisodeOrder
 import io.rewynd.model.Progress
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.ShowInfo
@@ -155,7 +158,7 @@ class BrowserViewModel(
                 ?.asFlow()
                 ?.flatMapMerge {
                     runCatching {
-                        val next = client.getNextEpisode(it.id).body()
+                        val next = client.getNextEpisode(GetNextEpisodeRequest(it.id)).body().episodeInfo
                         flowOf(client.getUserProgress(next.id).body() to next)
                     }.getOrNull() ?: emptyFlow()
                 }?.filter { it.first.percent <= 0.05 }?.take(20)
@@ -222,8 +225,9 @@ class BrowserViewModel(
         nextEpisode.postValue(null)
         this.viewModelScope.launch(Dispatchers.IO) {
             nextEpisode.postValue(
-                kotlin.runCatching { client.getNextEpisode(episodeId).body() }
-                    .getOrNull(),
+                either<Throwable, EpisodeInfo> {
+                    client.getNextEpisode(GetNextEpisodeRequest(episodeId)).body().episodeInfo
+                }.getOrNull(),
             )
         }
     }
@@ -246,7 +250,10 @@ class BrowserViewModel(
         previousEpisode.postValue(null)
         this.viewModelScope.launch(Dispatchers.IO) {
             previousEpisode.postValue(
-                kotlin.runCatching { client.getPreviousEpisode(episodeId).body() }
+                either<Throwable, EpisodeInfo> {
+                    client.getNextEpisode(GetNextEpisodeRequest(episodeId, order = NextEpisodeOrder.previous))
+                        .body().episodeInfo
+                }
                     .getOrNull(),
             )
         }
