@@ -21,9 +21,9 @@ object EpisodePlaybackMethodHandler {
                     info = episodeInfo,
                     runTime = episodeInfo.runTime.seconds,
                     startOffset = (progress * episodeInfo.runTime).seconds,
-                    videoTrackName = episodeInfo.videoTracks.keys.firstOrNull(),
-                    audioTrackName = episodeInfo.audioTracks.keys.firstOrNull(),
-                    subtitleTrackName = episodeInfo.subtitleTracks.keys.firstOrNull(),
+                    videoTrackName = playerMedia.videoTrackName?.let { episodeInfo.videoTracks.keys.firstOrNull() },
+                    audioTrackName = playerMedia.audioTrackName?.let { episodeInfo.audioTracks.keys.firstOrNull() },
+                    subtitleTrackName = playerMedia.subtitleTrackName?.let { episodeInfo.subtitleTracks.keys.firstOrNull() },
                     normalizationMethod = playerMedia.normalizationMethod,
                 )
             }
