@@ -55,18 +55,30 @@ class PlayerService : Service() {
             .addInterceptor(logging)
             .build()
     }
+
+    private suspend fun onNext(playerWrapper: PlayerWrapper) {
+        next.value =
+            next.value?.let { nonNullNext ->
+                prev.value = playerWrapper.media.value
+                playerWrapper.load(nonNullNext)
+                PlaybackMethodHandler.next(client, nonNullNext)
+            }
+    }
+
+    private suspend fun onPrev(playerWrapper: PlayerWrapper) {
+        prev.value =
+            prev.value?.let { nonNullPrev ->
+                next.value = playerWrapper.media.value
+                playerWrapper.load(nonNullPrev)
+                PlaybackMethodHandler.prev(client, nonNullPrev)
+            }
+    }
+
     private val player by lazy {
         PlayerWrapper(this, httpClient, client, onEvent = {
             setPlaybackState()
             createNotification()
-        }, onNext = {
-            next.value =
-                next.value?.let { nonNullNext ->
-                    prev.value = it.media.value
-                    it.load(nonNullNext)
-                    PlaybackMethodHandler.next(client, nonNullNext)
-                }
-        })
+        }, onNext = this::onNext)
     }
 
     private val datasourceFactory by lazy { OkHttpDataSource.Factory(httpClient) }
@@ -447,7 +459,7 @@ class PlayerService : Service() {
             override fun playNext(): Unit =
                 this@PlayerService.next.value?.let {
                     MainScope().launch {
-                        this@PlayerService.player.load(it)
+                        onNext(this@PlayerService.player)
                     }
                     Unit
                 } ?: Unit
@@ -455,7 +467,7 @@ class PlayerService : Service() {
             override fun playPrev() =
                 this@PlayerService.prev.value?.let {
                     MainScope().launch {
-                        this@PlayerService.player.load(it)
+                        onPrev(this@PlayerService.player)
                     }
                     Unit
                 } ?: Unit

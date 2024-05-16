@@ -62,6 +62,7 @@ export function EpisodeHlsPlayer() {
       await HttpClient.getNextEpisode({
         getNextEpisodeRequest: {
           episodeId: last.id,
+          order: NextEpisodeOrder.Next,
         },
       })
     ).episodeInfo;
@@ -72,8 +73,11 @@ export function EpisodeHlsPlayer() {
             (it: Progress) => resetCompletedProgress(it)?.percent,
           ),
           HttpClient.getNextEpisode({
-            getNextEpisodeRequest: { episodeId: next.id },
-          }).then((it) => it.episodeInfo.id),
+            getNextEpisodeRequest: {
+              episodeId: next.id,
+              order: NextEpisodeOrder.Next,
+            },
+          }).then((it) => it.episodeInfo?.id),
         ]);
       saveEpisodeMapping(episodeId, next.id);
 
@@ -115,14 +119,20 @@ export function EpisodeHlsPlayer() {
             (it: Progress) => resetCompletedProgress(it)?.percent,
           ),
           HttpClient.getNextEpisode({
-            getNextEpisodeRequest: { episodeId: episodeId },
+            getNextEpisodeRequest: {
+              episodeId: episodeId,
+              order: NextEpisodeOrder.Next,
+            },
           })
-            .then((it) => it.episodeInfo.id)
+            .then((it) => it.episodeInfo?.id)
             .catch(() => undefined),
           HttpClient.getNextEpisode({
-            getNextEpisodeRequest: { episodeId: episodeId },
+            getNextEpisodeRequest: {
+              episodeId: episodeId,
+              order: NextEpisodeOrder.Previous,
+            },
           })
-            .then((it) => it.episodeInfo.id)
+            .then((it) => it.episodeInfo?.id)
             .catch(() => undefined),
         ]);
         const epState: EpisodeState = {
@@ -168,8 +178,11 @@ export function EpisodeHlsPlayer() {
                     (it: Progress) => resetCompletedProgress(it)?.percent,
                   ),
                   HttpClient.getNextEpisode({
-                    getNextEpisodeRequest: { episodeId: prev.id },
-                  }).then((it) => it.episodeInfo.id),
+                    getNextEpisodeRequest: {
+                      episodeId: prev.id,
+                      order: NextEpisodeOrder.Next,
+                    },
+                  }).then((it) => it.episodeInfo?.id),
                 ]);
                 saveEpisodeMapping(episodeId, prev.id);
 

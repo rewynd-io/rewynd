@@ -872,14 +872,13 @@ components:
           $ref: "#/components/schemas/NextEpisodeOrder"
       required:
         - episodeId
+        - order
 
     GetNextEpisodeResponse:
       type: object
       properties:
         episodeInfo:
           $ref: "#/components/schemas/EpisodeInfo"
-      required:
-        - episodeInfo
 
     ListShowsResponse:
       type: object

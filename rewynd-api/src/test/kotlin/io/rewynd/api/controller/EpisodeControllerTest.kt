@@ -60,7 +60,7 @@ internal class EpisodeControllerTest : StringSpec({
             coEvery { getNextEpisodeInSeason(db, episode, false) } returns otherEpisode
 
             testCall(
-                { getNextEpisode(GetNextEpisodeRequest(episode.id)) },
+                { getNextEpisode(GetNextEpisodeRequest(episode.id, NextEpisodeOrder.next)) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value

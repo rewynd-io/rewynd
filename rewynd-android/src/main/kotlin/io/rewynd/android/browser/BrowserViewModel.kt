@@ -158,7 +158,7 @@ class BrowserViewModel(
                 ?.asFlow()
                 ?.flatMapMerge {
                     runCatching {
-                        val next = client.getNextEpisode(GetNextEpisodeRequest(it.id)).body().episodeInfo
+                        val next = client.getNextEpisode(GetNextEpisodeRequest(it.id, NextEpisodeOrder.next)).body().episodeInfo
                         flowOf(client.getUserProgress(next.id).body() to next)
                     }.getOrNull() ?: emptyFlow()
                 }?.filter { it.first.percent <= 0.05 }?.take(20)
@@ -226,7 +226,7 @@ class BrowserViewModel(
         this.viewModelScope.launch(Dispatchers.IO) {
             nextEpisode.postValue(
                 either<Throwable, EpisodeInfo> {
-                    client.getNextEpisode(GetNextEpisodeRequest(episodeId)).body().episodeInfo
+                    client.getNextEpisode(GetNextEpisodeRequest(episodeId, NextEpisodeOrder.previous)).body().episodeInfo
                 }.getOrNull(),
             )
         }

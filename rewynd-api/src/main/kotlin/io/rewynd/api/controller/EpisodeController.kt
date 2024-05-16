@@ -59,19 +59,14 @@ fun Route.episodeRoutes(db: Database) {
         }
     }
 
-    // TODO actually implement these
-    get("/episode/next/{episodeId}") {
-        call.parameters["episodeId"]?.let { db.getEpisode(it) }?.let { serverEpisodeInfo ->
-            (getNextEpisodeInSeason(db, serverEpisodeInfo) ?: getFirstEpisodeInNextSeason(db, serverEpisodeInfo))?.let {
-                call.respond(it.toEpisodeInfo())
-            }
-        } ?: call.respond(HttpStatusCode.NotFound)
-    }
-
     post("/episode/next") {
         val getNextEpisodeRequest = call.receive<GetNextEpisodeRequest>()
         db.getEpisode(getNextEpisodeRequest.episodeId)?.let { serverEpisodeInfo ->
-            val reverse = getNextEpisodeRequest.order == NextEpisodeOrder.previous
+            val reverse =
+                when (getNextEpisodeRequest.order) {
+                    NextEpisodeOrder.previous -> true
+                    NextEpisodeOrder.next -> false
+                }
             (
                 getNextEpisodeInSeason(db, serverEpisodeInfo, reverse) ?: getFirstEpisodeInNextSeason(
                     db,

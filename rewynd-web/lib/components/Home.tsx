@@ -2,6 +2,7 @@ import {
   EpisodeInfo,
   Library,
   ListEpisodesByLastUpdatedOrder,
+  NextEpisodeOrder,
   Progress,
 } from "@rewynd.io/rewynd-client-typescript";
 import React, { useEffect, useState } from "react";
@@ -89,13 +90,18 @@ export function Home() {
                 const res = await HttpClient.getNextEpisode({
                   getNextEpisodeRequest: {
                     episodeId: prog.id,
+                    order: NextEpisodeOrder.Next,
                   },
                 });
-                const resProgress = await HttpClient.getUserProgress({
-                  id: res.episodeInfo.id,
-                });
-                if (resProgress.percent <= 0.05) {
-                  return { progress: resProgress, episode: res.episodeInfo };
+                if (res.episodeInfo) {
+                  const resProgress = await HttpClient.getUserProgress({
+                    id: res.episodeInfo.id,
+                  });
+                  if (resProgress.percent <= 0.05) {
+                    return { progress: resProgress, episode: res.episodeInfo };
+                  } else {
+                    return undefined;
+                  }
                 } else {
                   return undefined;
                 }
