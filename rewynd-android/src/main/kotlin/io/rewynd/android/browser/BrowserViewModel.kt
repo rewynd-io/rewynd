@@ -158,14 +158,17 @@ class BrowserViewModel(
                 ?.asFlow()
                 ?.flatMapMerge {
                     runCatching {
-                        val next = client.getNextEpisode(GetNextEpisodeRequest(it.id, NextEpisodeOrder.next)).body().episodeInfo
-                        flowOf(client.getUserProgress(next.id).body() to next)
+                        val next =
+                            client.getNextEpisode(GetNextEpisodeRequest(it.id, NextEpisodeOrder.next))
+                                .body().episodeInfo
+                        next?.id?.let { nonNullNextId -> flowOf(client.getUserProgress(nonNullNextId).body() to next) }
+                            ?: emptyFlow()
                     }.getOrNull() ?: emptyFlow()
                 }?.filter { it.first.percent <= 0.05 }?.take(20)
-                ?.runningFold(emptyList<Pair<Progress, EpisodeInfo>>()) { accumulator, value ->
+                ?.runningFold(emptyList<Pair<Progress, EpisodeInfo?>>()) { accumulator, value ->
                     accumulator + listOf(value)
                 }?.collect { pair ->
-                    nextEpisodes.postValue(pair.map { it.second })
+                    nextEpisodes.postValue(pair.mapNotNull { it.second })
                 }
         }
     }
@@ -225,8 +228,9 @@ class BrowserViewModel(
         nextEpisode.postValue(null)
         this.viewModelScope.launch(Dispatchers.IO) {
             nextEpisode.postValue(
-                either<Throwable, EpisodeInfo> {
-                    client.getNextEpisode(GetNextEpisodeRequest(episodeId, NextEpisodeOrder.previous)).body().episodeInfo
+                either<Throwable, EpisodeInfo?> {
+                    client.getNextEpisode(GetNextEpisodeRequest(episodeId, NextEpisodeOrder.previous))
+                        .body().episodeInfo
                 }.getOrNull(),
             )
         }
@@ -250,7 +254,7 @@ class BrowserViewModel(
         previousEpisode.postValue(null)
         this.viewModelScope.launch(Dispatchers.IO) {
             previousEpisode.postValue(
-                either<Throwable, EpisodeInfo> {
+                either<Throwable, EpisodeInfo?> {
                     client.getNextEpisode(GetNextEpisodeRequest(episodeId, order = NextEpisodeOrder.previous))
                         .body().episodeInfo
                 }
