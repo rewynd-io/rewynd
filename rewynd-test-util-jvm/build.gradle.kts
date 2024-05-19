@@ -1,6 +1,8 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlinter)
+    alias(libs.plugins.detekt)
 }
 
 group = "io.rewynd"
@@ -29,4 +31,15 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.lintKotlin { dependsOn(tasks.formatKotlin) }
+detekt {
+    buildUponDefaultConfig = true
+    autoCorrect = true
+    config.setFrom(parent!!.file("detekt.yml"))
+}
+
+tasks.withType<Detekt>().configureEach {
+    reports {
+        html.required.set(true)
+    }
+    jvmTarget = "17"
+}

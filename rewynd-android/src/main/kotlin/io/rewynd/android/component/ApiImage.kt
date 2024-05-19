@@ -11,7 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 
-@Suppress("ktlint:compose:modifier-reused-check")
+@Suppress("ModifierReused")
 @Composable
 fun ApiImage(
     imageId: String?,

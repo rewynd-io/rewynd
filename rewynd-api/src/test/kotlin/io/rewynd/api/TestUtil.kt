@@ -87,4 +87,6 @@ open class BaseHarness(
     companion object
 }
 
-fun ServerUser.setIsAdmin(isAdmin: Boolean = true) = copy(user = user.copy(permissions = user.permissions.copy(isAdmin)))
+fun ServerUser.setIsAdmin(isAdmin: Boolean = true) = copy(
+    user = user.copy(permissions = user.permissions.copy(isAdmin))
+)

@@ -4,6 +4,7 @@ import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.http.CookieEncoding
 import io.ktor.http.Url
 import io.ktor.util.date.GMTDate
+import io.rewynd.android.MILLIS_PER_SECOND
 import kotlinx.coroutines.runBlocking
 import okhttp3.Cookie
 import okhttp3.CookieJar
@@ -21,7 +22,7 @@ class CookieStorageCookieJar(private val cookiesStorage: CookiesStorage) : Cooki
                     it.expires?.timestamp?.apply(this::expiresAt)
                     if (it.maxAge > 0) {
                         this.expiresAt(
-                            (System.currentTimeMillis() / 1000) + it.maxAge,
+                            (System.currentTimeMillis() / MILLIS_PER_SECOND) + it.maxAge,
                         )
                     }
                     if (it.secure) secure()

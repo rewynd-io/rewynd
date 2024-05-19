@@ -88,7 +88,10 @@ class MemoryJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
                             resources.clientChannel.receiveAsFlow().collect {
                                 when (it) {
                                     is ClientEvent.Cancel -> job.cancel()
-                                    is ClientEvent.Event -> payloadChannel.send(deserializeClientEventPayload(it.payload))
+                                    is ClientEvent.Event ->
+                                        payloadChannel.send(
+                                            deserializeClientEventPayload(it.payload),
+                                        )
                                     is ClientEvent.NoOp -> {}
                                 }
                             }
@@ -96,7 +99,7 @@ class MemoryJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
                     try {
                         job.join()
                     } catch (e: CancellationException) {
-                        log.info { "Cancelled job ${jobId.value}" }
+                        log.warn(e) { "Cancelled job ${jobId.value}" }
                     } finally {
                         job.cancel()
                         consumerJob.cancel()
@@ -121,7 +124,7 @@ class MemoryJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
         jobMap.remove(jobId)
     }
 
-    override fun close() {}
+    override fun close() = Unit
 
     override suspend fun notify(
         jobId: JobId,

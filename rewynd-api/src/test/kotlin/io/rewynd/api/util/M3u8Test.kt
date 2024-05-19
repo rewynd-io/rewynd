@@ -36,7 +36,7 @@ internal class M3u8Test : StringSpec({
                     it.segments.maxOfOrNull { seg ->
                         seg.duration.inWholeMilliseconds
                     } ?: 10000L
-                ).toDouble() / 1000.0
+                    ).toDouble() / 1000.0
             val segments =
                 it.segments.mapIndexed { index, seg -> index to seg }
                     .joinToString("") { (index, seg) ->

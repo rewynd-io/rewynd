@@ -179,15 +179,15 @@ internal class RedisClusterCacheTest : StringSpec({
         val harness =
             setup(
                 nodeSetups =
-                    (0 until 5).map {
-                        NodeSetup(nodeSetHandler = { _, _, setArgs ->
-                            // SetArgs does not make it easy to verify the correct args are being sent
-                            val cmdArgs = CommandArgs(StringCodec.UTF8)
-                            setArgs.build(cmdArgs)
-                            cmdArgs.toCommandString() shouldBe "PX ${lockTimeout1.inWholeMilliseconds} NX"
-                            OK
-                        })
-                    },
+                (0 until 5).map {
+                    NodeSetup(nodeSetHandler = { _, _, setArgs ->
+                        // SetArgs does not make it easy to verify the correct args are being sent
+                        val cmdArgs = CommandArgs(StringCodec.UTF8)
+                        setArgs.build(cmdArgs)
+                        cmdArgs.toCommandString() shouldBe "PX ${lockTimeout1.inWholeMilliseconds} NX"
+                        OK
+                    })
+                },
             )
 
         inspecting(
@@ -214,12 +214,12 @@ internal class RedisClusterCacheTest : StringSpec({
         val harness =
             setup(
                 nodeSetups =
-                    (
-                        (0 until 3).map { NodeSetup(nodeSetHandler = { _, _, _ -> "SomethingElse" }) } +
-                            listOf(
-                                NodeSetup(),
-                                NodeSetup(),
-                            )
+                (
+                    (0 until 3).map { NodeSetup(nodeSetHandler = { _, _, _ -> "SomethingElse" }) } +
+                        listOf(
+                            NodeSetup(),
+                            NodeSetup(),
+                        )
                     ).shuffled(),
             )
 

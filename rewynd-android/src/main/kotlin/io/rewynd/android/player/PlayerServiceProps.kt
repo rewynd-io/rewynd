@@ -26,6 +26,7 @@ sealed interface PlayerServiceProps {
     @kotlinx.serialization.Serializable
     object Stop : PlayerServiceProps
 
+    @Suppress("MagicNumber")
     val requestCode: Int
         get() =
             when (this) {

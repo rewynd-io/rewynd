@@ -1,9 +1,11 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow)
-    alias(libs.plugins.kotlinter)
+    alias(libs.plugins.detekt)
     alias(libs.plugins.kotlinx.kover)
 }
 
@@ -70,10 +72,24 @@ dependencies {
 
     // Scheduling
     implementation(libs.quartz)
+    detektPlugins(libs.detekt.formatting)
 }
 
 kotlin {
     jvmToolchain(17)
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    autoCorrect = true
+    config.setFrom(parent!!.file("detekt.yml"))
+}
+
+tasks.withType<Detekt>().configureEach {
+    reports {
+        html.required.set(true)
+    }
+    jvmTarget = "17"
 }
 
 tasks.withType<Test>().configureEach {
@@ -89,7 +105,6 @@ tasks.shadowJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.lintKotlin { dependsOn(tasks.formatKotlin) }
 tasks.build {
     dependsOn(tasks.koverHtmlReport)
 }

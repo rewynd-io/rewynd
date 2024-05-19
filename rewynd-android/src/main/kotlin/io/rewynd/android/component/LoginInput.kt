@@ -27,36 +27,36 @@ fun LoginInput(
         value = server,
         onValueChange = { mainViewModel.serverUrl.value = ServerUrl(it) },
         modifier =
-            modifier.constrainAs(serverRef) {
-                top.linkTo(parent.top)
-                bottom.linkTo(usernameRef.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            },
+        modifier.constrainAs(serverRef) {
+            top.linkTo(parent.top)
+            bottom.linkTo(usernameRef.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        },
     )
     TextField(
         label = { Text(text = "username") },
         value = username,
         onValueChange = { mainViewModel.username.value = it },
         modifier =
-            modifier.constrainAs(usernameRef) {
-                top.linkTo(serverRef.bottom)
-                bottom.linkTo(passwordRef.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            },
+        modifier.constrainAs(usernameRef) {
+            top.linkTo(serverRef.bottom)
+            bottom.linkTo(passwordRef.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        },
     )
     TextField(
         label = { Text(text = "password") },
         value = password,
         onValueChange = { mainViewModel.password.value = it },
         modifier =
-            modifier.constrainAs(passwordRef) {
-                top.linkTo(usernameRef.bottom)
-                bottom.linkTo(buttonRef.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            },
+        modifier.constrainAs(passwordRef) {
+            top.linkTo(usernameRef.bottom)
+            bottom.linkTo(buttonRef.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        },
     )
     Button(
         {
@@ -66,11 +66,11 @@ fun LoginInput(
             Text("Connect")
         },
         modifier =
-            modifier.constrainAs(buttonRef) {
-                top.linkTo(passwordRef.bottom)
-                bottom.linkTo(parent.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            },
+        modifier.constrainAs(buttonRef) {
+            top.linkTo(passwordRef.bottom)
+            bottom.linkTo(parent.bottom)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        },
     )
 }

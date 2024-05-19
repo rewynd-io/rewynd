@@ -4,8 +4,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.next
-import io.ktor.client.call.body
-import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -34,7 +32,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.kensand.kielbasa.kotest.property.Generators
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 
 internal class ImageControllerTest : StringSpec({
     "getImage - cached" {
@@ -120,8 +117,6 @@ internal class ImageControllerTest : StringSpec({
     }
 }) {
     companion object {
-        private const val IMAGE_ID = "FooImageId"
-
         private class Harness(
             user: ServerUser = ADMIN_USER,
             sessionId: String = SESSION_ID,
@@ -152,13 +147,6 @@ internal class ImageControllerTest : StringSpec({
                     }
             }
         }
-
-        private fun ApplicationTestBuilder.mkClient() =
-            createClient {
-                install(ClientContentNegotiation) {
-                    json()
-                }
-            }
 
         private fun ApplicationTestBuilder.setupApp(
             db: Database,

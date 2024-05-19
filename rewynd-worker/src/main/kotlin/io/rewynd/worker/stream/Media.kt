@@ -116,7 +116,7 @@ private fun StreamProps.ffmpegArgs() =
             mkVideoTrackProps +
             mkAudioTrackProps +
             FFMPEG_END
-    )
+        )
 
 val ServerVideoTrack.key: String
     get() = "-c:v:${this.index}"

@@ -38,7 +38,9 @@ sealed interface Cache {
         itemExpiration: Duration,
     ): JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>
 
-    suspend fun getStreamMetadata(id: String): StreamMetadataWrapper? = get("StreamMetadata:$id")?.let { Json.decodeFromString(it) }
+    suspend fun getStreamMetadata(id: String): StreamMetadataWrapper? = get("StreamMetadata:$id")?.let {
+        Json.decodeFromString(it)
+    }
 
     suspend fun putStreamMetadata(
         id: String,

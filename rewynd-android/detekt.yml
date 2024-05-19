@@ -1,0 +1,31 @@
+complexity:
+  LongParameterList:
+    active: false
+  CyclomaticComplexMethod:
+    active: false
+  TooManyFunctions:
+    active: false
+  ComplexCondition:
+    active: false
+  LongMethod:
+    active: false
+  NestedBlockDepth:
+    active: false
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  TooGenericExceptionThrown:
+    active: false
+performance:
+  SpreadOperator:
+    active: false
+naming:
+  FunctionNaming:
+    active: false
+style:
+  ReturnCount:
+    active: false
+  DestructuringDeclarationWithTooManyEntries:
+    maxDestructuringEntries: 5
+build:
+  excludeCorrectable: true

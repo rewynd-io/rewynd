@@ -40,9 +40,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
     private val serializeClientEventPayload: (ClientEventPayload) -> String,
     private val serializeWorkerEventPayload: (WorkerEventPayload) -> String,
     private val deserializeRequest: (String) -> Request,
-    private val deserializeResponse: (String) -> Response,
     private val deserializeClientEventPayload: (String) -> ClientEventPayload,
-    private val deserializeWorkerEventPayload: (String) -> WorkerEventPayload,
     private val itemExpiration: Duration,
 ) : JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload> {
     private val conn = redis.connect().coroutines()

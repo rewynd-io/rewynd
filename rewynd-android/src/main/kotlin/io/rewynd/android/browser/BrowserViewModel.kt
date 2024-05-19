@@ -11,6 +11,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import arrow.core.raise.either
 import io.ktor.utils.io.jvm.javaio.copyTo
+import io.rewynd.android.MEDIA_COMPLETED_PERCENT
+import io.rewynd.android.MEDIA_STARTED_PERCENT
+import io.rewynd.android.MEDIA_TOTAL_COMPLETED_PERCENT
 import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.client.RewyndClient
@@ -129,9 +132,9 @@ class BrowserViewModel(
         this.viewModelScope.launch(Dispatchers.IO) {
             client.listProgress(
                 ListProgressRequest(
-                    minPercent = 0.05,
-                    maxPercent = 0.95,
-                    limit = 20.0,
+                    minPercent = MEDIA_STARTED_PERCENT,
+                    maxPercent = MEDIA_COMPLETED_PERCENT,
+                    limit = LATEST_EPISODES_LIMIT.toDouble(),
                 ),
             ).body().results?.sortedBy { it.timestamp }?.reversed()?.asFlow()?.flatMapMerge {
                 kotlin.runCatching { flowOf(it to client.getEpisode(it.id).body()) }.getOrNull()
@@ -150,7 +153,12 @@ class BrowserViewModel(
     fun loadNextEpisodes() {
         Log.i("LibraryLoader", "Loading Libs")
         this.viewModelScope.launch(Dispatchers.IO) {
-            client.listProgress(ListProgressRequest(minPercent = 0.95, limit = 100.0))
+            client.listProgress(
+                ListProgressRequest(
+                    minPercent = MEDIA_COMPLETED_PERCENT,
+                    limit = MEDIA_TOTAL_COMPLETED_PERCENT
+                )
+            )
                 .body()
                 .results
                 ?.sortedBy { it.timestamp }
@@ -164,7 +172,7 @@ class BrowserViewModel(
                         next?.id?.let { nonNullNextId -> flowOf(client.getUserProgress(nonNullNextId).body() to next) }
                             ?: emptyFlow()
                     }.getOrNull() ?: emptyFlow()
-                }?.filter { it.first.percent <= 0.05 }?.take(20)
+                }?.filter { it.first.percent <= MEDIA_STARTED_PERCENT }?.take(LATEST_EPISODES_LIMIT)
                 ?.runningFold(emptyList<Pair<Progress, EpisodeInfo?>>()) { accumulator, value ->
                     accumulator + listOf(value)
                 }?.collect { pair ->
@@ -178,7 +186,11 @@ class BrowserViewModel(
     @OptIn(FlowPreview::class)
     fun loadNewestEpisodes() {
         this.viewModelScope.launch(Dispatchers.IO) {
-            client.listEpisodesByLastUpdated(ListEpisodesByLastUpdatedRequest(order = ListEpisodesByLastUpdatedOrder.Newest))
+            client.listEpisodesByLastUpdated(
+                ListEpisodesByLastUpdatedRequest(
+                    order = ListEpisodesByLastUpdatedOrder.Newest
+                )
+            )
                 .body()
                 .episodes
                 .let {
@@ -243,7 +255,7 @@ class BrowserViewModel(
         this.viewModelScope.launch(Dispatchers.IO) {
             userProgress.postValue(
                 kotlin.runCatching { client.getUserProgress(episodeId).body() }
-                    .getOrNull()?.takeIf { it.percent < .95 },
+                    .getOrNull()?.takeIf { it.percent < MEDIA_COMPLETED_PERCENT },
             )
         }
     }
@@ -282,6 +294,7 @@ class BrowserViewModel(
     }
 
     companion object {
-        const val CACHE_SIZE = 128 * 1024 * 1024 // 4MiB
+        const val CACHE_SIZE = 128 * 1024 * 1024 // 128MiB
+        const val LATEST_EPISODES_LIMIT = 20
     }
 }

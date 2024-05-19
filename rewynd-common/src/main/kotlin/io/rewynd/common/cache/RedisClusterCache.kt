@@ -48,9 +48,7 @@ class RedisClusterCache(
             serializeClientEventPayload,
             serializeWorkerEventPayload,
             deserializeRequest,
-            deserializeResponse,
             deserializeClientEventPayload,
-            deserializeWorkerEventPayload,
             itemExpiration,
         )
 
@@ -123,7 +121,7 @@ class RedisClusterCache(
                                 id,
                                 (start + nonNullTimeout).toEpochMilliseconds().toString(),
                             ) ?: 0L
-                        )
+                            )
                     }
                 if (setCount > floor(nodes.size.toDouble() / 2.0).toLong()) {
                     val validUntil = start + nonNullTimeout
@@ -164,7 +162,7 @@ class RedisClusterCache(
                     } else {
                         0
                     }
-                ) as Int
+                    ) as Int
             }
         return if (setCount > Math.floor(nodes.size.toDouble() / 2.0)) {
             RedisClusterCacheLock(key, id, client, nodes, start + timeout, timeout)
@@ -199,13 +197,16 @@ class RedisClusterCache(
     }
 }
 
+private const val INDIVIDUAL_CONNECTION_TIMEOUT_DIVISOR = 1000
+private val MIN_TIMEOUT = 10.milliseconds
+
 fun RedisClusterClient.getNodeConnections(timeout: Duration) =
     (connect().sync() as RedisAdvancedClusterCommands<*, *>).upstream().asMap()
         .map { entry ->
             val uri =
                 entry.key.uri.apply {
                     this.timeout =
-                        timeout.div(1000).coerceAtLeast(10.milliseconds).toJavaDuration()
+                        timeout.div(INDIVIDUAL_CONNECTION_TIMEOUT_DIVISOR).coerceAtLeast(MIN_TIMEOUT).toJavaDuration()
                 }
             RedisClient.create(uri).connect().coroutines()
         }

@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.mkRewyndClient
@@ -46,7 +47,7 @@ class MainViewModel(
                         else -> LoginState.LoggedOutVerificationFailed
                     }
                 } catch (e: Exception) {
-                    Log.i("Login", "Login verification failed")
+                    log.error(e) { "Login verification failed" }
                     LoginState.LoggedOutVerificationFailed
                 }
         }
@@ -66,6 +67,7 @@ class MainViewModel(
                         else -> LoginState.LoggedOut
                     }
                 } catch (e: Exception) {
+                    log.error(e) { "Login failed" }
                     LoginState.LoggedOutVerificationFailed
                 }
         }
@@ -79,6 +81,7 @@ class MainViewModel(
     }
 
     companion object {
+        private val log = KotlinLogging.logger { }
         const val SERVER_URL = "ServerUrl"
     }
 }

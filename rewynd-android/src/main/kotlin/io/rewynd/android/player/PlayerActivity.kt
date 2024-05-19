@@ -193,7 +193,7 @@ class PlayerActivity : AppCompatActivity() {
                     // Hide the nav bar and status bar
                     or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_FULLSCREEN
-            )
+                )
         }
 
         val props = parseProps(intent.extras)
@@ -298,16 +298,17 @@ fun PlayerWrapper(
         val isPlaying by serviceInterface.isPlayingState.collectAsState()
         val bufferedPosition by serviceInterface.bufferedPosition.collectAsState()
         val currentPlayerTime by serviceInterface.currentPlayerTime.collectAsState()
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             AndroidView(
                 modifier =
-                    Modifier.clickable {
-                        viewModel.setAreControlsVisible(areControlsVisible.not())
-                    }.background(Color.Black).fillMaxHeight().fillMaxWidth(),
+                Modifier.clickable {
+                    viewModel.setAreControlsVisible(areControlsVisible.not())
+                }.background(Color.Black).fillMaxHeight().fillMaxWidth(),
                 factory = { context ->
                     serviceInterface.getPlayerView(context).apply {
                         useController = false
-                        this.addOnLayoutChangeListener { view: View, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int ->
+                        this.addOnLayoutChangeListener {
+                                view: View, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int ->
                             view.useRect()
                         }
                         this.useRect()
@@ -320,17 +321,17 @@ fun PlayerWrapper(
                 isPlaying = isPlaying,
                 title = media.details,
                 onPrev =
-                    if (prev == null) {
-                        null
-                    } else {
-                        { serviceInterface.playPrev() }
-                    },
+                if (prev == null) {
+                    null
+                } else {
+                    { serviceInterface.playPrev() }
+                },
                 onNext =
-                    if (next == null) {
-                        null
-                    } else {
-                        { serviceInterface.playNext() }
-                    },
+                if (next == null) {
+                    null
+                } else {
+                    { serviceInterface.playNext() }
+                },
                 onPlay = { serviceInterface.play() },
                 onPause = { serviceInterface.pause() },
                 onSeek = { serviceInterface.seek(it) },

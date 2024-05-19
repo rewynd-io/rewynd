@@ -45,9 +45,9 @@ data class ServerMovieInfo(
             audioTracks = audioTracks.toAudioTracks(),
             videoTracks = videoTracks.toVideoTracks(),
             subtitleTracks =
-                subtitleTracks.toSubtitleTracks() +
-                    subtitleFileTracks.mapValues { it.value.track }
-                        .toSubtitleTracks(),
+            subtitleTracks.toSubtitleTracks() +
+                subtitleFileTracks.mapValues { it.value.track }
+                    .toSubtitleTracks(),
             title = title,
             runTime = runTime,
             plot = plot,
@@ -71,22 +71,22 @@ data class ServerMovieInfo(
     fun toServerMediaInfo(): ServerMediaInfo =
         ServerMediaInfo(
             mediaInfo =
-                MediaInfo(
-                    id = id,
-                    libraryId = libraryId,
-                    audioTracks = audioTracks.toAudioTracks(),
-                    videoTracks = videoTracks.toVideoTracks(),
-                    subtitleTracks =
-                        subtitleTracks.toSubtitleTracks() +
-                            subtitleFileTracks.mapValues { it.value.track }
-                                .toSubtitleTracks(),
-                    runTime = runTime,
-                ),
+            MediaInfo(
+                id = id,
+                libraryId = libraryId,
+                audioTracks = audioTracks.toAudioTracks(),
+                videoTracks = videoTracks.toVideoTracks(),
+                subtitleTracks =
+                subtitleTracks.toSubtitleTracks() +
+                    subtitleFileTracks.mapValues { it.value.track }
+                        .toSubtitleTracks(),
+                runTime = runTime,
+            ),
             libraryData =
-                LibraryData(
-                    libraryId = libraryId,
-                    lastUpdated = lastUpdated,
-                ),
+            LibraryData(
+                libraryId = libraryId,
+                lastUpdated = lastUpdated,
+            ),
             fileInfo = fileInfo,
             audioTracks = audioTracks,
             videoTracks = videoTracks,

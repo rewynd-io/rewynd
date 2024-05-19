@@ -51,7 +51,7 @@ fun runWorker(
     val streamJobHandler = streamQueue.register(mkStreamJobHandler(cache), this)
     val searchJobHandler = searchQueue.register(searchHandler.jobHander, this)
     val imageJobHandlers =
-        (0 until 100).map { imageQueue.register(mkImageJobHandler(cache), this) }
+        (0 until IMAGE_HANDLER_COUNT).map { imageQueue.register(mkImageJobHandler(cache), this) }
     val scheduleJob = ScheduleHandler(db, cache, scanQueue, scheduleRefreshJobQueue).run(this)
 
     (
@@ -62,5 +62,8 @@ fun runWorker(
             searchUpdateJob,
             scheduleJob,
         ) + imageJobHandlers
-    ).joinAll()
+        ).joinAll()
 }
+
+// TODO move count of handlers to a settings class
+private const val IMAGE_HANDLER_COUNT = 100

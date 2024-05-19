@@ -102,8 +102,8 @@ internal class ProgressControllerTest : StringSpec({
                             user = user,
                             sessionId = ApiGenerators.sessionId.bind(),
                             progress =
-                                InternalGenerators.userProgress.map { it.copy(username = user.user.username) }
-                                    .bind(),
+                            InternalGenerators.userProgress.map { it.copy(username = user.user.username) }
+                                .bind(),
                             progresses = InternalGenerators.userProgress.list().bind(),
                             listReq = ListProgressRequest(), // TODO Add arb for ListProgressRequest
                         )

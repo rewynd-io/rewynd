@@ -51,6 +51,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log by lazy { KotlinLogging.logger { } }
 
+@Suppress("LongMethod")
 fun Route.streamRoutes(
     db: Database,
     cache: Cache,
@@ -160,7 +161,7 @@ fun Route.streamRoutes(
                 call.respond(StreamStatus.Canceled)
             } else if (streamMetadata.segments.isNotEmpty() && (
                     streamMetadata.streamProps.subtitleStreamName == null || streamMetadata.subtitles != null
-                )
+                    )
             ) {
                 log.info { "Stream Status: ${StreamStatus.Available}" }
                 call.respond(StreamStatus.Available)

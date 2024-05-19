@@ -84,17 +84,17 @@ fun PlayerControls(
         Box(modifier = Modifier.background(Color.Black.copy(alpha = 0.6f))) {
             TopControl(
                 modifier =
-                    Modifier
-                        .align(Alignment.TopStart)
-                        .fillMaxWidth(),
+                Modifier
+                    .align(Alignment.TopStart)
+                    .fillMaxWidth(),
                 title = title,
             )
 
             CenterControls(
                 modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .fillMaxWidth(),
+                Modifier
+                    .align(Alignment.Center)
+                    .fillMaxWidth(),
                 isPlaying = isPlaying,
                 onNext = onNext,
                 onPause = onPause,
@@ -106,23 +106,23 @@ fun PlayerControls(
 
             BottomControls(
                 modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .animateEnterExit(
-                            enter =
-                                slideInVertically(
-                                    initialOffsetY = { fullHeight: Int ->
-                                        fullHeight
-                                    },
-                                ),
-                            exit =
-                                slideOutVertically(
-                                    targetOffsetY = { fullHeight: Int ->
-                                        fullHeight
-                                    },
-                                ),
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .animateEnterExit(
+                        enter =
+                        slideInVertically(
+                            initialOffsetY = { fullHeight: Int ->
+                                fullHeight
+                            },
                         ),
+                        exit =
+                        slideOutVertically(
+                            targetOffsetY = { fullHeight: Int ->
+                                fullHeight
+                            },
+                        ),
+                    ),
                 totalDuration = runTime,
                 currentTime = currentPlayerTime,
                 bufferedPosition = bufferedPosition,
@@ -184,15 +184,15 @@ private fun CenterControls(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
                 painter =
-                    when {
-                        isPlaying -> {
-                            painterResource(id = androidx.media3.ui.R.drawable.exo_icon_pause)
-                        }
+                when {
+                    isPlaying -> {
+                        painterResource(id = androidx.media3.ui.R.drawable.exo_icon_pause)
+                    }
 
-                        else -> {
-                            painterResource(id = androidx.media3.ui.R.drawable.exo_icon_play)
-                        }
-                    },
+                    else -> {
+                        painterResource(id = androidx.media3.ui.R.drawable.exo_icon_play)
+                    }
+                },
                 contentDescription = "Play/Pause",
             )
         }
@@ -244,10 +244,10 @@ private fun BottomControls(
                 onValueChange = { /*do nothing*/ },
                 valueRange = 0f..totalDuration.inWholeMilliseconds.toFloat(),
                 colors =
-                    SliderDefaults.colors(
-                        disabledThumbColor = Color.Transparent,
-                        disabledActiveTrackColor = Color.Gray,
-                    ),
+                SliderDefaults.colors(
+                    disabledThumbColor = Color.Transparent,
+                    disabledActiveTrackColor = Color.Gray,
+                ),
             )
 
             Slider(

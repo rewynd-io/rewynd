@@ -1,16 +1,11 @@
 package io.rewynd.worker.search
 
-import arrow.core.identity
 import io.rewynd.common.cache.queue.SearchJobHandler
 import io.rewynd.common.database.Database
 import io.rewynd.common.database.listAllLibraries
-import io.rewynd.common.model.ServerEpisodeInfo
-import io.rewynd.common.model.ServerSeasonInfo
-import io.rewynd.common.model.ServerShowInfo
 import io.rewynd.model.SearchResponse
 import io.rewynd.model.SearchResult
 import io.rewynd.model.SearchResultType
-import io.rewynd.model.SeasonInfo
 import io.rewynd.worker.deserializeDirectory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.asFlow
@@ -19,10 +14,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Instant
 import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.document.Document
-import org.apache.lucene.document.Field
-import org.apache.lucene.document.StoredField
-import org.apache.lucene.document.StringField
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.StoredFields
 import org.apache.lucene.index.Term
@@ -33,7 +24,6 @@ import org.apache.lucene.search.spell.LevenshteinDistance
 import org.apache.lucene.search.spell.LuceneDictionary
 import org.apache.lucene.search.suggest.analyzing.BlendedInfixSuggester
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.roundToInt
 
 data class SearchIndex(
     val suggester: BlendedInfixSuggester,
@@ -52,7 +42,7 @@ class SearchHandler(val db: Database) {
         } else {
             libIndicies.elements().asIterator().asFlow().flatMapMerge { index ->
                 val storedFields = index.searcher.storedFields()
-                index.suggester.lookup(context.request.text, false, 100).asFlow().mapNotNull { lookupResult ->
+                index.suggester.lookup(context.request.text, false, MAX_RESULTS).asFlow().mapNotNull { lookupResult ->
                     index.searcher.search(
                         TermQuery(Term("title", lookupResult.key.toString())),
                         1,
@@ -78,6 +68,9 @@ class SearchHandler(val db: Database) {
             libIndicies[it.libraryId] = it
         }
     }
+    companion object {
+        const val MAX_RESULTS = 100
+    }
 }
 
 private val levenshteinDistance = LevenshteinDistance()
@@ -99,39 +92,3 @@ private fun ScoreDoc.toSearchResult(
         score = levenshteinDistance.getDistance(title, searchText).toDouble(),
     )
 }
-
-private fun ServerSeasonInfo.toDocument() =
-    Document().apply {
-        identity(this@toDocument.seasonInfo.id)
-        add(StringField("title", this@toDocument.seasonInfo.formatTitle(), Field.Store.YES))
-        add(StoredField("id", this@toDocument.seasonInfo.id))
-        add(StoredField("description", this@toDocument.seasonInfo.formatTitle()))
-        add(StoredField("type", SearchResultType.Season.name))
-    }
-
-private fun SeasonInfo.formatTitle() = "$showName - Season ${seasonNumber.roundToInt()}"
-
-private fun ServerEpisodeInfo.toDocument() =
-    Document().apply {
-        identity(this@toDocument.id)
-        add(StringField("title", this@toDocument.formatTitle(), Field.Store.YES))
-        add(StoredField("id", this@toDocument.id))
-        add(StoredField("description", this@toDocument.plot ?: this@toDocument.outline ?: ""))
-        add(StoredField("type", SearchResultType.Episode.name))
-    }
-
-private fun ServerShowInfo.toDocument() =
-    Document().apply {
-        identity(this@toDocument.id)
-        add(StringField("title", this@toDocument.title, Field.Store.YES))
-        add(StoredField("id", this@toDocument.id))
-        add(StoredField("description", this@toDocument.plot ?: this@toDocument.outline ?: ""))
-        add(StoredField("type", SearchResultType.Show.name))
-    }
-
-private fun ServerEpisodeInfo.formatTitle() =
-    "$showName - S${"%02d".format(season?.roundToInt() ?: 0)}E${"%02d".format(episode?.roundToInt() ?: 0)}${
-        episodeNumberEnd?.let {
-            "-%02d".format(it.roundToInt())
-        } ?: ""
-    } - $title"

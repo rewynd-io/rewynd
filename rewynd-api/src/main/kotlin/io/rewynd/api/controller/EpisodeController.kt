@@ -1,5 +1,6 @@
 package io.rewynd.api.controller
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
@@ -19,6 +20,9 @@ import io.rewynd.model.ListEpisodesResponse
 import io.rewynd.model.NextEpisodeOrder
 import kotlinx.datetime.Instant
 
+private val log = KotlinLogging.logger { }
+
+@Suppress("LongMethod")
 fun Route.episodeRoutes(db: Database) {
     post("/episode/list") {
         call.receive<ListEpisodesRequest>().let { request ->
@@ -39,13 +43,14 @@ fun Route.episodeRoutes(db: Database) {
                 val res =
                     ListEpisodesByLastUpdatedResponse(
                         cursor =
-                            episodes.maxByOrNull { it.lastUpdated }
-                                ?.lastUpdated
-                                ?.toString(),
+                        episodes.maxByOrNull { it.lastUpdated }
+                            ?.lastUpdated
+                            ?.toString(),
                         episodes = episodes.map { it.toEpisodeInfo() },
                     )
                 call.respond(HttpStatusCode.OK, res)
             } catch (e: IllegalArgumentException) {
+                log.error(e) { "Error while getting episodes" }
                 call.respond(HttpStatusCode.BadRequest, "Invalid cursor: ${request.cursor}")
             }
         }
@@ -73,7 +78,7 @@ fun Route.episodeRoutes(db: Database) {
                     serverEpisodeInfo,
                     reverse,
                 )
-            )?.let {
+                )?.let {
                 call.respond(GetNextEpisodeResponse(it.toEpisodeInfo()))
             }
         } ?: call.respond(HttpStatusCode.NotFound)

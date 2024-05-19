@@ -156,5 +156,7 @@ sealed interface Database {
                 is DatabaseConfig.PostgresConfig -> PostgresDatabase(config)
                 is DatabaseConfig.SqliteConfig -> SqliteDatabase(config)
             }
+
+        const val LIST_EPISODES_MAX_SIZE = 100
     }
 }

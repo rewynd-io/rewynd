@@ -22,8 +22,12 @@ val decoder: Base64.Decoder by lazy { Base64.getUrlDecoder() }
 private val factory by lazy { SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1") }
 private val random by lazy { SecureRandom() }
 
+private const val SALT_SIZE = 256
+private const val ITERATION_COUNT = 65536
+private const val KEY_LENGTH = 512
+
 fun generateSalt(): String {
-    val salt = ByteArray(256)
+    val salt = ByteArray(SALT_SIZE)
     random.nextBytes(salt)
     return encoder.encodeToString(salt)
 }
@@ -32,7 +36,7 @@ fun hashPassword(
     password: String,
     salt: String,
 ): String {
-    val spec: KeySpec = PBEKeySpec(password.toCharArray(), decoder.decode(salt), 65536, 512)
+    val spec: KeySpec = PBEKeySpec(password.toCharArray(), decoder.decode(salt), ITERATION_COUNT, KEY_LENGTH)
     return encoder.encodeToString(factory.generateSecret(spec).encoded)
 }
 

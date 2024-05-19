@@ -29,16 +29,10 @@ class PlayerViewModel(
         }
     }
 
-    fun stopPlayerService() {
-    }
-
     val areControlsVisible = MutableStateFlow(false)
 
     fun setAreControlsVisible(state: Boolean) =
         runBlocking {
             areControlsVisible.emit(state)
         }
-
-    companion object {
-    }
 }

@@ -15,6 +15,7 @@ import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.ui.PlayerView
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.rewynd.android.MILLIS_PER_SECOND
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import io.rewynd.client.RewyndClient
@@ -181,7 +182,7 @@ class PlayerWrapper(
                         client.putUserProgress(
                             Progress(
                                 m.info.id,
-                                (currentOffsetTime.inWholeMilliseconds / 1000.0) / m.info.runTime,
+                                (currentOffsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
                                 Clock.System.now(),
                             ),
                         )
@@ -195,7 +196,10 @@ class PlayerWrapper(
 
     fun seek(desired: Duration) =
         this.media.value?.let { playerMedia ->
-            if (desired > playerMedia.startOffset && desired < playerMedia.startOffset + this.player.duration.milliseconds) {
+            if (
+                desired > playerMedia.startOffset &&
+                desired < playerMedia.startOffset + this.player.duration.milliseconds
+            ) {
                 this.player.seekTo((desired - playerMedia.startOffset).inWholeMilliseconds)
             } else {
                 runBlocking {

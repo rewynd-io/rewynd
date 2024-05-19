@@ -22,12 +22,12 @@ dokka = "1.9.20"
 kotest = "5.9.0"
 kotestExtensions = "2.0.0"
 kotlinLogging = "6.0.9"
-kotlinter = "4.3.0"
 kotlinxCollectionsImmutable = "0.3.7"
 kotlinxCoroutines = "1.8.1"
 kotlinxDatetime = "0.6.0"
 kotlinxSerialization = "1.6.3"
-ktlint = "0.4.1"
+detekt = "1.23.6"
+composeDetekt = "0.4.1"
 androidxLifecycle = "2.8.0"
 loggingInterceptor = "4.12.0"
 logback = "1.5.6"
@@ -110,7 +110,7 @@ kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
-ktlint-compose-rules = { module = "io.nlopez.compose.rules:ktlint", version.ref = "ktlint" }
+detekt-compose = { module = "io.nlopez.compose.rules:detekt", version.ref = "composeDetekt" }
 okhttp3-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 quartz = { module = "org.quartz-scheduler:quartz", version.ref = "quartz" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
@@ -150,6 +150,7 @@ sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite" }
 kotlin-stdlib-jdk7 = {module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin"}
 margarita = {module = "net.kensand:margarita", version.ref = "margarita"}
 okio = {module = "com.squareup.okio:okio", version.ref = "okio" }
+detekt-formatting = {module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }
@@ -162,7 +163,7 @@ kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" 
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
-kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
 openapi-generator = { id = "org.openapi.generator", version.ref = "openapi" }
 node-gradle = { id = "com.github.node-gradle.node", version.ref = "nodeGradle" }
 kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinx-kover" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

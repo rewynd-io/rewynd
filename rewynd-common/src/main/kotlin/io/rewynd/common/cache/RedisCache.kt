@@ -42,9 +42,7 @@ class RedisCache(
             serializeClientEventPayload,
             serializeWorkerEventPayload,
             deserializeRequest,
-            deserializeResponse,
             deserializeClientEventPayload,
-            deserializeWorkerEventPayload,
             itemExpiration,
         )
 
@@ -115,7 +113,7 @@ class RedisCache(
                             id,
                             (start + nonNullTimeout).epochSeconds.toString(),
                         ) ?: 0L
-                    ).toLong()
+                        ).toLong()
                 if (setCount > 0L) {
                     RedisCacheLock(key, conn, id, nonNullTimeout, start + nonNullTimeout)
                 } else {

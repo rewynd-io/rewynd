@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,11 +25,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EpisodeBrowser(
-    nextEpisode: EpisodeInfo?,
-    previousEpisode: EpisodeInfo?,
     progress: Progress?,
     episodeInfo: EpisodeInfo,
     backStack: ImmutableList<BrowserState>,
@@ -54,9 +50,9 @@ fun EpisodeBrowser(
                                         episodeInfo,
                                         runTime = episodeInfo.runTime.seconds,
                                         startOffset =
-                                            episodeInfo.runTime.seconds.times(
-                                                (progress?.percent ?: 0.0),
-                                            ),
+                                        episodeInfo.runTime.seconds.times(
+                                            (progress?.percent ?: 0.0),
+                                        ),
                                         videoTrackName = episodeInfo.videoTracks.keys.firstOrNull(),
                                         audioTrackName = episodeInfo.audioTracks.keys.firstOrNull(),
                                         subtitleTrackName = episodeInfo.subtitleTracks.keys.firstOrNull(),

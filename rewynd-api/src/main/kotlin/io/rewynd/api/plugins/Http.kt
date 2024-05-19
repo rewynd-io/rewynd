@@ -12,21 +12,26 @@ import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.routing.routing
 
+const val COMPRESSION_PRIORITY = 1.0
+const val DEFLATION_PRIORITY = 10.0
+const val MINIMUM_COMPRESSION_SIZE = 1024L
+const val MAX_RANGE_COUNT = 10
+
 fun Application.configureHTTP() {
     install(IgnoreTrailingSlash)
     install(Compression) {
         gzip {
-            priority = 1.0
+            priority = COMPRESSION_PRIORITY
         }
         deflate {
-            priority = 10.0
-            minimumSize(1024) // condition
+            priority = DEFLATION_PRIORITY
+            minimumSize(MINIMUM_COMPRESSION_SIZE)
         }
     }
     install(PartialContent) {
         // Maximum number of ranges that will be accepted from a HTTP request.
         // If the HTTP request specifies more ranges, they will all be merged into a single range.
-        maxRangeCount = 10
+        maxRangeCount = MAX_RANGE_COUNT
     }
     routing {
         swaggerUI(path = "/docs", "src/openapi.yaml")

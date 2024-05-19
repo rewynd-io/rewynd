@@ -25,6 +25,7 @@ sealed interface InProgressCue {
     data class Style(val content: String) : InProgressCue
 }
 
+@Suppress("MagicNumber")
 fun String.parseDuration() =
     this.trim().split(":").let {
         try {

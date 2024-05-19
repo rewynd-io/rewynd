@@ -43,9 +43,9 @@ data class ServerEpisodeInfo(
             audioTracks = audioTracks.toAudioTracks(),
             videoTracks = videoTracks.toVideoTracks(),
             subtitleTracks =
-                subtitleTracks.toSubtitleTracks() +
-                    subtitleFileTracks.mapValues { it.value.track }
-                        .toSubtitleTracks(),
+            subtitleTracks.toSubtitleTracks() +
+                subtitleFileTracks.mapValues { it.value.track }
+                    .toSubtitleTracks(),
             showId = showId,
             seasonId = seasonId,
             title = title,
@@ -69,22 +69,22 @@ data class ServerEpisodeInfo(
     fun toServerMediaInfo(): ServerMediaInfo =
         ServerMediaInfo(
             mediaInfo =
-                MediaInfo(
-                    id = id,
-                    libraryId = libraryId,
-                    audioTracks = audioTracks.toAudioTracks(),
-                    videoTracks = videoTracks.toVideoTracks(),
-                    subtitleTracks =
-                        subtitleTracks.toSubtitleTracks() +
-                            subtitleFileTracks.mapValues { it.value.track }
-                                .toSubtitleTracks(),
-                    runTime = runTime,
-                ),
+            MediaInfo(
+                id = id,
+                libraryId = libraryId,
+                audioTracks = audioTracks.toAudioTracks(),
+                videoTracks = videoTracks.toVideoTracks(),
+                subtitleTracks =
+                subtitleTracks.toSubtitleTracks() +
+                    subtitleFileTracks.mapValues { it.value.track }
+                        .toSubtitleTracks(),
+                runTime = runTime,
+            ),
             libraryData =
-                LibraryData(
-                    libraryId = libraryId,
-                    lastUpdated = lastUpdated,
-                ),
+            LibraryData(
+                libraryId = libraryId,
+                lastUpdated = lastUpdated,
+            ),
             fileInfo = fileInfo,
             audioTracks = audioTracks,
             videoTracks = videoTracks,

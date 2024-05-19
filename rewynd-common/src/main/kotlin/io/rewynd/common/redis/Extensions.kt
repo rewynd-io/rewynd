@@ -27,6 +27,8 @@ fun <K : Any, V : Any> RedisClusterCoroutinesCommands<K, V>.blpopFlow(vararg key
         }
     }.flowOn(Dispatchers.IO)
 
+const val XREAD_BLOCKING_TIME = 100L
+
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun <K : Any, V : Any> RedisCoroutinesCommands<K, V>.xreadFlow(vararg keys: K) =
     flow {
@@ -34,7 +36,7 @@ fun <K : Any, V : Any> RedisCoroutinesCommands<K, V>.xreadFlow(vararg keys: K) =
         while (true) {
             val res =
                 this@xreadFlow.xread(
-                    XReadArgs().block(100),
+                    XReadArgs().block(XREAD_BLOCKING_TIME),
                     *keys.map {
                         XReadArgs.StreamOffset.from(
                             it,

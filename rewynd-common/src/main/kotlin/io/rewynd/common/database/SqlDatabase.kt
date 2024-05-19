@@ -1,6 +1,7 @@
 package io.rewynd.common.database
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.rewynd.common.database.Database.Companion.LIST_EPISODES_MAX_SIZE
 import io.rewynd.common.generateSalt
 import io.rewynd.common.hashPassword
 import io.rewynd.common.model.FileInfo
@@ -326,7 +327,7 @@ open class SqlDatabase(
                     } ?: (Episodes.seasonId eq seasonId)
                 }
                 .orderBy(Episodes.episodeId, SortOrder.ASC)
-                .limit(100)
+                .limit(LIST_EPISODES_MAX_SIZE)
                 .map { it.toServerEpisodeInfo() }
         }
 
@@ -370,7 +371,7 @@ open class SqlDatabase(
                     ListEpisodesByLastUpdatedOrder.Newest -> SortOrder.DESC
                     ListEpisodesByLastUpdatedOrder.Oldest -> SortOrder.ASC
                 },
-            ).limit(100).take(100).map { it.toServerEpisodeInfo() }
+            ).limit(LIST_EPISODES_MAX_SIZE).take(LIST_EPISODES_MAX_SIZE).map { it.toServerEpisodeInfo() }
         }
 
     override suspend fun getMovie(movieId: String): ServerMovieInfo? {
@@ -488,7 +489,7 @@ open class SqlDatabase(
         Shows.deleteWhere {
             Shows.lastUpdated less start.toEpochMilliseconds() and (
                 Shows.libraryId eq libraryId
-            )
+                )
         }
     }
 
@@ -496,7 +497,9 @@ open class SqlDatabase(
         start: Instant,
         libraryId: String,
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
-        Seasons.deleteWhere { Seasons.lastUpdated less start.toEpochMilliseconds() and (Seasons.libraryId eq libraryId) }
+        Seasons.deleteWhere {
+            Seasons.lastUpdated less start.toEpochMilliseconds() and (Seasons.libraryId eq libraryId)
+        }
     }
 
     override suspend fun cleanEpisodes(
@@ -512,7 +515,9 @@ open class SqlDatabase(
         start: Instant,
         libraryId: String,
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
-        Images.deleteWhere { Images.lastUpdated less start.toEpochMilliseconds() and (Images.libraryId eq libraryId) }
+        Images.deleteWhere {
+            Images.lastUpdated less start.toEpochMilliseconds() and (Images.libraryId eq libraryId)
+        }
     }
 
     override suspend fun getLibraryIndex(
@@ -522,7 +527,8 @@ open class SqlDatabase(
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             LibraryIndicies.selectAll().where {
                 if (updatedAfter != null) {
-                    LibraryIndicies.libraryId eq libraryId and (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
+                    LibraryIndicies.libraryId eq libraryId and
+                        (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
                 } else {
                     LibraryIndicies.libraryId eq libraryId
                 }
@@ -587,7 +593,7 @@ open class SqlDatabase(
                     Progression.percent.lessEq(maxPercent) and
                         Progression.percent.greaterEq(minPercent) and
                         Progression.username.eq(username)
-                ).let {
+                    ).let {
                     if (cursor != null) {
                         it and Progression.timestamp.less(cursor.toEpochMilliseconds())
                     } else {
@@ -779,23 +785,23 @@ open class SqlDatabase(
         private fun ResultRow.toServerSeasonInfo(): ServerSeasonInfo =
             ServerSeasonInfo(
                 seasonInfo =
-                    SeasonInfo(
-                        id = this[Seasons.seasonId],
-                        showId = this[Seasons.showId],
-                        seasonNumber = this[Seasons.seasonNumber].toDouble(),
-                        libraryId = this[Seasons.libraryId],
-                        showName = this[Seasons.showName],
-                        year = this[Seasons.year]?.toDouble(),
-                        premiered = this[Seasons.premiered],
-                        releaseDate = this[Seasons.releaseDate],
-                        folderImageId = this[Seasons.folderImageId],
-                        actors = this[Seasons.actors]?.let(Json.Default::decodeFromString),
-                    ),
+                SeasonInfo(
+                    id = this[Seasons.seasonId],
+                    showId = this[Seasons.showId],
+                    seasonNumber = this[Seasons.seasonNumber].toDouble(),
+                    libraryId = this[Seasons.libraryId],
+                    showName = this[Seasons.showName],
+                    year = this[Seasons.year]?.toDouble(),
+                    premiered = this[Seasons.premiered],
+                    releaseDate = this[Seasons.releaseDate],
+                    folderImageId = this[Seasons.folderImageId],
+                    actors = this[Seasons.actors]?.let(Json.Default::decodeFromString),
+                ),
                 libraryData =
-                    LibraryData(
-                        libraryId = this[Seasons.libraryId],
-                        lastUpdated = Instant.fromEpochMilliseconds(this[Seasons.lastUpdated]),
-                    ),
+                LibraryData(
+                    libraryId = this[Seasons.libraryId],
+                    lastUpdated = Instant.fromEpochMilliseconds(this[Seasons.lastUpdated]),
+                ),
             )
 
         private fun ResultRow.toServerEpisodeInfo(): ServerEpisodeInfo =
@@ -821,33 +827,33 @@ open class SqlDatabase(
                 episodeImageId = this[Episodes.episodeImageId],
                 lastUpdated = Instant.fromEpochMilliseconds(this[Episodes.lastUpdated]),
                 fileInfo =
-                    FileInfo(
-                        location = this[Episodes.location].let(Json.Default::decodeFromString),
-                        size = this[Episodes.size],
-                    ),
+                FileInfo(
+                    location = this[Episodes.location].let(Json.Default::decodeFromString),
+                    size = this[Episodes.size],
+                ),
                 subtitleFileTracks = this[Episodes.subtitleFiles].let(Json.Default::decodeFromString),
                 audioTracks =
-                    this[Episodes.audioTracks].let {
-                        Json.decodeFromString<Map<String, ServerAudioTrack>>(it)
-                    },
+                this[Episodes.audioTracks].let {
+                    Json.decodeFromString<Map<String, ServerAudioTrack>>(it)
+                },
                 videoTracks =
-                    this[Episodes.videoTracks].let {
-                        Json.decodeFromString<Map<String, ServerVideoTrack>>(it)
-                    },
+                this[Episodes.videoTracks].let {
+                    Json.decodeFromString<Map<String, ServerVideoTrack>>(it)
+                },
                 subtitleTracks =
-                    this[Episodes.subtitleTracks].let {
-                        Json.decodeFromString<Map<String, ServerSubtitleTrack>>(it)
-                    },
+                this[Episodes.subtitleTracks].let {
+                    Json.decodeFromString<Map<String, ServerSubtitleTrack>>(it)
+                },
             )
 
         private fun ResultRow.toServerUser() =
             ServerUser(
                 user =
-                    User(
-                        username = this[Users.username],
-                        permissions = Json.decodeFromString(this[Users.permissions]),
-                        preferences = Json.decodeFromString(this[Users.preferences]),
-                    ),
+                User(
+                    username = this[Users.username],
+                    permissions = Json.decodeFromString(this[Users.permissions]),
+                    preferences = Json.decodeFromString(this[Users.preferences]),
+                ),
                 hashedPass = this[Users.hashedPassword],
                 salt = this[Users.salt],
             )

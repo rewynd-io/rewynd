@@ -16,9 +16,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.media3.common.Player
-import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.ui.PlayerView
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.R
 import io.rewynd.android.browser.BrowserActivity
 import io.rewynd.android.browser.BrowserState
@@ -81,7 +79,6 @@ class PlayerService : Service() {
         }, onNext = this::onNext)
     }
 
-    private val datasourceFactory by lazy { OkHttpDataSource.Factory(httpClient) }
     private val mediaSession: MediaSession by lazy { MediaSession(this, "RewyndMediaSession") }
 
     private lateinit var client: RewyndClient
@@ -197,12 +194,21 @@ class PlayerService : Service() {
             }
 
         this.playbackStateBuilder.setActions(
-            playPause or next or prev or PlaybackState.ACTION_FAST_FORWARD or PlaybackState.ACTION_REWIND or PlaybackState.ACTION_STOP,
+            playPause or
+                next or
+                prev or
+                PlaybackState.ACTION_FAST_FORWARD or
+                PlaybackState.ACTION_REWIND or
+                PlaybackState.ACTION_STOP,
         ).setState(
             when (this.player.playbackState.value) {
                 Player.STATE_BUFFERING -> PlaybackState.STATE_BUFFERING
                 Player.STATE_IDLE -> PlaybackState.STATE_PAUSED
-                Player.STATE_READY -> if (this.player.isPlayingState.value) PlaybackState.STATE_PLAYING else PlaybackState.STATE_PAUSED
+                Player.STATE_READY -> if (this.player.isPlayingState.value) {
+                    PlaybackState.STATE_PLAYING
+                } else {
+                    PlaybackState.STATE_PAUSED
+                }
                 Player.STATE_ENDED -> PlaybackState.STATE_PAUSED
                 else -> PlaybackState.STATE_NONE
             },
@@ -281,6 +287,7 @@ class PlayerService : Service() {
         }
 
     // https://android-developers.googleblog.com/2020/08/playing-nicely-with-media-controls.html
+    @Suppress("MagicNumber")
     private fun createNotification(): Unit =
         this.player.media.value?.let { playerMedia ->
             // Creating a NotificationChannel is required for Android O and up.
@@ -303,7 +310,7 @@ class PlayerService : Service() {
                     } else {
                         Notification.Builder(this)
                     }
-                ).apply {
+                    ).apply {
                     setProgress(
                         playerMedia.runTime.inWholeSeconds.toInt(),
                         player.currentOffsetTime.inWholeSeconds.toInt(),
@@ -392,7 +399,6 @@ class PlayerService : Service() {
         } ?: Unit
 
     companion object {
-        private val log by lazy { KotlinLogging.logger { } }
         const val PLAYER_SERVICE_INTENT_BUNDLE_PROPS_KEY = "PlayerServiceProps"
         const val PLAYER_SERVICE_NOTIFICATION_ID = 1
         const val PLAYER_SERVICE_NOTIFICATION_CHANNEL_ID = "RewyndServiceNotification"

@@ -1,10 +1,10 @@
-import java.net.URI
+import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow)
-    alias(libs.plugins.kotlinter)
+    alias(libs.plugins.detekt)
     alias(libs.plugins.kotlinx.kover)
     application
 }
@@ -36,6 +36,8 @@ dependencies {
     implementation(libs.kotlin.logging)
     implementation(libs.logback.classic)
     implementation(libs.slf4j.api)
+
+    detektPlugins(libs.detekt.formatting)
 }
 
 kotlin {
@@ -51,7 +53,19 @@ tasks.shadowJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.lintKotlin { dependsOn(tasks.formatKotlin) }
+detekt {
+    buildUponDefaultConfig = true
+    autoCorrect = true
+    config.setFrom(parent!!.file("detekt.yml"))
+}
+
+tasks.withType<Detekt>().configureEach {
+    reports {
+        html.required.set(true)
+    }
+    jvmTarget = "17"
+}
+
 tasks.build {
     dependsOn(tasks.koverHtmlReport)
 }

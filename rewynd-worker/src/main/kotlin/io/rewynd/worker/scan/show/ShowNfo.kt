@@ -14,6 +14,8 @@ data class ShowNfo(
     val year: Number?,
     // TODO could probably be an enum
     val mpaa: String?,
+    // TODO use annotation to fix name
+    @Suppress("ConstructorParameterNaming")
     val imdb_id: String?,
     val tmdbid: String?,
     val tvdbid: String?,

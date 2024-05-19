@@ -18,8 +18,6 @@ fun BrowserRouter(
     val latestEpisodes by mainViewModel.latestEpisodes.observeAsState()
     val nextEpisodes by mainViewModel.nextEpisodes.observeAsState()
     val newestEpisodes by mainViewModel.newestEpisodes.observeAsState()
-    val nextEpisode by mainViewModel.nextEpisode.observeAsState()
-    val previousEpisode by mainViewModel.previousEpisode.observeAsState()
     val progress by mainViewModel.userProgress.observeAsState()
     val shows by mainViewModel.shows.observeAsState()
     val seasons by mainViewModel.seasons.observeAsState()
@@ -61,8 +59,6 @@ fun BrowserRouter(
 
         is BrowserState.EpisodeState ->
             EpisodeBrowser(
-                nextEpisode,
-                previousEpisode,
                 progress,
                 state.episodeInfo,
                 backStack.toImmutableList(),

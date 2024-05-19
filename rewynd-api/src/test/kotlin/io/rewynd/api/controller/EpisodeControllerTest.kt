@@ -93,7 +93,11 @@ internal class EpisodeControllerTest : StringSpec({
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe ListEpisodesResponse(episodes.map(ServerEpisodeInfo::toEpisodeInfo), episodes.lastOrNull()?.id)
+                body() shouldBe
+                    ListEpisodesResponse(
+                        episodes.map(ServerEpisodeInfo::toEpisodeInfo),
+                        episodes.lastOrNull()?.id,
+                    )
             }
         }
     }

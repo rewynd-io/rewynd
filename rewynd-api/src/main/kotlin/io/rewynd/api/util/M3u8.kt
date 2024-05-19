@@ -3,6 +3,11 @@ package io.rewynd.api.util
 import io.rewynd.common.indexed
 import io.rewynd.common.model.StreamMetadata
 import io.rewynd.common.model.SubtitleMetadata
+import kotlin.time.Duration.Companion.seconds
+
+private val DEFAULT_SEGMENT_DURATION = 10.seconds
+private val MILLIS_IN_SECONDS = 1.seconds.inWholeMilliseconds.toDouble()
+private val MICROS_IN_SECONDS = 1.seconds.inWholeMicroseconds.toDouble()
 
 fun SubtitleMetadata.toSubsM3u8(): String =
     with(StringBuilder()) {
@@ -12,16 +17,16 @@ fun SubtitleMetadata.toSubsM3u8(): String =
             "#EXT-X-TARGETDURATION:${
                 (
                     segments.maxOfOrNull {
-                        it.duration.inWholeMilliseconds
-                    } ?: 10000.0
-                ).toDouble() / 1000.0
+                        it.duration
+                    } ?: DEFAULT_SEGMENT_DURATION
+                    ).inWholeMilliseconds.toDouble() / MILLIS_IN_SECONDS
             }\n",
         )
         append("#EXT-X-MEDIA-SEQUENCE:0\n")
 
         segments.forEachIndexed { index, seg ->
             append(
-                "#EXTINF:${seg.duration.inWholeMilliseconds.toDouble() / 1000.0},\n$index.vtt\n",
+                "#EXTINF:${seg.duration.inWholeMilliseconds.toDouble() / MILLIS_IN_SECONDS},\n$index.vtt\n",
             )
         }
 
@@ -38,7 +43,7 @@ fun StreamMetadata.toStreamM3u8(): String =
             #EXTM3U
             #EXT-X-VERSION:7
             #EXT-X-PLAYLIST-TYPE:EVENT
-            #EXT-X-TARGETDURATION:${segments.maxOfOrNull { segment -> segment.duration }?.inWholeSeconds ?: 10L}
+            #EXT-X-TARGETDURATION:${(segments.maxOfOrNull { segment -> segment.duration } ?: DEFAULT_SEGMENT_DURATION).inWholeSeconds}
             #EXT-X-MEDIA-SEQUENCE:0
             #EXT-X-MAP:URI="init-stream.mp4"
 
@@ -47,7 +52,7 @@ fun StreamMetadata.toStreamM3u8(): String =
     ) { acc, (index, seg) ->
         acc.apply {
             append(
-                "#EXTINF:${seg.duration.inWholeMicroseconds.toDouble() / 1000000.0},\n",
+                "#EXTINF:${seg.duration.inWholeMicroseconds.toDouble() / MICROS_IN_SECONDS},\n",
             )
             append("$index.m4s\n")
         }
@@ -87,7 +92,7 @@ fun StreamMetadata.toIndexM3u8(streamId: String) =
                                 "wvtt"
                             },
                         )
-                ).joinToString(", ")
+                    ).joinToString(", ")
             }"""",
         )
 

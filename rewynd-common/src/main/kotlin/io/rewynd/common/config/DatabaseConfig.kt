@@ -71,11 +71,11 @@ fun DatabaseConfig.SqliteConfig.Companion.fromConfig(config: Config) =
         with(config.getConfig("sqlite")) {
             DatabaseConfig.SqliteConfig(
                 dbFile =
-                    if (hasPath("db-file")) {
-                        Path.of(getString("db-file"))
-                    } else {
-                        null
-                    },
+                if (hasPath("db-file")) {
+                    Path.of(getString("db-file"))
+                } else {
+                    null
+                },
             )
         }
     } else {

@@ -50,7 +50,7 @@ class StreamHeartbeat(
                     withContext(NonCancellable) {
                         client.deleteStream(props.id)
                     }
-                    log.info { "Heartbeat stopped" }
+                    log.warn(e) { "Heartbeat stopped" }
                     return@launch
                 } catch (e: Exception) {
                     log.error(e) { "Heartbeat error" }
@@ -58,6 +58,7 @@ class StreamHeartbeat(
             }
         }
 
+    @Suppress("MagicNumber")
     private suspend fun beat(
         props: HlsStreamProps,
         lastCreateStreamRequest: CreateStreamRequest,

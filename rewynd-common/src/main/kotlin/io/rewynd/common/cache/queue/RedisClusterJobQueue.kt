@@ -40,9 +40,7 @@ class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPay
     private val serializeClientEventPayload: (ClientEventPayload) -> String,
     private val serializeWorkerEventPayload: (WorkerEventPayload) -> String,
     private val deserializeRequest: (String) -> Request,
-    private val deserializeResponse: (String) -> Response,
     private val deserializeClientEventPayload: (String) -> ClientEventPayload,
-    private val deserializeWorkerEventPayload: (String) -> WorkerEventPayload,
     private val itemExpiration: Duration,
 ) : JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload> {
     private val conn = redis.connect().coroutines()
@@ -96,7 +94,6 @@ class RedisClusterJobQueue<Request, Response, ClientEventPayload, WorkerEventPay
                                 throw e
                             } catch (e: Exception) {
                                 log.error(e) { "Handler completed, emitting failure" }
-                                // Exception could be due to cancellation, which apparently means suspend functions may not work
                                 log.info { "Emitting Fail event" }
                                 emitWorkerFailure(reqWrapper, e)
                                 log.info { "Emitted Fail event" }

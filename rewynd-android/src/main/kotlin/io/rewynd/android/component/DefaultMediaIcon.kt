@@ -11,10 +11,12 @@ import io.rewynd.android.App
 import io.rewynd.android.R
 import kotlin.math.min
 
+private const val MIN_WIDTH = 500
+
 private val defaultBitmap by lazy {
     val drawable = requireNotNull(ContextCompat.getDrawable(App.context, R.drawable.rewynd_default_media_icon))
-    val width = min(500, drawable.intrinsicWidth)
-    val height = min(500, drawable.intrinsicHeight)
+    val width = min(MIN_WIDTH, drawable.intrinsicWidth)
+    val height = min(MIN_WIDTH, drawable.intrinsicHeight)
     val bitmap =
         Bitmap.createBitmap(
             width,

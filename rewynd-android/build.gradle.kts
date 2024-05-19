@@ -1,16 +1,11 @@
+import io.gitlab.arturbosch.detekt.Detekt
 import java.time.Instant
 
 plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.android.app)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlinter)
-}
-
-buildscript {
-    dependencies {
-        classpath(libs.ktlint.compose.rules)
-    }
+    alias(libs.plugins.detekt)
 }
 
 repositories {
@@ -92,6 +87,21 @@ dependencies {
     implementation(libs.kotlinx.collections.immutable)
     implementation(libs.arrow.core)
     implementation(libs.arrow.fx.coroutines)
+
+    detektPlugins(libs.detekt.formatting)
+    detektPlugins(libs.detekt.compose)
 }
 
-tasks.lintKotlin { dependsOn(tasks.formatKotlin) }
+detekt {
+    buildUponDefaultConfig = true
+    autoCorrect = true
+    config.setFrom(project.file("detekt.yml"))
+}
+
+tasks.withType<Detekt>().configureEach {
+    reports {
+        html.required.set(true)
+    }
+    jvmTarget = "17"
+}
+

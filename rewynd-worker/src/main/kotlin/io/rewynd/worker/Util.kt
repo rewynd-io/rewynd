@@ -10,15 +10,17 @@ import java.util.concurrent.TimeoutException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import kotlin.time.Duration.Companion.seconds
 
 private val log by lazy { KotlinLogging.logger { } }
 
+private val EXEC_TIMEOUT = 5.seconds
 fun List<String>.execToString() =
     Runtime
         .getRuntime()
         .exec(this.toTypedArray())
         .let {
-            if (it.waitFor(5, TimeUnit.SECONDS)) {
+            if (it.waitFor(EXEC_TIMEOUT.inWholeSeconds, TimeUnit.SECONDS)) {
                 log.error { it.errorReader().readText() }
                 val text = it.inputReader().readText()
                 log.info { text }

@@ -178,7 +178,10 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
             )
 
         return showDir.walk().maxDepth(1).filter {
-            it.isDirectory && it.absolutePath != showDir.absolutePath && !it.name.startsWith(".") && it.nameWithoutExtension.isNotBlank()
+            it.isDirectory &&
+                it.absolutePath != showDir.absolutePath &&
+                !it.name.startsWith(".") &&
+                it.nameWithoutExtension.isNotBlank()
         }.fold(ShowScanResults.EMPTY) { acc, file ->
             acc + scanSeason(file, showInfo)
         } +
@@ -205,22 +208,22 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
         val seasonInfo =
             ServerSeasonInfo(
                 seasonInfo =
-                    SeasonInfo(
-                        id = seasonId,
-                        showId = showInfo.id,
-                        seasonNumber = (nfo?.seasonnumber ?: seasonDir.name.parseSeasonNumber() ?: 0).toDouble(),
-                        libraryId = lib.name,
-                        showName = showInfo.title,
-                        year = nfo?.year?.toDouble(),
-                        premiered = nfo?.premiered,
-                        releaseDate = nfo?.releasedate,
-                        folderImageId = folderImage?.imageId,
-                        actors = listOf(),
-                    ),
+                SeasonInfo(
+                    id = seasonId,
+                    showId = showInfo.id,
+                    seasonNumber = (nfo?.seasonnumber ?: seasonDir.name.parseSeasonNumber() ?: 0).toDouble(),
+                    libraryId = lib.name,
+                    showName = showInfo.title,
+                    year = nfo?.year?.toDouble(),
+                    premiered = nfo?.premiered,
+                    releaseDate = nfo?.releasedate,
+                    folderImageId = folderImage?.imageId,
+                    actors = listOf(),
+                ),
                 libraryData =
-                    LibraryData(
-                        libraryId = lib.name,
-                    ),
+                LibraryData(
+                    libraryId = lib.name,
+                ),
             )
 
         return (
@@ -238,11 +241,11 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 ShowScanResults(
                     images = setOfNotNull(folderImage),
                     seasons =
-                        setOf(
-                            seasonInfo,
-                        ),
+                    setOf(
+                        seasonInfo,
+                    ),
                 )
-        ).let { if (it.episodes.isNotEmpty()) it else ShowScanResults.EMPTY }.also {
+            ).let { if (it.episodes.isNotEmpty()) it else ShowScanResults.EMPTY }.also {
             log.info { "Processed ${seasonDir.absolutePath}" }
         }
     }
@@ -293,40 +296,40 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 ShowScanResults(
                     images = setOfNotNull(episodeImageFile),
                     episodes =
-                        setOf(
-                            ServerEpisodeInfo(
-                                id = episodeId,
-                                libraryId = this.lib.name,
-                                audioTracks = ffprobe.audioTracks,
-                                videoTracks = ffprobe.videoTracks,
-                                subtitleTracks = ffprobe.subtitleTracks,
-                                showId = showInfo.id,
-                                seasonId = seasonInfo.seasonInfo.id,
-                                title = nfo?.title ?: episodeFile.nameWithoutExtension,
-                                runTime = ffprobe.runTime,
-                                plot = nfo?.plot,
-                                outline = nfo?.outline,
-                                director = nfo?.director,
-                                writer = nfo?.writer,
-                                credits = nfo?.credits,
-                                rating = nfo?.rating,
-                                year = nfo?.year?.toDouble(),
-                                episode = nfo?.episode?.toDouble(),
-                                episodeNumberEnd = nfo?.episodenumberend?.toDouble(),
-                                season = seasonInfo.seasonInfo.seasonNumber,
-                                showName = showInfo.title,
-                                // TODO nfo?.aired is and should be a string, not a double
-                                aired = null,
-                                episodeImageId = episodeImageFile?.imageId,
-                                fileInfo =
-                                    FileInfo(
-                                        location = FileLocation.LocalFile(episodeFile.absolutePath),
-                                        size = Files.size(episodeFile.toPath()),
-                                    ),
-                                subtitleFileTracks = subtitleFileTracks,
-                                lastUpdated = Clock.System.now(),
+                    setOf(
+                        ServerEpisodeInfo(
+                            id = episodeId,
+                            libraryId = this.lib.name,
+                            audioTracks = ffprobe.audioTracks,
+                            videoTracks = ffprobe.videoTracks,
+                            subtitleTracks = ffprobe.subtitleTracks,
+                            showId = showInfo.id,
+                            seasonId = seasonInfo.seasonInfo.id,
+                            title = nfo?.title ?: episodeFile.nameWithoutExtension,
+                            runTime = ffprobe.runTime,
+                            plot = nfo?.plot,
+                            outline = nfo?.outline,
+                            director = nfo?.director,
+                            writer = nfo?.writer,
+                            credits = nfo?.credits,
+                            rating = nfo?.rating,
+                            year = nfo?.year?.toDouble(),
+                            episode = nfo?.episode?.toDouble(),
+                            episodeNumberEnd = nfo?.episodenumberend?.toDouble(),
+                            season = seasonInfo.seasonInfo.seasonNumber,
+                            showName = showInfo.title,
+                            // TODO nfo?.aired is and should be a string, not a double
+                            aired = null,
+                            episodeImageId = episodeImageFile?.imageId,
+                            fileInfo =
+                            FileInfo(
+                                location = FileLocation.LocalFile(episodeFile.absolutePath),
+                                size = Files.size(episodeFile.toPath()),
                             ),
+                            subtitleFileTracks = subtitleFileTracks,
+                            lastUpdated = Clock.System.now(),
                         ),
+                    ),
                 )
             } else {
                 ShowScanResults.EMPTY
@@ -378,7 +381,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                         it.extension,
                     )
             }.firstOrNull()
-        )?.let {
+            )?.let {
             ServerImageInfo(
                 location = FileLocation.LocalFile(it.absolutePath),
                 size = 0L,
