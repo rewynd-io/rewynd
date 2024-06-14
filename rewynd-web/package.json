@@ -22,7 +22,7 @@
     "@rewynd.io/rewynd-client-typescript": "file:../rewynd-client-typescript",
     "@rewynd.io/rewynd-spec": "file:../rewynd-spec",
     "@testing-library/jest-dom": "^6.2.0",
-    "@testing-library/react": "^15.0.0",
+    "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
     "@types/react": "^18.2.47",
     "@types/string-natural-compare": "^3.0.4",
