@@ -66,10 +66,10 @@ fun PlayerControls(
     onSeek: (Duration) -> Unit,
     onNext: (() -> Unit)?,
     onPrev: (() -> Unit)?,
-    onAudioChanged: (track: String?) -> Unit,
-    onVideoChanged: (track: String?) -> Unit,
-    onSubtitleChanged: (track: String?) -> Unit,
-    onNormalizationChanged: (method: NormalizationMethod?) -> Unit,
+    onAudioChange: (track: String?) -> Unit,
+    onVideoChange: (track: String?) -> Unit,
+    onSubtitleChange: (track: String?) -> Unit,
+    onNormalizationChange: (method: NormalizationMethod?) -> Unit,
     currentMedia: PlayerMedia,
     modifier: Modifier = Modifier,
 ) {
@@ -126,12 +126,12 @@ fun PlayerControls(
                 totalDuration = runTime,
                 currentTime = currentPlayerTime,
                 bufferedPosition = bufferedPosition,
-                onSeekChanged = onSeek,
-                onAudioChanged = onAudioChanged,
-                onVideoChanged = onVideoChanged,
-                onSubtitleChanged = onSubtitleChanged,
+                onSeekChange = onSeek,
+                onAudioChange = onAudioChange,
+                onVideoChange = onVideoChange,
+                onSubtitleChange = onSubtitleChange,
                 currentMedia = currentMedia,
-                onNormalizationChanged = onNormalizationChanged,
+                onNormalizationChange = onNormalizationChange,
             )
         }
     }
@@ -223,11 +223,11 @@ private fun BottomControls(
     totalDuration: Duration,
     currentTime: Duration,
     bufferedPosition: Duration,
-    onSeekChanged: (desiredTime: Duration) -> Unit,
-    onAudioChanged: (track: String?) -> Unit,
-    onVideoChanged: (track: String?) -> Unit,
-    onSubtitleChanged: (track: String?) -> Unit,
-    onNormalizationChanged: (method: NormalizationMethod?) -> Unit,
+    onSeekChange: (desiredTime: Duration) -> Unit,
+    onAudioChange: (track: String?) -> Unit,
+    onVideoChange: (track: String?) -> Unit,
+    onSubtitleChange: (track: String?) -> Unit,
+    onNormalizationChange: (method: NormalizationMethod?) -> Unit,
     currentMedia: PlayerMedia,
     modifier: Modifier = Modifier,
 ) {
@@ -253,7 +253,7 @@ private fun BottomControls(
             Slider(
                 modifier = Modifier.fillMaxWidth(),
                 value = currentTime.inWholeMilliseconds.toFloat(),
-                onValueChange = { onSeekChanged(it.roundToLong().milliseconds) },
+                onValueChange = { onSeekChange(it.roundToLong().milliseconds) },
                 valueRange = 0f..totalDuration.inWholeMilliseconds.toFloat(),
             )
         }
@@ -267,7 +267,7 @@ private fun BottomControls(
                         Text(text = "None")
                     },
                     onClick = {
-                        onAudioChanged(null)
+                        onAudioChange(null)
                         audioExpanded = false
                     },
                 )
@@ -285,7 +285,7 @@ private fun BottomControls(
                             Text(text = audioTrack)
                         },
                         onClick = {
-                            onAudioChanged(audioTrack)
+                            onAudioChange(audioTrack)
                             audioExpanded = false
                         },
                     )
@@ -300,7 +300,7 @@ private fun BottomControls(
                         Text(text = "None")
                     },
                     onClick = {
-                        onVideoChanged(null)
+                        onVideoChange(null)
                         videoExpanded = false
                     },
                 )
@@ -318,7 +318,7 @@ private fun BottomControls(
                             Text(text = videoTrack)
                         },
                         onClick = {
-                            onVideoChanged(videoTrack)
+                            onVideoChange(videoTrack)
                             videoExpanded = false
                         },
                     )
@@ -333,7 +333,7 @@ private fun BottomControls(
                         Text(text = "None")
                     },
                     onClick = {
-                        onSubtitleChanged(null)
+                        onSubtitleChange(null)
                         subtitleExpanded = false
                     },
                 )
@@ -351,7 +351,7 @@ private fun BottomControls(
                             Text(text = subtitleTrack)
                         },
                         onClick = {
-                            onSubtitleChanged(subtitleTrack)
+                            onSubtitleChange(subtitleTrack)
                             subtitleExpanded = false
                         },
                     )
@@ -366,7 +366,7 @@ private fun BottomControls(
                         Text(text = "None")
                     },
                     onClick = {
-                        onNormalizationChanged(null)
+                        onNormalizationChange(null)
                         normalizationExpanded = false
                     },
                 )
@@ -384,7 +384,7 @@ private fun BottomControls(
                             Text(text = normalizationMethod.value)
                         },
                         onClick = {
-                            onNormalizationChanged(normalizationMethod)
+                            onNormalizationChange(normalizationMethod)
                             normalizationExpanded = false
                         },
                     )

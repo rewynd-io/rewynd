@@ -167,3 +167,4 @@ openapi-generator = { id = "org.openapi.generator", version.ref = "openapi" }
 node-gradle = { id = "com.github.node-gradle.node", version.ref = "nodeGradle" }
 kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinx-kover" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

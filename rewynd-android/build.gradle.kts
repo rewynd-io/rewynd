@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.android.app)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.compose.compiler)
 }
 
 repositories {
@@ -28,13 +29,13 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    kotlinOptions {
-        freeCompilerArgs +=
-            listOf(
-                "-P",
-                "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true",
-            )
-    }
+//    kotlinOptions {
+//        freeCompilerArgs +=
+//            listOf(
+//                "-P",
+//                "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true",
+//            )
+//    }
 
     buildFeatures {
         compose = true

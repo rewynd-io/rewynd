@@ -220,11 +220,11 @@ fun <T> CoroutineScope.withLock(
                         try {
                             lock = lock.extend()
                         } catch (e: CancellationException) {
-                            lock.release()
+                            lock?.release()
                             throw e
                         } catch (e: Exception) {
                             res.cancel(CancellationException("Failed to extend lock", e))
-                            lock.release()
+                            lock?.release()
                         }
                     }
                 }

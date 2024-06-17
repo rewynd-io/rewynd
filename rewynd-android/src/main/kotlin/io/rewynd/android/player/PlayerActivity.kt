@@ -338,7 +338,7 @@ fun PlayerWrapper(
                 bufferedPosition = media.startOffset + bufferedPosition,
                 currentPlayerTime = media.startOffset + currentPlayerTime,
                 runTime = media.runTime,
-                onAudioChanged = {
+                onAudioChange = {
                     MainScope().launch {
                         serviceInterface.loadMedia(
                             media.copy(
@@ -348,7 +348,7 @@ fun PlayerWrapper(
                         )
                     }
                 },
-                onVideoChanged = {
+                onVideoChange = {
                     MainScope().launch {
                         serviceInterface.loadMedia(
                             media.copy(
@@ -358,7 +358,7 @@ fun PlayerWrapper(
                         )
                     }
                 },
-                onSubtitleChanged = {
+                onSubtitleChange = {
                     MainScope().launch {
                         serviceInterface.loadMedia(
                             media.copy(
@@ -369,7 +369,7 @@ fun PlayerWrapper(
                     }
                 },
                 currentMedia = media,
-                onNormalizationChanged = {
+                onNormalizationChange = {
                     MainScope().launch {
                         serviceInterface.loadMedia(
                             media.copy(normalizationMethod = it, startOffset = media.startOffset + currentPlayerTime),
