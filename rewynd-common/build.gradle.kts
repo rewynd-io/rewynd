@@ -48,6 +48,10 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
 
+kotlin {
+    jvmToolchain(libs.versions.jvm.get().toInt())
+}
+
 detekt {
     buildUponDefaultConfig = true
     autoCorrect = true
@@ -58,7 +62,7 @@ tasks.withType<Detekt>().configureEach {
     reports {
         html.required.set(true)
     }
-    jvmTarget = "17"
+    jvmTarget = libs.versions.jvm.get()
 }
 
 tasks.build {

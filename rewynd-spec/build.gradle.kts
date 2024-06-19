@@ -14,7 +14,7 @@ dependencies {
 }
 
 node {
-    version.set("18.17.0")
+    version.set(libs.versions.node.get())
     download.set(true)
 }
 

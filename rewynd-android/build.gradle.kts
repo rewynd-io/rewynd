@@ -29,14 +29,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-//    kotlinOptions {
-//        freeCompilerArgs +=
-//            listOf(
-//                "-P",
-//                "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true",
-//            )
-//    }
-
     buildFeatures {
         compose = true
     }
@@ -45,9 +37,13 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility(JavaVersion.VERSION_17)
-        targetCompatibility(JavaVersion.VERSION_17)
+        sourceCompatibility(libs.versions.jvm.get())
+        targetCompatibility(libs.versions.jvm.get())
     }
+}
+
+kotlin {
+    jvmToolchain(libs.versions.jvm.get().toInt())
 }
 
 dependencies {
@@ -103,6 +99,6 @@ tasks.withType<Detekt>().configureEach {
     reports {
         html.required.set(true)
     }
-    jvmTarget = "17"
+    jvmTarget = libs.versions.jvm.get()
 }
 

@@ -76,7 +76,7 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(libs.versions.jvm.get().toInt())
 }
 
 detekt {
@@ -89,7 +89,7 @@ tasks.withType<Detekt>().configureEach {
     reports {
         html.required.set(true)
     }
-    jvmTarget = "17"
+    jvmTarget = libs.versions.jvm.get()
 }
 
 tasks.withType<Test>().configureEach {

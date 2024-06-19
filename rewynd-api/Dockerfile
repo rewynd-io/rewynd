@@ -1,7 +1,7 @@
-FROM forgejo.kensand.net/public/debian:latest
+FROM codeberg.org/kensand/openjdk-21:latest
+
 RUN apt update && \
-    apt install -y ca-certificates-java && \
-    apt install -y openjdk-17-jre-headless
+    apt upgrade -y
 
 COPY ./build/libs/rewynd-api-all.jar /rewynd/api.jar
 

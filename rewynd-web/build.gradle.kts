@@ -67,10 +67,10 @@ tasks.clean {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(libs.versions.jvm.get().toInt())
 }
 
 node {
-    version.set("18.17.0")
+    version.set(libs.versions.node.get())
     download.set(true)
 }

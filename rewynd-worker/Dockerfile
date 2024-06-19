@@ -1,7 +1,8 @@
-FROM forgejo.kensand.net/public/debian:latest
+FROM codeberg.org/kensand/openjdk-21:latest
+
 RUN apt update && \
-    apt install -y ca-certificates-java && \
-    apt install -y openjdk-17-jre-headless ffmpeg
+    apt upgrade -y && \
+    apt install -y ffmpeg
 
 COPY ./build/libs/rewynd-worker-all.jar /rewynd/worker.jar
 

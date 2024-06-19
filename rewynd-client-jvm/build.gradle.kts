@@ -109,9 +109,7 @@ val copySources =
 sourceSets["main"].kotlin.srcDir("${layout.buildDirectory.asFile.get().path}/generated-src/src/main/kotlin")
 
 kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of("17"))
-    }
+    jvmToolchain(libs.versions.jvm.get().toInt())
 }
 
 tasks.openApiGenerate {

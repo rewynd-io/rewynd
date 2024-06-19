@@ -40,10 +40,6 @@ dependencies {
     detektPlugins(libs.detekt.formatting)
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
 tasks.shadowJar {
     manifest {
         attributes["Main-Class"] = "io.rewynd.omni.MainKt"
@@ -51,6 +47,10 @@ tasks.shadowJar {
     archiveVersion.set("")
     mergeServiceFiles()
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+kotlin {
+    jvmToolchain(libs.versions.jvm.get().toInt())
 }
 
 detekt {
@@ -63,7 +63,7 @@ tasks.withType<Detekt>().configureEach {
     reports {
         html.required.set(true)
     }
-    jvmTarget = "17"
+    jvmTarget = libs.versions.jvm.get()
 }
 
 tasks.build {
