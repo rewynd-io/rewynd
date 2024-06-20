@@ -239,13 +239,16 @@ private fun mkSubtitleCommand(streamProps: StreamProps): List<String>? {
                 "-ss",
                 streamProps.startOffset.partialSeconds,
                 "-i",
-                file.toFfmpegUri(),
-                "-c:s:0",
-                "webvtt",
-                "-f",
-                "webvtt",
-                "pipe:1",
-            )
+                file.toFfmpegUri()
+            ) +
+                FFMPEG_ACCURATE +
+                listOf(
+                    "-c:s:0",
+                    "webvtt",
+                    "-f",
+                    "webvtt",
+                    "pipe:1",
+                )
         } else if (track != null) {
             listOf(
                 "ffmpeg",
@@ -255,13 +258,16 @@ private fun mkSubtitleCommand(streamProps: StreamProps): List<String>? {
                 "-ss",
                 streamProps.startOffset.partialSeconds,
                 "-i",
-                streamProps.mediaInfo.fileInfo.location.toFfmpegUri(),
-                "-c:s:${track.index}",
-                "webvtt",
-                "-f",
-                "webvtt",
-                "pipe:1",
-            )
+                streamProps.mediaInfo.fileInfo.location.toFfmpegUri()
+            ) +
+                FFMPEG_ACCURATE +
+                listOf(
+                    "-c:s:${track.index}",
+                    "webvtt",
+                    "-f",
+                    "webvtt",
+                    "pipe:1",
+                )
         } else {
             null
         }

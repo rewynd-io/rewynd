@@ -113,6 +113,7 @@ private fun StreamProps.ffmpegArgs() =
         FFMPEG_START +
             startLocation +
             fileLocation +
+            FFMPEG_ACCURATE +
             mkVideoTrackProps +
             mkAudioTrackProps +
             FFMPEG_END
@@ -156,6 +157,10 @@ val FFMPEG_START =
         "1000000",
         "-accurate_seek",
     )
+
+// Used for combined seeking per: https://trac.ffmpeg.org/wiki/Seeking#Combined
+val FFMPEG_ACCURATE = listOf("-ss", "0")
+
 val FFMPEG_END =
     listOf(
         "-f",
