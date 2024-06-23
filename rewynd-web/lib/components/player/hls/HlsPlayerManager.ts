@@ -16,7 +16,7 @@ const log = WebLog.getChildCategory("HlsPlayerManager");
 
 export declare interface HlsPlayerManagerEvents {
   readonly next: (manager: HlsPlayerManager) => void;
-  readonly load: (streamProps: HlsStreamProps) => void;
+  readonly load: (streamProps: HlsStreamProps, startOffset: Duration) => void;
 }
 
 export declare interface HlsPlayerManager extends EventEmitter {
@@ -35,6 +35,7 @@ export class HlsPlayerManager extends EventEmitter {
   streamProps?: HlsStreamProps;
   private heartbeatTimer: ReturnType<typeof setInterval> | undefined;
   streamStatus: StreamStatus | undefined;
+  startOffset: Duration = Duration.seconds(0);
   available: number | undefined;
   private element: HTMLVideoElement | undefined;
   private lastProgress: Promise<Progress | undefined> =
@@ -47,7 +48,7 @@ export class HlsPlayerManager extends EventEmitter {
 
   constructor(
     private readonly hls = new Hls({
-      debug: true,
+      // debug: true,
       maxBufferHole: 2.5,
       maxFragLookUpTolerance: 0.5,
       startPosition: 0,
@@ -66,6 +67,7 @@ export class HlsPlayerManager extends EventEmitter {
     this.streamProps = await HttpClient.createStream({
       createStreamRequest: selection.request,
     });
+    this.startOffset = Duration.seconds(selection.request.startOffset ?? 0);
     return new Promise<void>((resolve) => {
       const triggerHeartbeat = (interval: Duration) => {
         if (this.heartbeatTimer) {
@@ -74,9 +76,10 @@ export class HlsPlayerManager extends EventEmitter {
         }
         this.heartbeatTimer = setInterval(async () => {
           if (this.streamProps) {
-            const latestStatus = await HttpClient.heartbeatStream({
+            const heartbeatRes = await HttpClient.heartbeatStream({
               streamId: this.streamProps.id,
             });
+            const latestStatus = heartbeatRes.status;
             log.info(`Stream ${this.streamProps.id} Status: `, latestStatus);
             const priorStatus = this.streamStatus;
             this.streamStatus = latestStatus;
@@ -93,16 +96,20 @@ export class HlsPlayerManager extends EventEmitter {
               resolve();
             } else if (latestStatus == StreamStatus.Available) {
               if (priorStatus != StreamStatus.Available) {
+                this.startOffset = Duration.seconds(
+                  heartbeatRes.actualStartOffset,
+                );
                 triggerHeartbeat(Duration.seconds(15));
                 this.setupNudge();
                 this.hls.loadSource(this.streamProps.url);
-                this.emit("load", this.streamProps);
+                this.emit("load", this.streamProps, this.startOffset);
                 this.awaitingNext = false;
                 resolve();
               } else {
                 this.putUserProgress();
               }
             }
+            log.info("startOffset", this.startOffset.seconds);
           }
         }, interval.millis);
       };
@@ -171,7 +178,7 @@ export class HlsPlayerManager extends EventEmitter {
         this.streamProps &&
         !this.awaitingNext &&
         element.currentTime >=
-          this.streamProps.duration - this.streamProps.startOffset - 0.1
+          this.streamProps.duration - this.startOffset.seconds - 0.1
       ) {
         this.awaitingNext = true;
         log.info("Emitting next event");
@@ -198,8 +205,8 @@ export class HlsPlayerManager extends EventEmitter {
       this.element
     ) {
       if (
-        desiredTimestamp < this.streamProps.startOffset ||
-        desiredTimestamp > this.available + this.streamProps.startOffset
+        desiredTimestamp < this.startOffset.seconds ||
+        desiredTimestamp > this.available + this.startOffset.seconds
       ) {
         await this.load({
           ...this.lastMediaSelection,
@@ -210,14 +217,13 @@ export class HlsPlayerManager extends EventEmitter {
           // TODO subtitles
         });
       } else {
-        this.element.currentTime =
-          desiredTimestamp - this.streamProps.startOffset;
+        this.element.currentTime = desiredTimestamp - this.startOffset.seconds;
         const paused = this.element.paused;
         await this.element.play();
         if (paused) {
           this.element.pause();
         }
-        this.emit("load", this.streamProps);
+        this.emit("load", this.streamProps, this.startOffset);
       }
     }
   }
@@ -229,7 +235,7 @@ export class HlsPlayerManager extends EventEmitter {
   public get currentTime(): number {
     const val =
       (this.hls?.media?.currentTime ?? this.element?.currentTime ?? 0) +
-      (this.streamProps?.startOffset ?? 0);
+      this.startOffset.seconds;
     log.info(`CurrentTime: ${val}`);
     return val;
   }
@@ -240,7 +246,7 @@ export class HlsPlayerManager extends EventEmitter {
         this.hls?.media?.currentTime ?? this.element?.currentTime;
       if (currTime && this.streamProps && this.lastMediaSelection) {
         const currPct =
-          (currTime + this.streamProps.startOffset) / this.streamProps.duration;
+          (currTime + this.startOffset.seconds) / this.streamProps.duration;
         const pctDiff = Math.abs((last?.percent ?? 0) - currPct);
         const timeDiff = pctDiff * this.streamProps.duration;
         if (

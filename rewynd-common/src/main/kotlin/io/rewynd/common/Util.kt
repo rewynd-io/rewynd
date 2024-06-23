@@ -16,6 +16,7 @@ import java.security.spec.KeySpec
 import java.util.Base64
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
+import kotlin.time.Duration
 
 val encoder: Base64.Encoder by lazy { Base64.getUrlEncoder() }
 val decoder: Base64.Decoder by lazy { Base64.getUrlDecoder() }
@@ -65,3 +66,10 @@ fun ScanTask.toServerScanTask() = ServerScanTask(libraryId = libraryId)
 fun ServerScanTask.toScanTask() = ScanTask(libraryId)
 
 fun ServerScheduleInfo.toSchedule() = Schedule(id, cronExpression, scanTasks.map { it.toScanTask() })
+
+private const val MILLIS_IN_SECOND = 1000.0
+val Duration.partialSecondsString: String
+    get() = "%.4f".format(partialSeconds)
+
+val Duration.partialSeconds: Double
+    get() = inWholeMilliseconds.toDouble() / MILLIS_IN_SECOND

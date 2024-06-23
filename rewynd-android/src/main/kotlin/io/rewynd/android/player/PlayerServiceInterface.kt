@@ -2,14 +2,14 @@ package io.rewynd.android.player
 
 import android.app.PendingIntent
 import android.content.Context
+import android.os.Bundle
 import androidx.media3.ui.PlayerView
-import io.rewynd.android.browser.BrowserState
 import io.rewynd.android.model.PlayerMedia
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Duration
 
 interface PlayerServiceInterface {
-    val browserState: List<BrowserState>
+    val browserState: Bundle?
 
     val isLoading: StateFlow<Boolean>
     val isPlayingState: StateFlow<Boolean>
@@ -17,6 +17,7 @@ interface PlayerServiceInterface {
     val next: StateFlow<PlayerMedia?>
     val prev: StateFlow<PlayerMedia?>
     val bufferedPosition: StateFlow<Duration>
+    val actualStartOffset: StateFlow<Duration>
     val currentPlayerTime: StateFlow<Duration>
     val nextPendingIntent: PendingIntent?
     val prevPendingIntent: PendingIntent?

@@ -15,6 +15,8 @@ import kotlinx.datetime.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
+private data class InitData(val mime: Mime, val actualStreamOffset: Duration)
+
 class StreamMetadataHelper(
     private val streamProps: StreamProps,
     private val jobId: JobId,
@@ -23,21 +25,22 @@ class StreamMetadataHelper(
     private val mutex = Mutex()
     private var subtitles: SubtitleMetadata? = if (streamProps.subtitleStreamName != null) SubtitleMetadata() else null
     private var segments: List<StreamSegmentMetadata> = emptyList()
-    private var mime: Mime? = null
+    private var init: InitData? = null
     private var complete: Boolean = false
     private var processed: Duration = Duration.ZERO
 
     private suspend fun put() {
-        mime?.let {
+        init?.let {
             val metadata =
                 StreamMetadata(
                     streamProps,
                     segments,
                     subtitles,
-                    it,
+                    it.mime,
                     complete,
                     processed,
                     jobId,
+                    it.actualStreamOffset
                 )
             cache.putStreamMetadata(
                 streamProps.id,
@@ -74,9 +77,9 @@ class StreamMetadataHelper(
             index
         }
 
-    suspend fun init(mime: Mime) =
+    suspend fun init(mime: Mime, actualStartOffset: Duration) =
         mutex.withLock {
-            this.mime = mime
+            this.init = InitData(mime, actualStartOffset)
             put()
         }
 

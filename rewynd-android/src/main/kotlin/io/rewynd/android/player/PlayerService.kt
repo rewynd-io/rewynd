@@ -13,13 +13,13 @@ import android.graphics.drawable.Icon
 import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
 import io.rewynd.android.R
 import io.rewynd.android.browser.BrowserActivity
-import io.rewynd.android.browser.BrowserState
 import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.cookie.CookieStorageCookieJar
 import io.rewynd.android.client.cookie.PersistentCookiesStorage
@@ -40,6 +40,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
 class PlayerService : Service() {
+    private var browserState: Bundle? = null
     private val playbackStateBuilder: PlaybackState.Builder = PlaybackState.Builder()
     private var originalPlayerProps: PlayerProps? = null
     private val next: MutableStateFlow<PlayerMedia?> = MutableStateFlow(null)
@@ -103,6 +104,8 @@ class PlayerService : Service() {
                 "$PLAYER_SERVICE_INTENT_BUNDLE_PROPS_KEY not included in intent triggering PlayerService"
             }
 
+        this.browserState = intent.getBundleExtra(PLAYER_SERVICE_INTENT_BUNDLE_BROWSER_STATE_KEY) ?: this.browserState
+        Log.i("SERVICE_BROWSER_STATE", this.browserState.toString())
         Log.i("PlayerService", propStr)
         when (val props: PlayerServiceProps = Json.decodeFromString(propStr)) {
             is PlayerServiceProps.Start -> {
@@ -126,7 +129,7 @@ class PlayerService : Service() {
                     ).apply {
                         putExtra(
                             BrowserActivity.BROWSER_STATE,
-                            Json.encodeToString(originalPlayerProps?.browserState ?: emptyList()),
+                            browserState
                         )
                     },
                 )
@@ -256,7 +259,7 @@ class PlayerService : Service() {
                 PlayerActivity.PLAYER_ACTIVITY_PROPS_EXTRA_NAME,
                 Json.encodeToString(
                     PlayerActivityProps(
-                        PlayerProps(playerMedia, originalPlayerProps?.browserState ?: emptyList()),
+                        PlayerProps(playerMedia),
                         ServerUrl(client.baseUrl),
                         false,
                     ),
@@ -400,6 +403,7 @@ class PlayerService : Service() {
 
     companion object {
         const val PLAYER_SERVICE_INTENT_BUNDLE_PROPS_KEY = "PlayerServiceProps"
+        const val PLAYER_SERVICE_INTENT_BUNDLE_BROWSER_STATE_KEY = "PlayerServiceBrowserState"
         const val PLAYER_SERVICE_NOTIFICATION_ID = 1
         const val PLAYER_SERVICE_NOTIFICATION_CHANNEL_ID = "RewyndServiceNotification"
         private val logging = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
@@ -411,8 +415,8 @@ class PlayerService : Service() {
 
     private val serviceInterface =
         object : PlayerServiceInterface {
-            override val browserState: List<BrowserState>
-                get() = this@PlayerService.originalPlayerProps?.browserState ?: emptyList()
+            override val browserState: Bundle?
+                get() = this@PlayerService.browserState
             override val isLoading: StateFlow<Boolean>
                 get() = this@PlayerService.player.isLoading
             override val isPlayingState: StateFlow<Boolean>
@@ -425,6 +429,8 @@ class PlayerService : Service() {
                 get() = this@PlayerService.prev
             override val bufferedPosition: StateFlow<Duration>
                 get() = this@PlayerService.player.bufferedPosition
+            override val actualStartOffset: StateFlow<Duration>
+                get() = this@PlayerService.player.actualStartOffset
             override val currentPlayerTime: StateFlow<Duration>
                 get() = this@PlayerService.player.currentPlayerTime
             override val nextPendingIntent: PendingIntent?

@@ -9,8 +9,11 @@ import io.rewynd.common.model.ServerAudioTrack
 import io.rewynd.common.model.ServerVideoTrack
 import io.rewynd.common.model.StreamProps
 import io.rewynd.common.model.WorkerStreamEvents
+import io.rewynd.common.partialSecondsString
 import io.rewynd.model.NormalizationMethod
 import io.rewynd.model.NormalizationProps
+import io.rewynd.worker.frameTime
+import io.rewynd.worker.max
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -26,9 +29,42 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import net.kensand.margarita.Mp4Frag
 import okio.source
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 private val log by lazy { KotlinLogging.logger { } }
+
+fun findPriorKeyframe(streamProps: StreamProps) = streamProps.videoTrack?.let { videoTrack ->
+    val startTime = max(streamProps.startOffset - 30.seconds, Duration.ZERO)
+    val endTime = startTime + 30.seconds
+    val args = listOf(
+        "ffprobe",
+        "-loglevel", "error",
+        "-select_streams", "v:${videoTrack.index}",
+        "-show_entries", "packet=pts_time,flags",
+        "-of", "csv=print_section=0",
+        "-read_intervals", "${startTime.partialSecondsString}%${endTime.partialSecondsString}",
+        streamProps.mediaInfo.fileInfo.location.toFfmpegUri()
+    )
+    log.info { "Running: ${args.joinToString(" ")}" }
+    val pb = ProcessBuilder(
+        *args.toTypedArray()
+    )
+    val process = pb.start()
+    process.inputReader().useLines { lines ->
+        lines.map { it.split(",") }
+            .filter { it.size == 2 && it[1].startsWith("K") }
+            .mapNotNull { it.firstOrNull()?.toDoubleOrNull()?.seconds }
+            .takeWhile { it <= streamProps.startOffset }
+            .lastOrNull()?.let {
+                // go at least one frame (40ms is one frame at 25fps) back to make sure we catch the keyframe
+                // otherwise the image will look garbled until the next keyframe
+                max(it - (videoTrack.frameTime ?: 40.milliseconds), Duration.ZERO)
+            }
+    }
+} ?: streamProps.startOffset
 
 fun CoroutineScope.launchMediaJob(
     streamProps: StreamProps,
@@ -36,7 +72,15 @@ fun CoroutineScope.launchMediaJob(
     metadataHelper: StreamMetadataHelper,
     cache: Cache,
 ) = launch(Dispatchers.IO, CoroutineStart.LAZY) {
-    val args = streamProps.ffmpegArgs()
+    val keyframeTimestamp = if (streamProps.videoTrack?.canCopy == true) {
+        findPriorKeyframe(
+            streamProps
+        )
+    } else {
+        streamProps.startOffset
+    }
+    log.info { "Requested: ${streamProps.startOffset}, starting at: $keyframeTimestamp" }
+    val args = streamProps.ffmpegArgs(keyframeTimestamp)
     log.info { "Running: ${args.joinToString(" ")}" }
     val pb = ProcessBuilder(*args.toTypedArray())
     val process = pb.start()
@@ -76,6 +120,7 @@ fun CoroutineScope.launchMediaJob(
                             if (event.videoCodec != null) "video/mp4" else "audio/mp4",
                             listOfNotNull(event.videoCodec, event.audioCodec),
                         ),
+                        keyframeTimestamp
                     )
                 }
 
@@ -108,12 +153,11 @@ fun CoroutineScope.launchMediaJob(
     }
 }
 
-private fun StreamProps.ffmpegArgs() =
+private fun StreamProps.ffmpegArgs(keyframeTimestamp: Duration) =
     (
         FFMPEG_START +
-            startLocation +
+            getStartLocation(keyframeTimestamp) +
             fileLocation +
-            FFMPEG_ACCURATE +
             mkVideoTrackProps +
             mkAudioTrackProps +
             FFMPEG_END
@@ -158,9 +202,6 @@ val FFMPEG_START =
         "-accurate_seek",
     )
 
-// Used for combined seeking per: https://trac.ffmpeg.org/wiki/Seeking#Combined
-val FFMPEG_ACCURATE = listOf("-ss", "0")
-
 val FFMPEG_END =
     listOf(
         "-f",
@@ -173,19 +214,28 @@ val FFMPEG_END =
         "pipe:1",
     )
 
-val StreamProps.startLocation: List<String>
-    get() = listOf("-ss", startOffset.partialSeconds)
+fun StreamProps.getStartLocation(keyframeTimestamp: Duration): List<String> =
+    listOf("-ss", keyframeTimestamp.partialSecondsString)
+
+val StreamProps.videoTrack: ServerVideoTrack?
+    get() = videoStreamName?.let {
+        mediaInfo.videoTracks[it]
+    }
 
 val StreamProps.mkVideoTrackProps: List<String>
     get() =
-        videoStreamName?.let {
-            mediaInfo.videoTracks[it]?.mkVideoTrackProps
-        } ?: listOf(
+        videoTrack?.mkVideoTrackProps ?: listOf(
             "-vf",
             "drawbox=color=black:t=fill",
             "-video_size",
             "1x1",
         )
+
+val ServerVideoTrack.copyProps
+    get() = listOf(key, "copy")
+
+val ServerVideoTrack.canCopy: Boolean
+    get() = mkVideoTrackProps == copyProps
 
 val ServerVideoTrack.mkVideoTrackProps
     get() =
@@ -200,7 +250,7 @@ val ServerVideoTrack.mkVideoTrackProps
 val ServerVideoTrack.mkAv1TrackProps
     get() =
         if (pixFmt?.lowercase() in supportedPixelFormats) {
-            listOf(key, "copy")
+            copyProps
         } else {
             defaultVideoTrackProps
         }
@@ -208,7 +258,7 @@ val ServerVideoTrack.mkAv1TrackProps
 val ServerVideoTrack.mkH264TrackProps
     get() =
         if (pixFmt?.lowercase() in supportedPixelFormats) {
-            listOf(key, "copy")
+            copyProps
         } else {
             defaultVideoTrackProps
         }

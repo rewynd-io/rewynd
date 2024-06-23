@@ -69,6 +69,13 @@ dependencies {
     // Mp4 fragmenting
     implementation(libs.margarita)
     implementation(libs.okio)
+
+    testImplementation(project(":rewynd-test-util-jvm"))
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.framework.engine)
+    testImplementation(libs.kotest.property)
+    testImplementation(libs.kielbasa.kotest.property)
 }
 
 
@@ -96,6 +103,10 @@ tasks.withType<Detekt>().configureEach {
         html.required.set(true)
     }
     jvmTarget = libs.versions.jvm.get()
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 tasks.build {

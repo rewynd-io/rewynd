@@ -43,6 +43,7 @@ class PlayerWrapper(
     val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(true)
     val playbackState: MutableStateFlow<Int> = MutableStateFlow(Player.STATE_IDLE)
     val media: MutableStateFlow<PlayerMedia?> = MutableStateFlow(null)
+    val actualStartOffset: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
     val isPlayingState by lazy { MutableStateFlow(player.playWhenReady) }
 
     private val player: ExoPlayer by lazy {
@@ -158,9 +159,10 @@ class PlayerWrapper(
                 log.info { "Heartbeat Cancelled" }
                 it.copy(startOffset = currentOffsetTime.inWholeMilliseconds / 1000.0)
             },
-            onAvailable = {
+            onAvailable = { _, actualStartOffset ->
                 log.info { "Heartbeat Available" }
                 putProgress()
+                this.actualStartOffset.value = actualStartOffset
             },
         ) {
             log.info { "Heartbeat Loading" }
@@ -192,7 +194,7 @@ class PlayerWrapper(
         }
 
     val currentOffsetTime: Duration
-        get() = this.currentPlayerTime.value + (this.media.value?.startOffset ?: Duration.ZERO)
+        get() = this.currentPlayerTime.value + (actualStartOffset.value)
 
     fun seek(desired: Duration) =
         this.media.value?.let { playerMedia ->
@@ -203,6 +205,7 @@ class PlayerWrapper(
                 this.player.seekTo((desired - playerMedia.startOffset).inWholeMilliseconds)
             } else {
                 runBlocking {
+                    this@PlayerWrapper.actualStartOffset.value = desired
                     this@PlayerWrapper.load(playerMedia.copy(startOffset = desired))
                 }
             }

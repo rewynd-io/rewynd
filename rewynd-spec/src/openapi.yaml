@@ -630,7 +630,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/StreamStatus"
+                $ref: "#/components/schemas/StreamHeartbeatResponse"
 
   /api/stream/{streamId}/index.m3u8:
     get:
@@ -1398,18 +1398,32 @@ components:
       type: string
       enum:
         - "Scan"
+
     LibraryType:
       type: string
       enum:
         - "Movie"
         - "Show"
         - "Image"
+
+    StreamHeartbeatResponse:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/StreamStatus"
+        actualStartOffset:
+          type: number
+      required:
+        - status
+        - actualStartOffset
+
     StreamStatus:
       type: string
       enum:
         - "Canceled"
         - "Available"
         - "Pending"
+
     SearchIndexStatus:
       type: string
       enum:
@@ -1456,15 +1470,12 @@ components:
           $ref: "#/components/schemas/StreamId"
         url:
           type: string
-        startOffset:
-          type: number
         duration:
           type: number
           description: "Duration of the stream in seconds with fractions"
       required:
         - id
         - url
-        - startOffset
         - duration
 
     Timestamp:

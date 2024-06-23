@@ -13,4 +13,5 @@ data class StreamMetadata(
     val complete: Boolean,
     val processed: Duration,
     val jobId: JobId,
+    val actualStartOffset: Duration
 )

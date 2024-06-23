@@ -30,9 +30,11 @@ import io.rewynd.common.model.StreamMapping
 import io.rewynd.common.model.StreamMetadata
 import io.rewynd.common.model.StreamMetadataWrapper
 import io.rewynd.common.model.StreamProps
+import io.rewynd.common.partialSeconds
 import io.rewynd.model.CreateStreamRequest
 import io.rewynd.model.HlsStreamProps
 import io.rewynd.model.LibraryType
+import io.rewynd.model.StreamHeartbeatResponse
 import io.rewynd.model.StreamStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -135,7 +137,6 @@ fun Route.streamRoutes(
                             HlsStreamProps(
                                 id = id,
                                 url = "/api/stream/$id/index.m3u8",
-                                startOffset = req.startOffset ?: 0.0,
                                 duration = serverMediaInfo.mediaInfo.runTime,
                             ),
                         )
@@ -150,24 +151,29 @@ fun Route.streamRoutes(
         val metadata = cache.getStreamMetadata(reqStreamId)
         val streamMetadata = metadata?.streamMetadata
         if (metadata == null) {
-            call.respond(StreamStatus.Canceled)
+            call.respond(StreamHeartbeatResponse(StreamStatus.Canceled, 0.0))
         } else if (streamMetadata == null) {
-            call.respond(StreamStatus.Pending)
+            call.respond(StreamHeartbeatResponse(StreamStatus.Pending, 0.0))
         } else {
             val expire = Clock.System.now() + 2.minutes
             val allItemsExist = cache.heartbeatStream(streamMetadata, reqStreamId, expire, sessionId, queue)
             if (!allItemsExist) {
                 log.info { "Stream Status: ${StreamStatus.Canceled}" }
-                call.respond(StreamStatus.Canceled)
+                call.respond(StreamHeartbeatResponse(StreamStatus.Canceled, 0.0))
             } else if (streamMetadata.segments.isNotEmpty() && (
                     streamMetadata.streamProps.subtitleStreamName == null || streamMetadata.subtitles != null
                     )
             ) {
                 log.info { "Stream Status: ${StreamStatus.Available}" }
-                call.respond(StreamStatus.Available)
+                call.respond(
+                    StreamHeartbeatResponse(
+                        StreamStatus.Available,
+                        streamMetadata.actualStartOffset.partialSeconds
+                    )
+                )
             } else {
                 log.info { "Stream Status: ${StreamStatus.Pending}" }
-                call.respond(StreamStatus.Pending)
+                call.respond(StreamHeartbeatResponse(StreamStatus.Pending, 0.0))
             }
         }
     }

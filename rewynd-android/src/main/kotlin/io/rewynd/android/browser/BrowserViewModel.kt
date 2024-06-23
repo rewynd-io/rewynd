@@ -1,54 +1,30 @@
 package io.rewynd.android.browser
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import android.util.LruCache
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import arrow.core.raise.either
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
+import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.jvm.javaio.copyTo
-import io.rewynd.android.MEDIA_COMPLETED_PERCENT
-import io.rewynd.android.MEDIA_STARTED_PERCENT
-import io.rewynd.android.MEDIA_TOTAL_COMPLETED_PERCENT
+import io.rewynd.android.browser.paging.EpisodesPagingSource
+import io.rewynd.android.browser.paging.LatestEpisodesPagingSource
+import io.rewynd.android.browser.paging.LibraryPagingSource
+import io.rewynd.android.browser.paging.NewestEpisodesPagingSource
+import io.rewynd.android.browser.paging.NextEpisodesPagingSource
+import io.rewynd.android.browser.paging.SeasonsPagingSource
+import io.rewynd.android.browser.paging.ShowsPagingSource
 import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.client.RewyndClient
-import io.rewynd.client.listEpisodesFlow
-import io.rewynd.client.listLibrariesFlow
-import io.rewynd.client.listSeasonsFlow
-import io.rewynd.client.listShowsFlow
-import io.rewynd.model.EpisodeInfo
-import io.rewynd.model.GetNextEpisodeRequest
-import io.rewynd.model.Library
-import io.rewynd.model.ListEpisodesByLastUpdatedOrder
-import io.rewynd.model.ListEpisodesByLastUpdatedRequest
-import io.rewynd.model.ListEpisodesRequest
-import io.rewynd.model.ListLibrariesRequest
-import io.rewynd.model.ListProgressRequest
-import io.rewynd.model.ListSeasonsRequest
-import io.rewynd.model.ListShowsRequest
-import io.rewynd.model.NextEpisodeOrder
 import io.rewynd.model.Progress
-import io.rewynd.model.SeasonInfo
-import io.rewynd.model.ShowInfo
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flatMapMerge
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.runningFold
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
 
 class BrowserViewModel(
@@ -56,224 +32,41 @@ class BrowserViewModel(
     val serverUrl: ServerUrl,
     private val client: RewyndClient = mkRewyndClient(serverUrl),
 ) : AndroidViewModel(application) {
-    fun popBrowserState() {
-        this.browserState.value =
-            if (this.browserState.value.size <= 1) {
-                listOf(BrowserState.HomeState)
-            } else {
-                this.browserState.value.dropLast(
-                    1,
-                )
-            }
-        loadBrowserState()
-    }
 
-    val browserState: MutableStateFlow<List<BrowserState>> =
-        MutableStateFlow(emptyList())
+    fun getLibraries() = Pager(
+        config = PAGING_CONFIG,
+        pagingSourceFactory = { LibraryPagingSource(client) }
+    ).flow.cachedIn(viewModelScope)
 
-    fun initBrowserState(browserState: List<BrowserState>) {
-        this.browserState.value = browserState
-    }
+    fun getLatestEpisodes() = Pager(
+        config = PAGING_CONFIG,
+        pagingSourceFactory = { LatestEpisodesPagingSource(client) }
+    ).flow.cachedIn(viewModelScope)
 
-    private fun loadBrowserState() =
-        (browserState.value.lastOrNull() ?: BrowserState.HomeState).let {
-            when (it) {
-                is BrowserState.HomeState ->
-                    runBlocking {
-                        listOf(
-                            launch(Dispatchers.IO) {
-                                loadLibraries()
-                            },
-                            launch(Dispatchers.IO) {
-                                loadLatestEpisodes()
-                            },
-                            launch(Dispatchers.IO) {
-                                loadNewestEpisodes()
-                            },
-                            launch(Dispatchers.IO) {
-                                loadNextEpisodes()
-                            },
-                        ).joinAll()
-                    }
+    fun getNextEpisodes() = Pager(
+        config = PAGING_CONFIG,
+        pagingSourceFactory = { NextEpisodesPagingSource(client) }
+    ).flow.cachedIn(viewModelScope)
 
-                is BrowserState.LibraryState -> loadShows(it.library.name)
-                is BrowserState.ShowState -> loadSeasons(it.showInfo.id)
-                is BrowserState.SeasonState -> loadEpisodes(it.seasonInfo.id)
-                is BrowserState.EpisodeState -> {
-                    loadPreviousEpisode(it.episodeInfo.id)
-                    loadNextEpisode(it.episodeInfo.id)
-                    loadUserProgress(it.episodeInfo.id)
-                }
-            }
-        }
+    fun getNewestEpisodes() = Pager(
+        config = PAGING_CONFIG,
+        pagingSourceFactory = { NewestEpisodesPagingSource(client) }
+    ).flow.cachedIn(viewModelScope)
 
-    fun putBrowserState(browserState: BrowserState) {
-        this.browserState.value += listOf(browserState)
-        loadBrowserState()
-    }
+    fun getShows(libraryName: String) = Pager(
+        config = PAGING_CONFIG,
+        pagingSourceFactory = { ShowsPagingSource(libraryName, client) }
+    ).flow.cachedIn(viewModelScope)
 
-    val libraries: MutableLiveData<List<Library>> = MutableLiveData(emptyList())
+    fun getSeasons(showId: String) = Pager(
+        config = PAGING_CONFIG,
+        pagingSourceFactory = { SeasonsPagingSource(showId, client) }
+    ).flow.cachedIn(viewModelScope)
 
-    @SuppressLint("NullSafeMutableLiveData") // linter thinks client.loadLibraries().toList() returns nullable
-    fun loadLibraries() {
-        Log.i("LibraryLoader", "Loading Libs")
-
-        this.viewModelScope.launch(Dispatchers.IO) {
-            libraries.postValue(client.listLibrariesFlow(ListLibrariesRequest()).toList().sortedBy { it.name })
-            Log.i("LibraryLoader", "Loaded ${libraries.value}")
-        }
-    }
-
-    val latestEpisodes = MutableLiveData<List<EpisodeInfo>>(emptyList<EpisodeInfo>())
-
-    @OptIn(FlowPreview::class)
-    fun loadLatestEpisodes() {
-        Log.i("LibraryLoader", "Loading Libs")
-        this.viewModelScope.launch(Dispatchers.IO) {
-            client.listProgress(
-                ListProgressRequest(
-                    minPercent = MEDIA_STARTED_PERCENT,
-                    maxPercent = MEDIA_COMPLETED_PERCENT,
-                    limit = LATEST_EPISODES_LIMIT.toDouble(),
-                ),
-            ).body().results?.sortedBy { it.timestamp }?.reversed()?.asFlow()?.flatMapMerge {
-                kotlin.runCatching { flowOf(it to client.getEpisode(it.id).body()) }.getOrNull()
-                    ?: emptyFlow()
-            }?.runningFold(emptyList<Pair<Progress, EpisodeInfo>>()) { accumulator, value ->
-                accumulator + listOf(value)
-            }?.collect { pair ->
-                latestEpisodes.postValue(pair.map { it.second })
-            }
-        }
-    }
-
-    val nextEpisodes = MutableLiveData<List<EpisodeInfo>>(emptyList<EpisodeInfo>())
-
-    @OptIn(FlowPreview::class)
-    fun loadNextEpisodes() {
-        Log.i("LibraryLoader", "Loading Libs")
-        this.viewModelScope.launch(Dispatchers.IO) {
-            client.listProgress(
-                ListProgressRequest(
-                    minPercent = MEDIA_COMPLETED_PERCENT,
-                    limit = MEDIA_TOTAL_COMPLETED_PERCENT
-                )
-            )
-                .body()
-                .results
-                ?.sortedBy { it.timestamp }
-                ?.reversed()
-                ?.asFlow()
-                ?.flatMapMerge {
-                    runCatching {
-                        val next =
-                            client.getNextEpisode(GetNextEpisodeRequest(it.id, NextEpisodeOrder.next))
-                                .body().episodeInfo
-                        next?.id?.let { nonNullNextId -> flowOf(client.getUserProgress(nonNullNextId).body() to next) }
-                            ?: emptyFlow()
-                    }.getOrNull() ?: emptyFlow()
-                }?.filter { it.first.percent <= MEDIA_STARTED_PERCENT }?.take(LATEST_EPISODES_LIMIT)
-                ?.runningFold(emptyList<Pair<Progress, EpisodeInfo?>>()) { accumulator, value ->
-                    accumulator + listOf(value)
-                }?.collect { pair ->
-                    nextEpisodes.postValue(pair.mapNotNull { it.second })
-                }
-        }
-    }
-
-    val newestEpisodes = MutableLiveData<List<EpisodeInfo>>(emptyList<EpisodeInfo>())
-
-    @OptIn(FlowPreview::class)
-    fun loadNewestEpisodes() {
-        this.viewModelScope.launch(Dispatchers.IO) {
-            client.listEpisodesByLastUpdated(
-                ListEpisodesByLastUpdatedRequest(
-                    order = ListEpisodesByLastUpdatedOrder.Newest
-                )
-            )
-                .body()
-                .episodes
-                .let {
-                    newestEpisodes.postValue(it)
-                }
-        }
-    }
-
-    val shows = MutableLiveData<List<ShowInfo>>(emptyList<ShowInfo>())
-
-    fun loadShows(libraryName: String) {
-        this.viewModelScope.launch(Dispatchers.IO) {
-            shows.postValue(
-                requireNotNull(
-                    client.listShowsFlow(ListShowsRequest(libraryId = libraryName)).toList().sortedBy { it.title },
-                ),
-            )
-        }
-    }
-
-    val seasons = MutableLiveData<List<SeasonInfo>>(emptyList<SeasonInfo>())
-
-    fun loadSeasons(showId: String) {
-        this.viewModelScope.launch(Dispatchers.IO) {
-            seasons.postValue(
-                requireNotNull(
-                    client.listSeasonsFlow(ListSeasonsRequest(showId = showId)).toList().sortedBy { it.seasonNumber },
-                ),
-            )
-        }
-    }
-
-    val episodes: MutableLiveData<List<EpisodeInfo>> = MutableLiveData(emptyList())
-
-    @SuppressLint("NullSafeMutableLiveData") // linter thinks client.listEpisodesFlow().toList() returns nullable
-    fun loadEpisodes(seasonId: String) {
-        this.viewModelScope.launch(Dispatchers.IO) {
-            episodes.postValue(
-                client.listEpisodesFlow(ListEpisodesRequest(seasonId)).toList().sortedBy { it.episode },
-            )
-        }
-    }
-
-    val nextEpisode = MutableLiveData<EpisodeInfo?>(null)
-
-    fun loadNextEpisode(episodeId: String) {
-        nextEpisode.postValue(null)
-        this.viewModelScope.launch(Dispatchers.IO) {
-            nextEpisode.postValue(
-                either<Throwable, EpisodeInfo?> {
-                    client.getNextEpisode(GetNextEpisodeRequest(episodeId, NextEpisodeOrder.previous))
-                        .body().episodeInfo
-                }.getOrNull(),
-            )
-        }
-    }
-
-    val userProgress = MutableLiveData<Progress?>(null)
-
-    fun loadUserProgress(episodeId: String) {
-        userProgress.postValue(null)
-        this.viewModelScope.launch(Dispatchers.IO) {
-            userProgress.postValue(
-                kotlin.runCatching { client.getUserProgress(episodeId).body() }
-                    .getOrNull()?.takeIf { it.percent < MEDIA_COMPLETED_PERCENT },
-            )
-        }
-    }
-
-    val previousEpisode = MutableLiveData<EpisodeInfo?>(null)
-
-    fun loadPreviousEpisode(episodeId: String) {
-        previousEpisode.postValue(null)
-        this.viewModelScope.launch(Dispatchers.IO) {
-            previousEpisode.postValue(
-                either<Throwable, EpisodeInfo?> {
-                    client.getNextEpisode(GetNextEpisodeRequest(episodeId, order = NextEpisodeOrder.previous))
-                        .body().episodeInfo
-                }
-                    .getOrNull(),
-            )
-        }
-    }
+    fun getEpisodes(seasonId: String) = Pager(
+        config = PAGING_CONFIG,
+        pagingSourceFactory = { EpisodesPagingSource(seasonId, client) }
+    ).flow.cachedIn(viewModelScope)
 
     private val imageCache = LruCache<String, Bitmap>(CACHE_SIZE)
 
@@ -293,8 +86,24 @@ class BrowserViewModel(
         }
     }
 
+    fun getProgress(id: String): StateFlow<Progress?> {
+        val state = MutableStateFlow<Progress?>(null)
+        this.viewModelScope.launch {
+            val res = client.getUserProgress(id)
+            when (res.status) {
+                HttpStatusCode.OK.value -> {
+                    state.emit(res.body())
+                }
+
+                else -> state.emit(Progress(id, 0.0, kotlinx.datetime.Instant.fromEpochSeconds(0)))
+            }
+        }
+        return state
+    }
+
     companion object {
-        const val CACHE_SIZE = 128 * 1024 * 1024 // 128MiB
+        const val CACHE_SIZE = 512 * 1024 * 1024 // 512MiB
         const val LATEST_EPISODES_LIMIT = 20
+        val PAGING_CONFIG = PagingConfig(20)
     }
 }

@@ -56,6 +56,7 @@ data class ServerVideoTrack(
     val language: String? = null,
     val encoder: String? = null,
 ) {
+
     fun toVideoTrack() =
         VideoTrack(
             index = index,

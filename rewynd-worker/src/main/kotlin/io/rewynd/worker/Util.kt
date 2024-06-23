@@ -1,6 +1,7 @@
 package io.rewynd.worker
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.rewynd.common.model.ServerVideoTrack
 import org.apache.lucene.store.ByteBuffersDirectory
 import org.apache.lucene.store.Directory
 import org.apache.lucene.store.IOContext
@@ -10,6 +11,10 @@ import java.util.concurrent.TimeoutException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val log by lazy { KotlinLogging.logger { } }
@@ -62,3 +67,19 @@ fun deserializeDirectory(byteArray: ByteArray) =
         } while (entry != null)
         directory
     }
+
+fun min(a: Duration, b: Duration) =
+    min(a.inWholeNanoseconds, b.inWholeNanoseconds).nanoseconds
+
+fun max(a: Duration, b: Duration) =
+    max(a.inWholeNanoseconds, b.inWholeNanoseconds).nanoseconds
+
+val ServerVideoTrack.frameTime
+    get() =
+        rFrameRate?.split("/")?.takeIf { it.size == 2 }?.let {
+            it[0].toDoubleOrNull()?.let { numerator ->
+                it[1].toDoubleOrNull()?.let { denominator ->
+                    1 / (numerator / denominator)
+                }
+            }
+        }?.seconds

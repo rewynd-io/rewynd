@@ -32,11 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import io.rewynd.android.browser.BrowserActivity
+import io.rewynd.android.browser.BrowserActivity.Companion.BROWSER_STATE
 import io.rewynd.android.component.player.PlayerControls
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class PlayerActivity : AppCompatActivity() {
@@ -197,6 +197,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         val props = parseProps(intent.extras)
+        val browserState = intent.getBundleExtra(BROWSER_STATE)
         if (this.lastProps?.playerProps?.media != props.playerProps.media) {
             this.lastProps = props
             props.let {
@@ -211,6 +212,7 @@ class PlayerActivity : AppCompatActivity() {
                                 it.serverUrl,
                                 it.interruptService,
                             ),
+                            browserState
                         )
                     }
             }
@@ -220,8 +222,8 @@ class PlayerActivity : AppCompatActivity() {
                 startActivity(
                     Intent(this@PlayerActivity, BrowserActivity::class.java).apply {
                         putExtra(
-                            BrowserActivity.BROWSER_STATE,
-                            Json.encodeToString(playerService?.browserState ?: emptyList()),
+                            BROWSER_STATE,
+                            playerService?.browserState,
                         )
                     },
                 )
@@ -297,6 +299,7 @@ fun PlayerWrapper(
         val next by serviceInterface.next.collectAsState()
         val isPlaying by serviceInterface.isPlayingState.collectAsState()
         val bufferedPosition by serviceInterface.bufferedPosition.collectAsState()
+        val actualStartOffset by serviceInterface.actualStartOffset.collectAsState()
         val currentPlayerTime by serviceInterface.currentPlayerTime.collectAsState()
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             AndroidView(
@@ -335,15 +338,15 @@ fun PlayerWrapper(
                 onPlay = { serviceInterface.play() },
                 onPause = { serviceInterface.pause() },
                 onSeek = { serviceInterface.seek(it) },
-                bufferedPosition = media.startOffset + bufferedPosition,
-                currentPlayerTime = media.startOffset + currentPlayerTime,
+                bufferedPosition = actualStartOffset + bufferedPosition,
+                currentPlayerTime = actualStartOffset + currentPlayerTime,
                 runTime = media.runTime,
                 onAudioChange = {
                     MainScope().launch {
                         serviceInterface.loadMedia(
                             media.copy(
                                 audioTrackName = it,
-                                startOffset = media.startOffset + currentPlayerTime,
+                                startOffset = actualStartOffset + currentPlayerTime,
                             ),
                         )
                     }
@@ -353,7 +356,7 @@ fun PlayerWrapper(
                         serviceInterface.loadMedia(
                             media.copy(
                                 videoTrackName = it,
-                                startOffset = media.startOffset + currentPlayerTime,
+                                startOffset = actualStartOffset + currentPlayerTime,
                             ),
                         )
                     }
@@ -363,7 +366,7 @@ fun PlayerWrapper(
                         serviceInterface.loadMedia(
                             media.copy(
                                 subtitleTrackName = it,
-                                startOffset = media.startOffset + currentPlayerTime,
+                                startOffset = actualStartOffset + currentPlayerTime,
                             ),
                         )
                     }
@@ -372,7 +375,7 @@ fun PlayerWrapper(
                 onNormalizationChange = {
                     MainScope().launch {
                         serviceInterface.loadMedia(
-                            media.copy(normalizationMethod = it, startOffset = media.startOffset + currentPlayerTime),
+                            media.copy(normalizationMethod = it, startOffset = actualStartOffset + currentPlayerTime),
                         )
                     }
                 },

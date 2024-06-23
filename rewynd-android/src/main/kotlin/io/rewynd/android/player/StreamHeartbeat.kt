@@ -18,11 +18,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class StreamHeartbeat(
     private val client: RewyndClient,
     private val onCanceled: (CreateStreamRequest) -> CreateStreamRequest? = { it },
-    private val onAvailable: (HlsStreamProps) -> Unit = {},
+    private val onAvailable: (HlsStreamProps, Duration) -> Unit = { _, _ -> },
     private val onLoad: (HlsStreamProps) -> Unit,
 ) {
     private var job: Job? = null
@@ -64,18 +65,18 @@ class StreamHeartbeat(
         lastCreateStreamRequest: CreateStreamRequest,
         priorStatus: StreamStatus?,
     ): StreamStatus? {
-        val latestStatus =
+        val heartbeatResponse =
             kotlin.runCatching { client.heartbeatStream(props.id).body() }
                 .onFailure {
                     log.error(it) { "Failed to heartbeat stream" }
                 }
                 .getOrNull()
-        when (latestStatus) {
+        when (heartbeatResponse?.status) {
             StreamStatus.Available -> {
                 if (priorStatus != null && priorStatus != StreamStatus.Available) {
                     onLoad(props)
                 }
-                onAvailable(props)
+                onAvailable(props, heartbeatResponse.actualStartOffset.seconds)
                 delay(10000)
             }
 
@@ -97,7 +98,7 @@ class StreamHeartbeat(
                 delay(5000)
             }
         }
-        return latestStatus
+        return heartbeatResponse?.status
     }
 
     companion object {

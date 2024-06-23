@@ -1,70 +1,114 @@
 package io.rewynd.android.browser.component
 
+import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import io.rewynd.android.browser.BrowserState
 import io.rewynd.android.browser.BrowserViewModel
-import kotlinx.collections.immutable.toImmutableList
+import io.rewynd.android.browser.parcelableType
+import io.rewynd.android.model.PlayerMedia
+import io.rewynd.model.EpisodeInfo
+import io.rewynd.model.Library
+import io.rewynd.model.SeasonInfo
+import io.rewynd.model.ShowInfo
+import kotlin.reflect.typeOf
 
+@Suppress("ViewModelForwarding")
 @Composable
 fun BrowserRouter(
-    mainViewModel: BrowserViewModel,
-    onFinish: () -> Unit,
+    navController: NavHostController,
+    viewModel: BrowserViewModel,
+    startPlayer: (PlayerMedia) -> Unit
 ) {
-    val mutableState by mainViewModel.browserState.collectAsState()
-    val libraries by mainViewModel.libraries.observeAsState()
-    val latestEpisodes by mainViewModel.latestEpisodes.observeAsState()
-    val nextEpisodes by mainViewModel.nextEpisodes.observeAsState()
-    val newestEpisodes by mainViewModel.newestEpisodes.observeAsState()
-    val progress by mainViewModel.userProgress.observeAsState()
-    val shows by mainViewModel.shows.observeAsState()
-    val seasons by mainViewModel.seasons.observeAsState()
-    val episodes by mainViewModel.episodes.observeAsState()
-    val backStack by mainViewModel.browserState.collectAsState()
-    when (val state = mutableState.last()) { // TODO deal with nullable
-        is BrowserState.HomeState ->
-            HomeBrowser(
-                mainViewModel::putBrowserState,
-                (libraries ?: emptyList()).toImmutableList(),
-                (latestEpisodes ?: emptyList()).toImmutableList(),
-                (nextEpisodes ?: emptyList()).toImmutableList(),
-                (newestEpisodes ?: emptyList()).toImmutableList(),
-                loadImage = mainViewModel::loadImage,
-            )
+    val actions = BrowserNavigationActions(navController)
+    Log.i("CURRENT_BROWSER_STATE", "${navController.saveState()}")
+    Log.i("REWYND_COMPOSITION", "Recomposing NavHost")
+    NavHost(
+        navController = navController,
+        startDestination = navController.currentDestination ?: BrowserState.HomeState
+    ) {
+        composable<BrowserState.HomeState> {
+            HomeBrowser(actions::library, actions::episode, viewModel)
+        }
+        composable<BrowserState.LibraryState>(
+            typeMap = mapOf(typeOf<Library>() to parcelableType<Library>())
+        ) {
+            val state = it.toRoute<BrowserState.LibraryState>()
+            LibraryBrowser(state.library.name, actions::show, viewModel)
+        }
+        composable<BrowserState.ShowState>(
+            typeMap = mapOf(typeOf<ShowInfo>() to parcelableType<ShowInfo>())
+        ) {
+            Log.i("REWYND_COMPOSITION", "Recomposing Show")
+            val state = it.toRoute<BrowserState.ShowState>()
+            ShowBrowser(state.showInfo, viewModel, actions::season)
+        }
+        composable<BrowserState.SeasonState>(
+            typeMap = mapOf(typeOf<SeasonInfo>() to parcelableType<SeasonInfo>())
+        ) {
+            val state = it.toRoute<BrowserState.SeasonState>()
+            SeasonBrowser(state.seasonInfo, viewModel, actions::episode)
+        }
+        composable<BrowserState.EpisodeState>(
+            typeMap = mapOf(typeOf<EpisodeInfo>() to parcelableType<EpisodeInfo>())
+        ) {
+            val state = it.toRoute<BrowserState.EpisodeState>()
+            EpisodeBrowser(state.episodeInfo, viewModel, startPlayer = startPlayer)
+        }
+    }
+}
 
-        is BrowserState.LibraryState ->
-            LibraryBrowser(
-                (shows ?: emptyList()).toImmutableList(),
-                mainViewModel::putBrowserState,
-                loadImage = mainViewModel::loadImage,
-            )
+class BrowserNavigationActions(val navController: NavHostController) {
+    fun home() = navController.navigate(BrowserState.HomeState) {
+        popUpTo(BrowserState.HomeState) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
 
-        is BrowserState.ShowState ->
-            ShowBrowser(
-                state.showInfo,
-                (seasons ?: emptyList()).toImmutableList(),
-                mainViewModel::putBrowserState,
-                loadImage = mainViewModel::loadImage,
-            )
+    fun episode(episodeInfo: EpisodeInfo) = BrowserState.EpisodeState(episodeInfo).let {
+        Log.i("REWYND_NAVIGATION", "Navigating to Episode $episodeInfo")
+        navController.navigate(it) {
+            popUpTo(it) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
 
-        is BrowserState.SeasonState ->
-            SeasonBrowser(
-                state.seasonInfo,
-                (episodes ?: emptyList()).toImmutableList(),
-                mainViewModel::putBrowserState,
-                loadImage = mainViewModel::loadImage,
-            )
+    fun library(library: Library) = BrowserState.LibraryState(library).let {
+        navController.navigate(it) {
+            popUpTo(it) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
 
-        is BrowserState.EpisodeState ->
-            EpisodeBrowser(
-                progress,
-                state.episodeInfo,
-                backStack.toImmutableList(),
-                mainViewModel.serverUrl,
-                loadImage = mainViewModel::loadImage,
-                onFinish = onFinish,
-            )
+    fun show(showInfo: ShowInfo) = BrowserState.ShowState(showInfo).let {
+        Log.i("REWYND_NAVIGATION", "Navigating to show $showInfo")
+        navController.navigate(it) {
+            popUpTo(it) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    fun season(seasonInfo: SeasonInfo) = BrowserState.SeasonState(seasonInfo).let {
+        navController.navigate(it) {
+            popUpTo(it) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
     }
 }

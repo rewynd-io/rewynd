@@ -3,6 +3,7 @@ package io.rewynd.worker.stream
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.model.StreamProps
 import io.rewynd.common.model.SubtitleSegment
+import io.rewynd.common.partialSecondsString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -237,18 +238,15 @@ private fun mkSubtitleCommand(streamProps: StreamProps): List<String>? {
                 "quiet",
                 "-accurate_seek",
                 "-ss",
-                streamProps.startOffset.partialSeconds,
+                streamProps.startOffset.partialSecondsString,
                 "-i",
-                file.toFfmpegUri()
-            ) +
-                FFMPEG_ACCURATE +
-                listOf(
-                    "-c:s:0",
-                    "webvtt",
-                    "-f",
-                    "webvtt",
-                    "pipe:1",
-                )
+                file.toFfmpegUri(),
+                "-c:s:0",
+                "webvtt",
+                "-f",
+                "webvtt",
+                "pipe:1",
+            )
         } else if (track != null) {
             listOf(
                 "ffmpeg",
@@ -256,18 +254,15 @@ private fun mkSubtitleCommand(streamProps: StreamProps): List<String>? {
                 "quiet",
                 "-accurate_seek",
                 "-ss",
-                streamProps.startOffset.partialSeconds,
+                streamProps.startOffset.partialSecondsString,
                 "-i",
-                streamProps.mediaInfo.fileInfo.location.toFfmpegUri()
-            ) +
-                FFMPEG_ACCURATE +
-                listOf(
-                    "-c:s:${track.index}",
-                    "webvtt",
-                    "-f",
-                    "webvtt",
-                    "pipe:1",
-                )
+                streamProps.mediaInfo.fileInfo.location.toFfmpegUri(),
+                "-c:s:${track.index}",
+                "webvtt",
+                "-f",
+                "webvtt",
+                "pipe:1",
+            )
         } else {
             null
         }

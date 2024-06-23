@@ -114,6 +114,7 @@ object InternalGenerators {
                 complete = boolean.bind(),
                 processed = duration.bind(),
                 jobId = jobId.bind(),
+                actualStartOffset = duration.bind()
             )
         }
     val serverUser =

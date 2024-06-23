@@ -154,11 +154,14 @@ export function HlsPlayer(props: HlsPlayerProps) {
   }, [ref.current]);
 
   useEffect(() => {
-    const onLoad = (streamProps: HlsStreamProps) => {
+    const onLoad = (
+      streamProps: HlsStreamProps,
+      actualStartOffset: Duration,
+    ) => {
       dispatch(
         setupMedia({
           duration: streamProps.duration,
-          startOffset: streamProps.startOffset,
+          startOffset: actualStartOffset.seconds,
         }),
       );
       dispatch(setLoading(false));
