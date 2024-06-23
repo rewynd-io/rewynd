@@ -12,6 +12,7 @@ import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.login.MainViewModel
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.android.player.PlayerActivity
+import io.rewynd.android.player.PlayerActivityAction
 import io.rewynd.android.player.PlayerActivityProps
 import io.rewynd.android.player.PlayerProps
 import kotlinx.serialization.encodeToString
@@ -44,24 +45,27 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
-    private fun mkStartPlayerHandler(navController: NavController): (PlayerMedia) -> Unit = {
-        startActivity(
-            Intent(this, PlayerActivity::class.java).apply {
-                putExtra(
-                    PlayerActivity.PLAYER_ACTIVITY_PROPS_EXTRA_NAME,
-                    Json.encodeToString(
-                        PlayerActivityProps(
-                            PlayerProps(it),
-                            serverUrl = viewModel.serverUrl,
-                            interruptService = true,
+    private fun mkStartPlayerHandler(navController: NavController): (PlayerMedia) -> Unit =
+        {
+            startActivity(
+                Intent(this, PlayerActivity::class.java).apply {
+                    putExtra(
+                        PlayerActivity.PLAYER_ACTIVITY_ACTION_KEY,
+                        Json.encodeToString<PlayerActivityAction>(
+                            PlayerActivityAction.Start(
+                                PlayerActivityProps(
+                                    PlayerProps(it),
+                                    serverUrl = viewModel.serverUrl,
+                                    interruptService = true,
+                                ),
+                            ),
                         ),
-                    ),
-                )
-                putExtra(BROWSER_STATE, navController.saveState())
-            },
-        )
-        finish()
-    }
+                    )
+                    putExtra(BROWSER_STATE, navController.saveState())
+                },
+            )
+            finish()
+        }
 
     companion object {
         const val BROWSER_STATE = "BrowserState"

@@ -2,12 +2,17 @@ package io.rewynd.android.player
 
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
+import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
 import android.view.WindowInsets
@@ -31,13 +36,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.rewynd.android.browser.BrowserActivity
 import io.rewynd.android.browser.BrowserActivity.Companion.BROWSER_STATE
 import io.rewynd.android.component.player.PlayerControls
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+@Serializable
+sealed interface PlayerActivityAction {
+    @Serializable
+    data class Start(val props: PlayerActivityProps) : PlayerActivityAction
+
+    @Serializable
+    data object Stop : PlayerActivityAction
+}
 
 class PlayerActivity : AppCompatActivity() {
     private var lastProps: PlayerActivityProps? = null
@@ -171,100 +189,103 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onNewIntent(intent: Intent) {
-        this.intent = intent
         super.onNewIntent(intent)
+        this.intent = intent
     }
 
     override fun onResume() {
         super.onResume()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-            window.insetsController?.let {
-                it.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    // Hide the nav bar and status bar
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                )
-        }
+        when(val action = this.intent.getStringExtra(PLAYER_ACTIVITY_ACTION_KEY).let { Json.decodeFromString<PlayerActivityAction>(requireNotNull(it){ "PlayerActivityAction must be set to instantiate PlayerActivity"}) }) {
+            is PlayerActivityAction.Start -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    window.setDecorFitsSystemWindows(false)
+                    window.insetsController?.let {
+                        it.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                        it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    window.decorView.systemUiVisibility = (
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                    // Hide the nav bar and status bar
+                                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                            )
+                }
 
-        val props = parseProps(intent.extras)
-        val browserState = intent.getBundleExtra(BROWSER_STATE)
-        if (this.lastProps?.playerProps?.media != props.playerProps.media) {
-            this.lastProps = props
-            props.let {
-                viewModel =
-                    PlayerViewModel(
-                        this,
-                        it.serverUrl,
-                    ).apply {
-                        startPlayerService(
-                            PlayerServiceProps.Start(
-                                it.playerProps,
+                val props = action.props
+                val browserState = intent.getBundleExtra(BROWSER_STATE)
+                if (this.lastProps?.playerProps?.media != props.playerProps.media) {
+                    this.lastProps = props
+                    props.let {
+                        viewModel =
+                            PlayerViewModel(
+                                this,
                                 it.serverUrl,
-                                it.interruptService,
-                            ),
-                            browserState
-                        )
-                    }
-            }
-
-            onBackPressedDispatcher.addCallback {
-                enterPip()
-                startActivity(
-                    Intent(this@PlayerActivity, BrowserActivity::class.java).apply {
-                        putExtra(
-                            BROWSER_STATE,
-                            playerService?.browserState,
-                        )
-                    },
-                )
-            }
-
-            setContent {
-                val service by PlayerService.instance.collectAsState()
-                service?.let { serviceInterface ->
-                    val isPlaying by serviceInterface.isPlayingState.collectAsState()
-                    LaunchedEffect(isPlaying) {
-                        updatePictureInPictureParams()
-                        if (isPlaying) {
-                            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                        } else {
-                            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                        }
+                            ).apply {
+                                startPlayerService(
+                                    PlayerServiceProps.Start(
+                                        it.playerProps,
+                                        it.serverUrl,
+                                        it.interruptService,
+                                    ),
+                                    browserState
+                                )
+                            }
                     }
 
-                    PlayerWrapper(viewModel, serviceInterface, {
-                        rect = it
-                    }) { updatePictureInPictureParams() }
-                } ?: CircularProgressIndicator()
+                    onBackPressedDispatcher.addCallback {
+                        enterPip()
+                        startActivity(
+                            Intent(this@PlayerActivity, BrowserActivity::class.java).apply {
+                                putExtra(
+                                    BROWSER_STATE,
+                                    playerService?.browserState,
+                                )
+                            },
+                        )
+                    }
+
+                    setContent {
+                        val service by PlayerService.instance.collectAsState()
+                        service?.let { serviceInterface ->
+                            val isPlaying by serviceInterface.isPlayingState.collectAsState()
+                            LaunchedEffect(isPlaying) {
+                                updatePictureInPictureParams()
+                                if (isPlaying) {
+                                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                                } else {
+                                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                                }
+                            }
+
+                            PlayerWrapper(viewModel, serviceInterface, {
+                                rect = it
+                            }) { updatePictureInPictureParams() }
+                        } ?: CircularProgressIndicator()
+                    }
+                    if (playerService?.isPlayingState?.value == true) {
+                        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    }
+                }
             }
-            if (playerService?.isPlayingState?.value == true) {
-                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            is PlayerActivityAction.Stop -> {
+                this.intent.getBundleExtra(BROWSER_STATE)?.let {
+                    startActivity(Intent(this, BrowserActivity::class.java).apply {
+                        putExtra(BROWSER_STATE, it)
+                    })
+                }
+                this.finishAndRemoveTask()
             }
         }
+
     }
 
     companion object {
-        const val PLAYER_ACTIVITY_PROPS_EXTRA_NAME = "PlayerActivityProps"
-
-        private fun parseProps(savedInstanceState: Bundle?): PlayerActivityProps =
-            Json.decodeFromString<PlayerActivityProps>(
-                requireNotNull(
-                    savedInstanceState?.getString(PLAYER_ACTIVITY_PROPS_EXTRA_NAME)
-                        .also { Log.d("PlayerActivity", "$it") },
-                ) {
-                    "Cannot Start PlayerActivity without $PLAYER_ACTIVITY_PROPS_EXTRA_NAME"
-                },
-            )
+        const val PLAYER_ACTIVITY_ACTION_KEY = "PlayerActivityAction"
     }
 }
 

@@ -43,6 +43,12 @@ sealed interface PlayerMedia {
                 is Episode -> info.title
             }
 
+    val artist: String?
+        get() =
+            when (this) {
+                is Episode -> info.showName
+            }
+
     val details: String
         get() =
             when (this) {
