@@ -26,7 +26,18 @@ private val log by lazy { KotlinLogging.logger { } }
 
 fun mkStreamJobHandler(cache: Cache): StreamJobHandler =
     { context ->
-        val streamProps = context.request
+        val originalStreamProps = context.request
+        val streamProps =
+            originalStreamProps.copy(
+                startOffset =
+                    if (originalStreamProps.videoTrack?.canCopy == true) {
+                        findPriorKeyframe(originalStreamProps)
+                    } else {
+                        originalStreamProps.startOffset
+                    },
+            )
+        log.info { "Requested: ${originalStreamProps.startOffset}, starting at: ${streamProps.startOffset}" }
+
         val metadataHelper = StreamMetadataHelper(streamProps, context.jobId, cache)
 
         val subtitleJob =
@@ -74,10 +85,12 @@ private fun CoroutineScope.launchHeartbeatJob(
 ) = launch(Dispatchers.IO) {
     log.info { "Started heartbeat for ${streamProps.id}" }
     val heartbeatState =
-        context.clientEvents.takeWhile { isActive }.map {
-            log.info { "Stream ${streamProps.id} got heartbeat" }
-            Instant.now()
-        }.stateIn(this)
+        context.clientEvents
+            .takeWhile { isActive }
+            .map {
+                log.info { "Stream ${streamProps.id} got heartbeat" }
+                Instant.now()
+            }.stateIn(this)
     while (isActive &&
         heartbeatState.value.isAfter(
             Instant.now().minus(30.seconds.toJavaDuration()),
