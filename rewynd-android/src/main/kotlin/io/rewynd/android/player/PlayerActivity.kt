@@ -2,17 +2,11 @@ package io.rewynd.android.player
 
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.graphics.drawable.Icon
 import android.os.Build
-import android.os.Bundle
-import android.os.Parcelable
-import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
 import android.view.WindowInsets
@@ -36,16 +30,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.rewynd.android.browser.BrowserActivity
 import io.rewynd.android.browser.BrowserActivity.Companion.BROWSER_STATE
 import io.rewynd.android.component.player.PlayerControls
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
@@ -195,7 +186,15 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        when(val action = this.intent.getStringExtra(PLAYER_ACTIVITY_ACTION_KEY).let { Json.decodeFromString<PlayerActivityAction>(requireNotNull(it){ "PlayerActivityAction must be set to instantiate PlayerActivity"}) }) {
+        when (
+            val action = this.intent.getStringExtra(
+                PLAYER_ACTIVITY_ACTION_KEY
+            ).let {
+                Json.decodeFromString<PlayerActivityAction>(
+                    requireNotNull(it) { "PlayerActivityAction must be set to instantiate PlayerActivity" }
+                )
+            }
+        ) {
             is PlayerActivityAction.Start -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     window.setDecorFitsSystemWindows(false)
@@ -206,14 +205,14 @@ class PlayerActivity : AppCompatActivity() {
                 } else {
                     @Suppress("DEPRECATION")
                     window.decorView.systemUiVisibility = (
-                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                    // Hide the nav bar and status bar
-                                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                            )
+                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            // Hide the nav bar and status bar
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        )
                 }
 
                 val props = action.props
@@ -274,14 +273,15 @@ class PlayerActivity : AppCompatActivity() {
             }
             is PlayerActivityAction.Stop -> {
                 this.intent.getBundleExtra(BROWSER_STATE)?.let {
-                    startActivity(Intent(this, BrowserActivity::class.java).apply {
-                        putExtra(BROWSER_STATE, it)
-                    })
+                    startActivity(
+                        Intent(this, BrowserActivity::class.java).apply {
+                            putExtra(BROWSER_STATE, it)
+                        }
+                    )
                 }
                 this.finishAndRemoveTask()
             }
         }
-
     }
 
     companion object {

@@ -80,9 +80,11 @@ class NextEpisodesPagingSource(val client: RewyndClient) : PagingSource<Instant,
         when (res.status) {
             HttpStatusCode.OK.value -> {
                 val body = res.body()
-                if(body.percent < MEDIA_COMPLETED_PERCENT) {
+                if (body.percent < MEDIA_COMPLETED_PERCENT) {
                     Progressed(res.body(), episodeInfo)
-                } else null
+                } else {
+                    null
+                }
             }
 
             else -> null

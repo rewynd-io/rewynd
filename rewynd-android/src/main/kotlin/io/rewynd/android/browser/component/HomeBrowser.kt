@@ -21,6 +21,7 @@ import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.Library
 
 @Composable
+@Suppress("MagicNumber") // TODO fix magic numbers
 fun HomeBrowser(
     onNavigateToLibrary: (Library) -> Unit,
     onNavigateToEpisode: (EpisodeInfo) -> Unit,

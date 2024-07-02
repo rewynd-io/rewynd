@@ -30,11 +30,11 @@ fun mkStreamJobHandler(cache: Cache): StreamJobHandler =
         val streamProps =
             originalStreamProps.copy(
                 startOffset =
-                    if (originalStreamProps.videoTrack?.canCopy == true) {
-                        findPriorKeyframe(originalStreamProps)
-                    } else {
-                        originalStreamProps.startOffset
-                    },
+                if (originalStreamProps.videoTrack?.canCopy == true) {
+                    findPriorKeyframe(originalStreamProps)
+                } else {
+                    originalStreamProps.startOffset
+                },
             )
         log.info { "Requested: ${originalStreamProps.startOffset}, starting at: ${streamProps.startOffset}" }
 

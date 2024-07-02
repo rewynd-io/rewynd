@@ -36,37 +36,37 @@ class BrowserViewModel(
     fun getLibraries() = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { LibraryPagingSource(client) }
-    ).flow
+    ).flow.cachedIn(viewModelScope)
 
     fun getLatestEpisodes() = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { LatestEpisodesPagingSource(client) }
-    ).flow
+    ).flow.cachedIn(viewModelScope)
 
     fun getNextEpisodes() = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { NextEpisodesPagingSource(client) }
-    ).flow
+    ).flow.cachedIn(viewModelScope)
 
     fun getNewestEpisodes() = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { NewestEpisodesPagingSource(client) }
-    ).flow
+    ).flow.cachedIn(viewModelScope)
 
     fun getShows(libraryName: String) = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { ShowsPagingSource(libraryName, client) }
-    ).flow
+    ).flow.cachedIn(viewModelScope)
 
     fun getSeasons(showId: String) = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { SeasonsPagingSource(showId, client) }
-    ).flow
+    ).flow.cachedIn(viewModelScope)
 
     fun getEpisodes(seasonId: String) = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { EpisodesPagingSource(seasonId, client) }
-    ).flow
+    ).flow.cachedIn(viewModelScope)
 
     private val imageCache = LruCache<String, Bitmap>(CACHE_SIZE)
 

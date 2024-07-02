@@ -7,7 +7,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.rewynd.android.MEDIA_COMPLETED_PERCENT
 import io.rewynd.android.MEDIA_STARTED_PERCENT
-import io.rewynd.android.browser.BrowserViewModel.Companion.LATEST_EPISODES_LIMIT
 import io.rewynd.android.model.Progressed
 import io.rewynd.client.RewyndClient
 import io.rewynd.model.EpisodeInfo

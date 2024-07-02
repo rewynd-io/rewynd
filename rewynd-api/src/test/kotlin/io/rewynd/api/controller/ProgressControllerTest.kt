@@ -45,14 +45,18 @@ internal class ProgressControllerTest : StringSpec({
 
     "listUserProgress" {
         Harness.arb.checkAllRun {
-            coEvery { db.listRecentProgress(user.user.username, null, any(), any(), any()) } returns progresses
+            coEvery {
+                db.listRecentProgress(user.user.username, null, any(), any(), Database.LIST_PROGRESS_MAX_SIZE)
+            } returns progresses
 
             testCall(
                 { listProgress(listReq) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe ListProgressResponse(null, progresses.map(UserProgress::toProgress))
+                body() shouldBe ListProgressResponse(progresses.minByOrNull {
+                    it.timestamp
+                }?.timestamp, progresses.map(UserProgress::toProgress))
             }
 
             coVerify {
@@ -61,6 +65,7 @@ internal class ProgressControllerTest : StringSpec({
                     listReq.cursor,
                     0.0,
                     1.0,
+
                 )
             }
         }

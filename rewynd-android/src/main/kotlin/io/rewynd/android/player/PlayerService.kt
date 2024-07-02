@@ -77,7 +77,7 @@ class PlayerService : Service() {
     private val player by lazy {
         PlayerWrapper(this, httpClient, client, onEvent = {
             // Relies on the stop() setting instance.value to null, which isn't great
-            if(_instance.value != null) {
+            if (_instance.value != null) {
                 setPlaybackState()
                 createNotification()
             }
@@ -232,9 +232,13 @@ class PlayerService : Service() {
                 this.player.currentOffsetTime.inWholeMilliseconds,
                 1.0f,
             ).setBufferedPosition(player.bufferedPosition.value.inWholeMilliseconds)
-            .addCustomAction(PlaybackState.CustomAction.Builder(
-                CUSTOM_ACTION_STOP, "Stop", androidx.media3.ui.R.drawable.exo_icon_stop)
-                .build()
+            .addCustomAction(
+                PlaybackState.CustomAction.Builder(
+                    CUSTOM_ACTION_STOP,
+                    "Stop",
+                    androidx.media3.ui.R.drawable.exo_icon_stop
+                )
+                    .build()
             )
             .build()
 
@@ -663,8 +667,8 @@ class PlayerService : Service() {
 
             override fun onCustomAction(action: String, extras: Bundle?) {
                 super.onCustomAction(action, extras)
-                when(action) {
-                    CUSTOM_ACTION_STOP -> {this@PlayerService.stop()}
+                when (action) {
+                    CUSTOM_ACTION_STOP -> { this@PlayerService.stop() }
                     else -> {}
                 }
             }

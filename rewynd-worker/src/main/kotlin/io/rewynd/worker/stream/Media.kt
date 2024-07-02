@@ -12,7 +12,6 @@ import io.rewynd.common.model.WorkerStreamEvents
 import io.rewynd.common.partialSecondsString
 import io.rewynd.model.NormalizationMethod
 import io.rewynd.model.NormalizationProps
-import io.rewynd.worker.frameTime
 import io.rewynd.worker.max
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +30,6 @@ import net.kensand.margarita.Mp4Frag
 import okio.source
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val log by lazy { KotlinLogging.logger { } }
@@ -143,13 +141,13 @@ fun CoroutineScope.launchMediaJob(
 
 private val StreamProps.ffmpegArgs
     get() = (
-            FFMPEG_START +
-                    startLocation +
-                    fileLocation +
-                    mkVideoTrackProps +
-                    mkAudioTrackProps +
-                    FFMPEG_END
-            )
+        FFMPEG_START +
+            startLocation +
+            fileLocation +
+            mkVideoTrackProps +
+            mkAudioTrackProps +
+            FFMPEG_END
+        )
 
 val ServerVideoTrack.key: String
     get() = "-c:v:${this.index}"
