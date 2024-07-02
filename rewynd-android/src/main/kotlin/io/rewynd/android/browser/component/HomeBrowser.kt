@@ -34,75 +34,83 @@ fun HomeBrowser(
     BoxWithConstraints Outer@{
         Column(modifier.verticalScroll(rememberScrollState())) {
             BoxWithConstraints(Modifier.height(this@Outer.maxHeight / 4)) Inner@{
-                Text(modifier = Modifier.height(this@Inner.maxHeight / 4), text = "Libraries")
-                LazyRow(modifier = Modifier.height((this@Inner.maxHeight / 4) * 3)) {
-                    items(libraries) {
-                        BoxWithConstraints Item@{
-                            Card(onClick = {
-                                onNavigateToLibrary(it)
-                            }) {
-                                DefaultMediaIcon(
-                                    it.name,
-                                    modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
-                                )
-                                Text(modifier = Modifier.height((this@Item.maxHeight / 4)), text = it.name)
+                Column {
+                    Text(modifier = Modifier.height(this@Inner.maxHeight / 4), text = "Libraries")
+                    LazyRow(modifier = Modifier.height((this@Inner.maxHeight / 4) * 3)) {
+                        items(libraries) {
+                            BoxWithConstraints Item@{
+                                Card(onClick = {
+                                    onNavigateToLibrary(it)
+                                }) {
+                                    DefaultMediaIcon(
+                                        it.name,
+                                        modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
+                                    )
+                                    Text(modifier = Modifier.height((this@Item.maxHeight / 4)), text = it.name)
+                                }
                             }
                         }
                     }
                 }
             }
             BoxWithConstraints(Modifier.height(this@Outer.maxHeight / 4)) Inner@{
-                Text(modifier = Modifier.height(this@Inner.maxHeight / 4), text = "Continue Watching")
-                LazyRow(modifier = Modifier.height((this@Inner.maxHeight / 4) * 3)) {
-                    items(latestEpisodes) {
-                        BoxWithConstraints Item@{
-                            Card(onClick = {
-                                onNavigateToEpisode(it.media)
-                            }) {
-                                ApiImage(
-                                    it.media.episodeImageId,
-                                    modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
-                                    loadImage = viewModel::loadImage,
-                                )
-                                Text(modifier = Modifier.height((this@Item.maxHeight / 4)), text = it.media.details)
+                Column {
+                    Text(modifier = Modifier.height(this@Inner.maxHeight / 4), text = "Continue Watching")
+                    LazyRow(modifier = Modifier.height((this@Inner.maxHeight / 4) * 3)) {
+                        items(latestEpisodes) {
+                            BoxWithConstraints Item@{
+                                Card(onClick = {
+                                    onNavigateToEpisode(it.media)
+                                }) {
+                                    ApiImage(
+                                        it.media.episodeImageId,
+                                        modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
+                                        loadImage = viewModel::loadImage,
+                                    )
+                                    Text(modifier = Modifier.height((this@Item.maxHeight / 4)), text = it.media.details)
+                                }
                             }
                         }
                     }
                 }
             }
             BoxWithConstraints(Modifier.height(this@Outer.maxHeight / 4)) Inner@{
-                Text(modifier = Modifier.height(this@Inner.maxHeight / 4), text = "Next Up")
-                LazyRow(modifier = Modifier.height((this@Inner.maxHeight / 4) * 3)) {
-                    items(nextEpisodes) {
-                        BoxWithConstraints Item@{
-                            Card(onClick = {
-                                onNavigateToEpisode(it.media)
-                            }) {
-                                ApiImage(
-                                    it.media.episodeImageId,
-                                    modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
-                                    loadImage = viewModel::loadImage,
-                                )
-                                Text(modifier = Modifier.height((this@Item.maxHeight / 4)), text = it.media.details)
+                Column {
+                    Text(modifier = Modifier.height(this@Inner.maxHeight / 4), text = "Next Up")
+                    LazyRow(modifier = Modifier.height((this@Inner.maxHeight / 4) * 3)) {
+                        items(nextEpisodes) {
+                            BoxWithConstraints Item@{
+                                Card(onClick = {
+                                    onNavigateToEpisode(it.media)
+                                }) {
+                                    ApiImage(
+                                        it.media.episodeImageId,
+                                        modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
+                                        loadImage = viewModel::loadImage,
+                                    )
+                                    Text(modifier = Modifier.height((this@Item.maxHeight / 4)), text = it.media.details)
+                                }
                             }
                         }
                     }
                 }
             }
             BoxWithConstraints(Modifier.height(this@Outer.maxHeight / 4)) Inner@{
-                Text(modifier = Modifier.height(this@Inner.maxHeight / 4), text = "New Additions")
-                LazyRow(modifier = Modifier.height((this@Inner.maxHeight / 4) * 3)) {
-                    items(newestEpisodes) {
-                        BoxWithConstraints Item@{
-                            Card(onClick = {
-                                onNavigateToEpisode(it)
-                            }) {
-                                ApiImage(
-                                    it.episodeImageId,
-                                    modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
-                                    loadImage = viewModel::loadImage,
-                                )
-                                Text(modifier = Modifier.height((this@Item.maxHeight / 4)), text = it.details)
+                Column {
+                    Text(modifier = Modifier.height(this@Inner.maxHeight / 4), text = "New Additions")
+                    LazyRow(modifier = Modifier.height((this@Inner.maxHeight / 4) * 3)) {
+                        items(newestEpisodes) {
+                            BoxWithConstraints Item@{
+                                Card(onClick = {
+                                    onNavigateToEpisode(it)
+                                }) {
+                                    ApiImage(
+                                        it.episodeImageId,
+                                        modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
+                                        loadImage = viewModel::loadImage,
+                                    )
+                                    Text(modifier = Modifier.height((this@Item.maxHeight / 4)), text = it.details)
+                                }
                             }
                         }
                     }

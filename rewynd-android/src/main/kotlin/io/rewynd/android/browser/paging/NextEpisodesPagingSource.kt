@@ -6,7 +6,6 @@ import arrow.fx.coroutines.parMapUnordered
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.rewynd.android.MEDIA_COMPLETED_PERCENT
-import io.rewynd.android.MEDIA_TOTAL_COMPLETED_PERCENT
 import io.rewynd.android.model.Progressed
 import io.rewynd.client.RewyndClient
 import io.rewynd.model.EpisodeInfo
@@ -30,7 +29,8 @@ class NextEpisodesPagingSource(val client: RewyndClient) : PagingSource<Instant,
         val progressResponse = client.listProgress(
             ListProgressRequest(
                 minPercent = MEDIA_COMPLETED_PERCENT,
-                limit = MEDIA_TOTAL_COMPLETED_PERCENT
+                cursor = params.key,
+                limit = params.loadSize.toDouble()
             ),
         )
 
@@ -79,7 +79,10 @@ class NextEpisodesPagingSource(val client: RewyndClient) : PagingSource<Instant,
 
         when (res.status) {
             HttpStatusCode.OK.value -> {
-                Progressed(res.body(), episodeInfo)
+                val body = res.body()
+                if(body.percent < MEDIA_COMPLETED_PERCENT) {
+                    Progressed(res.body(), episodeInfo)
+                } else null
             }
 
             else -> null

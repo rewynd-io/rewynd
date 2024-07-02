@@ -146,8 +146,9 @@ sealed interface Database {
     suspend fun listRecentProgress(
         username: String,
         cursor: Instant? = null,
-        minPercent: Double = 0.0,
-        maxPercent: Double = 1.0,
+        minPercent: Double = LIST_PROGRESS_MIN_PERCENT,
+        maxPercent: Double = LIST_PROGRESS_MAX_PERCENT,
+        limit: Int = LIST_PROGRESS_MAX_SIZE
     ): List<UserProgress>
 
     companion object {
@@ -158,5 +159,8 @@ sealed interface Database {
             }
 
         const val LIST_EPISODES_MAX_SIZE = 100
+        const val LIST_PROGRESS_MAX_SIZE = 100
+        const val LIST_PROGRESS_MIN_PERCENT = 0.0
+        const val LIST_PROGRESS_MAX_PERCENT = 1.0
     }
 }

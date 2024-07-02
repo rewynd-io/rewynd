@@ -30,7 +30,8 @@ class LatestEpisodesPagingSource(val client: RewyndClient) : PagingSource<Instan
             ListProgressRequest(
                 minPercent = MEDIA_STARTED_PERCENT,
                 maxPercent = MEDIA_COMPLETED_PERCENT,
-                limit = LATEST_EPISODES_LIMIT.toDouble(),
+                cursor = params.key,
+                limit = params.loadSize.toDouble(),
             ),
         )
 

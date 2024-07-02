@@ -586,6 +586,7 @@ open class SqlDatabase(
         cursor: Instant?,
         minPercent: Double,
         maxPercent: Double,
+        limit: Int,
     ): List<UserProgress> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Progression.selectAll().where {
@@ -600,7 +601,8 @@ open class SqlDatabase(
                         it
                     }
                 }
-            }.orderBy(Progression.timestamp to SortOrder.ASC, Progression.mediaId to SortOrder.ASC)
+            }.orderBy(Progression.timestamp to SortOrder.DESC, Progression.mediaId to SortOrder.DESC)
+                .limit(limit)
                 .asFlow()
                 .map { it.toProgress() }
                 .toList()

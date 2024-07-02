@@ -59,7 +59,7 @@ export function Home() {
         setEpisodes(
           List(it)
             .filter(isNotNil)
-            .sortBy((a) => a.progress)
+            .sortBy((a) => a.progress.timestamp.getTime())
             .reverse()
             .toArray(),
         ),
@@ -78,7 +78,7 @@ export function Home() {
     HttpClient.listProgress({
       listProgressRequest: {
         minPercent: 0.95,
-        limit: 20,
+        limit: 10,
       },
     })
       .then(async (it) => {
@@ -117,7 +117,7 @@ export function Home() {
         setNextEpisodes(
           List(it)
             .filter(isNotNil)
-            .sortBy((a) => a.progress)
+            .sortBy((a) => a.progress.timestamp.getTime())
             .reverse()
             .toArray(),
         ),

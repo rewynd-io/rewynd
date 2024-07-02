@@ -104,6 +104,6 @@ class BrowserViewModel(
     companion object {
         const val CACHE_SIZE = 512 * 1024 * 1024 // 512MiB
         const val LATEST_EPISODES_LIMIT = 20
-        val PAGING_CONFIG = PagingConfig(20)
+        val PAGING_CONFIG = PagingConfig(10)
     }
 }

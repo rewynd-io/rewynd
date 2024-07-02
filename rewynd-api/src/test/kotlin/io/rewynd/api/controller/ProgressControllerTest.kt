@@ -45,7 +45,7 @@ internal class ProgressControllerTest : StringSpec({
 
     "listUserProgress" {
         Harness.arb.checkAllRun {
-            coEvery { db.listRecentProgress(user.user.username, null, any(), any()) } returns progresses
+            coEvery { db.listRecentProgress(user.user.username, null, any(), any(), any()) } returns progresses
 
             testCall(
                 { listProgress(listReq) },

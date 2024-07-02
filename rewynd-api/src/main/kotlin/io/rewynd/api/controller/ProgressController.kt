@@ -38,12 +38,12 @@ fun Route.progressRoutes(db: Database) {
                 db.listRecentProgress(
                     username = username,
                     cursor = req.cursor,
-                    minPercent = req.minPercent ?: 0.0,
-                    maxPercent = req.maxPercent ?: 1.0,
+                    minPercent = req.minPercent ?: Database.LIST_PROGRESS_MIN_PERCENT,
+                    maxPercent = req.maxPercent ?: Database.LIST_PROGRESS_MAX_PERCENT,
+                    limit = req.limit?.toInt() ?: Database.LIST_PROGRESS_MAX_SIZE,
                 ).map { it.toProgress() }
             call.respond(
-                // TODO return a cursor
-                ListProgressResponse(results = res),
+                ListProgressResponse(results = res, cursor = res.minByOrNull { it.timestamp }?.timestamp),
             )
         } ?: call.respond(HttpStatusCode.Forbidden)
     }

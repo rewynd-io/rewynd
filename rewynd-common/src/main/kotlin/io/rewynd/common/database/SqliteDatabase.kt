@@ -297,8 +297,9 @@ class SqliteDatabase(
         cursor: Instant?,
         minPercent: Double,
         maxPercent: Double,
+        limit: Int,
     ): List<UserProgress> =
         mutex.withLock {
-            super.listRecentProgress(username, cursor, minPercent, maxPercent)
+            super.listRecentProgress(username, cursor, minPercent, maxPercent, limit)
         }
 }
