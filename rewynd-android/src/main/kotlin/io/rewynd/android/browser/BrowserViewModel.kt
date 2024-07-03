@@ -12,19 +12,31 @@ import androidx.paging.cachedIn
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.jvm.javaio.copyTo
 import io.rewynd.android.browser.paging.EpisodesPagingSource
-import io.rewynd.android.browser.paging.LatestEpisodesPagingSource
+import io.rewynd.android.browser.paging.RecentlyWatchedEpisodesPagingSource
 import io.rewynd.android.browser.paging.LibraryPagingSource
-import io.rewynd.android.browser.paging.NewestEpisodesPagingSource
+import io.rewynd.android.browser.paging.RecentlyAddedEpisodesPagingSource
 import io.rewynd.android.browser.paging.NextEpisodesPagingSource
 import io.rewynd.android.browser.paging.SeasonsPagingSource
 import io.rewynd.android.browser.paging.ShowsPagingSource
 import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.client.RewyndClient
+import io.rewynd.model.GetNextEpisodeRequest
+import io.rewynd.model.NextEpisodeOrder
 import io.rewynd.model.Progress
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.openapitools.client.infrastructure.HttpResponse
 import java.io.ByteArrayOutputStream
 
 class BrowserViewModel(
@@ -33,73 +45,70 @@ class BrowserViewModel(
     private val client: RewyndClient = mkRewyndClient(serverUrl),
 ) : AndroidViewModel(application) {
 
-    fun getLibraries() = Pager(
+    fun listLibraries() = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { LibraryPagingSource(client) }
     ).flow.cachedIn(viewModelScope)
 
-    fun getLatestEpisodes() = Pager(
+    fun listRecentlyWatchedEpisodes() = Pager(
         config = PAGING_CONFIG,
-        pagingSourceFactory = { LatestEpisodesPagingSource(client) }
+        pagingSourceFactory = { RecentlyWatchedEpisodesPagingSource(client) }
     ).flow.cachedIn(viewModelScope)
 
-    fun getNextEpisodes() = Pager(
+    fun listNextEpisodes() = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { NextEpisodesPagingSource(client) }
     ).flow.cachedIn(viewModelScope)
 
-    fun getNewestEpisodes() = Pager(
+    fun listRecentlyAddedEpisodes() = Pager(
         config = PAGING_CONFIG,
-        pagingSourceFactory = { NewestEpisodesPagingSource(client) }
+        pagingSourceFactory = { RecentlyAddedEpisodesPagingSource(client) }
     ).flow.cachedIn(viewModelScope)
 
-    fun getShows(libraryName: String) = Pager(
+    fun listShows(libraryName: String) = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { ShowsPagingSource(libraryName, client) }
     ).flow.cachedIn(viewModelScope)
 
-    fun getSeasons(showId: String) = Pager(
+    fun listSeasons(showId: String) = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { SeasonsPagingSource(showId, client) }
     ).flow.cachedIn(viewModelScope)
 
-    fun getEpisodes(seasonId: String) = Pager(
+    fun listEpisodes(seasonId: String) = Pager(
         config = PAGING_CONFIG,
         pagingSourceFactory = { EpisodesPagingSource(seasonId, client) }
     ).flow.cachedIn(viewModelScope)
 
     private val imageCache = LruCache<String, Bitmap>(CACHE_SIZE)
 
-    suspend fun loadImage(imageId: String): Bitmap? {
+    fun loadImage(imageId: String): Flow<Bitmap?> {
         val cached = imageCache.get(imageId)
         return if (cached != null) {
-            cached
+            flowOf(cached)
         } else {
-            val retrieved = client.getImage(imageId).body()
-            val os = ByteArrayOutputStream()
-            val copiedBytes = retrieved.copyTo(os)
-            val bitmap =
-                BitmapFactory.decodeByteArray(os.toByteArray(), 0, copiedBytes.toInt())?.also {
-                    imageCache.put(imageId, it)
+            getState(imageId, client::getImage).map { retrieved ->
+                retrieved?.let {
+                    val os = ByteArrayOutputStream()
+                    val copiedBytes = retrieved.copyTo(os)
+                    val bitmap = BitmapFactory.decodeByteArray(os.toByteArray(), 0, copiedBytes.toInt())
+                    bitmap
                 }
-            bitmap
+            }.onEach { imageCache.put(imageId, it) }
         }
     }
 
-    fun getProgress(id: String): StateFlow<Progress?> {
-        val state = MutableStateFlow<Progress?>(null)
-        this.viewModelScope.launch {
-            val res = client.getUserProgress(id)
-            when (res.status) {
-                HttpStatusCode.OK.value -> {
-                    state.emit(res.body())
-                }
+    fun getProgress(id: String) = getState(
+        id,
+        client::getUserProgress,
 
-                else -> state.emit(Progress(id, 0.0, kotlinx.datetime.Instant.fromEpochSeconds(0)))
-            }
-        }
-        return state
-    }
+    ).map { it ?: Progress(id, 0.0, kotlinx.datetime.Instant.fromEpochSeconds(0)) }
+
+    fun getSeason(id: String) = getState(id, client::getSeasons)
+    fun getShow(id: String) = getState(id, client::getShow)
+    fun getLibrary(id: String) = getState(id, client::getLibrary)
+    fun getNextEpisode(id: String) = getState(GetNextEpisodeRequest(id, NextEpisodeOrder.next), client::getNextEpisode).map { it?.episodeInfo }
+    fun getPrevEpisode(id: String) = getState(GetNextEpisodeRequest(id, NextEpisodeOrder.previous), client::getNextEpisode).map { it?.episodeInfo }
 
     companion object {
         const val CACHE_SIZE = 512 * 1024 * 1024 // 512MiB
@@ -107,3 +116,17 @@ class BrowserViewModel(
         val PAGING_CONFIG = PagingConfig(10)
     }
 }
+
+fun <Id, Response : Any> getState(
+    id: Id,
+    func: suspend (Id) -> HttpResponse<Response>,
+) = flow {
+        val res = func(id)
+        when (res.status) {
+            HttpStatusCode.OK.value -> {
+                emit(res.body())
+            }
+
+            else -> emit(null)
+        }
+}.flowOn(Dispatchers.IO)

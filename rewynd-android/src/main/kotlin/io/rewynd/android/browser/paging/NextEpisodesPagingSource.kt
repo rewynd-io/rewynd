@@ -6,6 +6,7 @@ import arrow.fx.coroutines.parMapUnordered
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.rewynd.android.MEDIA_COMPLETED_PERCENT
+import io.rewynd.android.MEDIA_STARTED_PERCENT
 import io.rewynd.android.model.Progressed
 import io.rewynd.client.RewyndClient
 import io.rewynd.model.EpisodeInfo
@@ -80,7 +81,7 @@ class NextEpisodesPagingSource(val client: RewyndClient) : PagingSource<Instant,
         when (res.status) {
             HttpStatusCode.OK.value -> {
                 val body = res.body()
-                if (body.percent < MEDIA_COMPLETED_PERCENT) {
+                if (body.percent < MEDIA_STARTED_PERCENT) {
                     Progressed(res.body(), episodeInfo)
                 } else {
                     null

@@ -21,7 +21,7 @@ fun LibraryBrowser(
     viewModel: BrowserViewModel,
     modifier: Modifier = Modifier
 ) {
-    val shows = remember { viewModel.getShows(libraryName) }.collectAsLazyPagingItems()
+    val shows = remember { viewModel.listShows(libraryName) }.collectAsLazyPagingItems()
 
     LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 150.dp), modifier) {
         items(shows) {

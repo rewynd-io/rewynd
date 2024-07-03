@@ -24,7 +24,7 @@ fun SeasonBrowser(
     onNavigateToEpisode: (EpisodeInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val episodes = remember { viewModel.getEpisodes(seasonInfo.id) }.collectAsLazyPagingItems()
+    val episodes = remember { viewModel.listEpisodes(seasonInfo.id) }.collectAsLazyPagingItems()
 
     Column(modifier) {
         Text(seasonInfo.showName, color = Color.White)

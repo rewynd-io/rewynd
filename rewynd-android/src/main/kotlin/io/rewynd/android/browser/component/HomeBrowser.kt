@@ -28,10 +28,10 @@ fun HomeBrowser(
     viewModel: BrowserViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val libraries = remember { viewModel.getLibraries() }.collectAsLazyPagingItems()
-    val latestEpisodes = remember { viewModel.getLatestEpisodes() }.collectAsLazyPagingItems()
-    val nextEpisodes = remember { viewModel.getNextEpisodes() }.collectAsLazyPagingItems()
-    val newestEpisodes = remember { viewModel.getNewestEpisodes() }.collectAsLazyPagingItems()
+    val libraries = remember { viewModel.listLibraries() }.collectAsLazyPagingItems()
+    val latestEpisodes = remember { viewModel.listRecentlyWatchedEpisodes() }.collectAsLazyPagingItems()
+    val nextEpisodes = remember { viewModel.listNextEpisodes() }.collectAsLazyPagingItems()
+    val newestEpisodes = remember { viewModel.listRecentlyAddedEpisodes() }.collectAsLazyPagingItems()
     BoxWithConstraints Outer@{
         Column(modifier.verticalScroll(rememberScrollState())) {
             BoxWithConstraints(Modifier.height(this@Outer.maxHeight / 4)) Inner@{

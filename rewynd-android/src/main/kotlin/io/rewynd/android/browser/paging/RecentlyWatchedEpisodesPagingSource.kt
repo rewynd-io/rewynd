@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Instant
 import kotlin.coroutines.cancellation.CancellationException
 
-class LatestEpisodesPagingSource(val client: RewyndClient) : PagingSource<Instant, Progressed<EpisodeInfo>>() {
+class RecentlyWatchedEpisodesPagingSource(val client: RewyndClient) : PagingSource<Instant, Progressed<EpisodeInfo>>() {
     override fun getRefreshKey(state: PagingState<Instant, Progressed<EpisodeInfo>>): Instant? = null
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)

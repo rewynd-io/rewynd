@@ -1,27 +1,26 @@
 package io.rewynd.android.browser.component
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserViewModel
 import io.rewynd.android.component.ApiImage
 import io.rewynd.android.model.PlayerMedia
+import io.rewynd.android.util.details
 import io.rewynd.model.EpisodeInfo
-import io.rewynd.model.Progress
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlin.time.Duration.Companion.seconds
+
 
 @Composable
 fun EpisodeBrowser(
@@ -29,14 +28,43 @@ fun EpisodeBrowser(
     viewModel: BrowserViewModel,
     modifier: Modifier = Modifier,
     startPlayer: (PlayerMedia) -> Unit,
+    actions: BrowserNavigationActions
 ) {
-    var progressState by remember { mutableStateOf<Progress?>(null) }
-    LaunchedEffect(episodeInfo) {
-        progressState = viewModel.getProgress(episodeInfo.id).filterNotNull().first()
-    }
+    val progressState by viewModel.getProgress(episodeInfo.id).collectAsStateWithLifecycle(null)
+    val seasonInfo by viewModel.getSeason(episodeInfo.seasonId).collectAsStateWithLifecycle(null)
+    val showInfo by viewModel.getShow(episodeInfo.showId).collectAsStateWithLifecycle(null)
+    val library by viewModel.getLibrary(episodeInfo.libraryId).collectAsStateWithLifecycle(null)
+    val previousEpisode by viewModel.getPrevEpisode(episodeInfo.id).collectAsStateWithLifecycle(null)
+    val nextEpisode by viewModel.getNextEpisode(episodeInfo.id).collectAsStateWithLifecycle(null)
 
     progressState?.let { progress ->
         Column(modifier.verticalScroll(rememberScrollState())) {
+            Row {
+                Button({
+                    library?.let {
+                        actions.library(it)
+                    }
+                }) {
+                    Text(episodeInfo.libraryId, color = Color.White)
+                }
+                Button({
+                    showInfo?.let {
+                        actions.show(it)
+                    }
+                }) {
+                    episodeInfo.showName?.let { Text(it, color = Color.White) }
+                }
+                Button({
+                    seasonInfo?.let {
+                        actions.season(it)
+                    }
+                }) {
+                    Text("Season ${episodeInfo.season}", color = Color.White)
+                }
+                Text("Episode: ${episodeInfo.episode}", color = Color.White)
+            }
+            Text(episodeInfo.title, color = Color.White)
+
             Card(onClick = {
                 startPlayer(
                     PlayerMedia.Episode(
@@ -44,23 +72,41 @@ fun EpisodeBrowser(
                         episodeInfo,
                         runTime = episodeInfo.runTime.seconds,
                         startOffset =
-                        episodeInfo.runTime.seconds.times(
-                            (progress.percent),
-                        ),
+                            episodeInfo.runTime.seconds.times(
+                                (progress.percent),
+                            ),
                         videoTrackName = episodeInfo.videoTracks.keys.firstOrNull(),
                         audioTrackName = episodeInfo.audioTracks.keys.firstOrNull(),
                         subtitleTrackName = episodeInfo.subtitleTracks.keys.firstOrNull(),
                         // TODO load normalization method from user prefs
                         normalizationMethod = null,
-                    )
+                    ),
                 )
             }) {
                 ApiImage(episodeInfo.episodeImageId, loadImage = viewModel::loadImage)
             }
-            Text(episodeInfo.title, color = Color.White)
-            Text("Season ${episodeInfo.season} Episode: ${episodeInfo.episode}", color = Color.White)
             (episodeInfo.plot ?: episodeInfo.outline)?.let { Text(it, color = Color.White) }
             Text("Rating: ${episodeInfo.rating}", color = Color.White)
+            Row {
+                previousEpisode?.let {
+                    Card(onClick = {
+                        actions.episode(it)
+                    }) {
+                        Text("Previous Episode")
+                        ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
+                        Text(it.details)
+                    }
+                }
+                nextEpisode?.let {
+                    Card(onClick = {
+                        actions.episode(it)
+                    }) {
+                        Text("Next Episode")
+                        ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
+                        Text(it.details)
+                    }
+                }
+            }
         }
     } ?: CircularProgressIndicator()
 }

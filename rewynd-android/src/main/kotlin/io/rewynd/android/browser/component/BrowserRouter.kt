@@ -1,11 +1,12 @@
 package io.rewynd.android.browser.component
 
-import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserState
 import io.rewynd.android.browser.BrowserViewModel
 import io.rewynd.android.browser.parcelableType
@@ -20,12 +21,10 @@ import kotlin.reflect.typeOf
 @Composable
 fun BrowserRouter(
     navController: NavHostController,
+    actions: BrowserNavigationActions,
     viewModel: BrowserViewModel,
     startPlayer: (PlayerMedia) -> Unit
 ) {
-    val actions = BrowserNavigationActions(navController)
-    Log.i("CURRENT_BROWSER_STATE", "${navController.saveState()}")
-    Log.i("REWYND_COMPOSITION", "Recomposing NavHost")
     NavHost(
         navController = navController,
         startDestination = navController.currentDestination ?: BrowserState.HomeState
@@ -42,7 +41,6 @@ fun BrowserRouter(
         composable<BrowserState.ShowState>(
             typeMap = mapOf(typeOf<ShowInfo>() to parcelableType<ShowInfo>())
         ) {
-            Log.i("REWYND_COMPOSITION", "Recomposing Show")
             val state = it.toRoute<BrowserState.ShowState>()
             ShowBrowser(state.showInfo, viewModel, actions::season)
         }
@@ -56,59 +54,14 @@ fun BrowserRouter(
             typeMap = mapOf(typeOf<EpisodeInfo>() to parcelableType<EpisodeInfo>())
         ) {
             val state = it.toRoute<BrowserState.EpisodeState>()
-            EpisodeBrowser(state.episodeInfo, viewModel, startPlayer = startPlayer)
+            EpisodeBrowser(
+                episodeInfo = state.episodeInfo,
+                viewModel = viewModel,
+                modifier = Modifier,
+                startPlayer = startPlayer,
+                actions = actions
+            )
         }
     }
 }
 
-class BrowserNavigationActions(val navController: NavHostController) {
-    fun home() = navController.navigate(BrowserState.HomeState) {
-        popUpTo(BrowserState.HomeState) {
-            saveState = true
-        }
-        launchSingleTop = true
-        restoreState = true
-    }
-
-    fun episode(episodeInfo: EpisodeInfo) = BrowserState.EpisodeState(episodeInfo).let {
-        Log.i("REWYND_NAVIGATION", "Navigating to Episode $episodeInfo")
-        navController.navigate(it) {
-            popUpTo(it) {
-                saveState = true
-            }
-            launchSingleTop = true
-            restoreState = true
-        }
-    }
-
-    fun library(library: Library) = BrowserState.LibraryState(library).let {
-        navController.navigate(it) {
-            popUpTo(it) {
-                saveState = true
-            }
-            launchSingleTop = true
-            restoreState = true
-        }
-    }
-
-    fun show(showInfo: ShowInfo) = BrowserState.ShowState(showInfo).let {
-        Log.i("REWYND_NAVIGATION", "Navigating to show $showInfo")
-        navController.navigate(it) {
-            popUpTo(it) {
-                saveState = true
-            }
-            launchSingleTop = true
-            restoreState = true
-        }
-    }
-
-    fun season(seasonInfo: SeasonInfo) = BrowserState.SeasonState(seasonInfo).let {
-        navController.navigate(it) {
-            popUpTo(it) {
-                saveState = true
-            }
-            launchSingleTop = true
-            restoreState = true
-        }
-    }
-}
