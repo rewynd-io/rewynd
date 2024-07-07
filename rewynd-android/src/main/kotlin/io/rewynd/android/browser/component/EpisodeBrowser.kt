@@ -1,7 +1,9 @@
 package io.rewynd.android.browser.component
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -87,23 +89,30 @@ fun EpisodeBrowser(
             }
             (episodeInfo.plot ?: episodeInfo.outline)?.let { Text(it, color = Color.White) }
             Text("Rating: ${episodeInfo.rating}", color = Color.White)
-            Row {
-                previousEpisode?.let {
-                    Card(onClick = {
-                        actions.episode(it)
-                    }) {
-                        Text("Previous Episode")
-                        ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
-                        Text(it.details)
+            BoxWithConstraints {
+                val size = listOfNotNull(previousEpisode, nextEpisode).size
+                Row {
+                    previousEpisode?.let {
+                        Card(
+                            modifier = Modifier.width(this@BoxWithConstraints.maxWidth / size),
+                            onClick = {
+                            actions.episode(it)
+                        }) {
+                            Text("Previous Episode")
+                            ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
+                            Text(it.details)
+                        }
                     }
-                }
-                nextEpisode?.let {
-                    Card(onClick = {
-                        actions.episode(it)
-                    }) {
-                        Text("Next Episode")
-                        ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
-                        Text(it.details)
+                    nextEpisode?.let {
+                        Card(
+                            modifier = Modifier.width(this@BoxWithConstraints.maxWidth / size),
+                            onClick = {
+                            actions.episode(it)
+                        }) {
+                            Text("Next Episode")
+                            ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
+                            Text(it.details)
+                        }
                     }
                 }
             }
