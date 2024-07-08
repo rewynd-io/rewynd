@@ -54,9 +54,12 @@ internal class ProgressControllerTest : StringSpec({
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
-                body() shouldBe ListProgressResponse(progresses.minByOrNull {
-                    it.timestamp
-                }?.timestamp, progresses.map(UserProgress::toProgress))
+                body() shouldBe ListProgressResponse(
+                    progresses.minByOrNull {
+                        it.timestamp
+                    }?.timestamp,
+                    progresses.map(UserProgress::toProgress)
+                )
             }
 
             coVerify {

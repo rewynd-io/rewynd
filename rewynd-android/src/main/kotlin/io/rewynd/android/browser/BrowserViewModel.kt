@@ -12,10 +12,10 @@ import androidx.paging.cachedIn
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.jvm.javaio.copyTo
 import io.rewynd.android.browser.paging.EpisodesPagingSource
-import io.rewynd.android.browser.paging.RecentlyWatchedEpisodesPagingSource
 import io.rewynd.android.browser.paging.LibraryPagingSource
-import io.rewynd.android.browser.paging.RecentlyAddedEpisodesPagingSource
 import io.rewynd.android.browser.paging.NextEpisodesPagingSource
+import io.rewynd.android.browser.paging.RecentlyAddedEpisodesPagingSource
+import io.rewynd.android.browser.paging.RecentlyWatchedEpisodesPagingSource
 import io.rewynd.android.browser.paging.SeasonsPagingSource
 import io.rewynd.android.browser.paging.ShowsPagingSource
 import io.rewynd.android.client.ServerUrl
@@ -24,18 +24,13 @@ import io.rewynd.client.RewyndClient
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.NextEpisodeOrder
 import io.rewynd.model.Progress
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import org.openapitools.client.infrastructure.HttpResponse
 import java.io.ByteArrayOutputStream
 
@@ -107,8 +102,12 @@ class BrowserViewModel(
     fun getSeason(id: String) = getState(id, client::getSeasons)
     fun getShow(id: String) = getState(id, client::getShow)
     fun getLibrary(id: String) = getState(id, client::getLibrary)
-    fun getNextEpisode(id: String) = getState(GetNextEpisodeRequest(id, NextEpisodeOrder.next), client::getNextEpisode).map { it?.episodeInfo }
-    fun getPrevEpisode(id: String) = getState(GetNextEpisodeRequest(id, NextEpisodeOrder.previous), client::getNextEpisode).map { it?.episodeInfo }
+    fun getNextEpisode(
+        id: String
+    ) = getState(GetNextEpisodeRequest(id, NextEpisodeOrder.next), client::getNextEpisode).map { it?.episodeInfo }
+    fun getPrevEpisode(
+        id: String
+    ) = getState(GetNextEpisodeRequest(id, NextEpisodeOrder.previous), client::getNextEpisode).map { it?.episodeInfo }
 
     companion object {
         const val CACHE_SIZE = 512 * 1024 * 1024 // 512MiB
@@ -121,12 +120,12 @@ fun <Id, Response : Any> getState(
     id: Id,
     func: suspend (Id) -> HttpResponse<Response>,
 ) = flow {
-        val res = func(id)
-        when (res.status) {
-            HttpStatusCode.OK.value -> {
-                emit(res.body())
-            }
-
-            else -> emit(null)
+    val res = func(id)
+    when (res.status) {
+        HttpStatusCode.OK.value -> {
+            emit(res.body())
         }
+
+        else -> emit(null)
+    }
 }.flowOn(Dispatchers.IO)

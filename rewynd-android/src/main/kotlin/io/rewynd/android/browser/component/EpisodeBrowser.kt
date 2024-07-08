@@ -23,14 +23,13 @@ import io.rewynd.android.util.details
 import io.rewynd.model.EpisodeInfo
 import kotlin.time.Duration.Companion.seconds
 
-
 @Composable
 fun EpisodeBrowser(
     episodeInfo: EpisodeInfo,
     viewModel: BrowserViewModel,
-    modifier: Modifier = Modifier,
     startPlayer: (PlayerMedia) -> Unit,
-    actions: BrowserNavigationActions
+    actions: BrowserNavigationActions,
+    modifier: Modifier = Modifier
 ) {
     val progressState by viewModel.getProgress(episodeInfo.id).collectAsStateWithLifecycle(null)
     val seasonInfo by viewModel.getSeason(episodeInfo.seasonId).collectAsStateWithLifecycle(null)
@@ -74,9 +73,9 @@ fun EpisodeBrowser(
                         episodeInfo,
                         runTime = episodeInfo.runTime.seconds,
                         startOffset =
-                            episodeInfo.runTime.seconds.times(
-                                (progress.percent),
-                            ),
+                        episodeInfo.runTime.seconds.times(
+                            (progress.percent),
+                        ),
                         videoTrackName = episodeInfo.videoTracks.keys.firstOrNull(),
                         audioTrackName = episodeInfo.audioTracks.keys.firstOrNull(),
                         subtitleTrackName = episodeInfo.subtitleTracks.keys.firstOrNull(),
@@ -96,8 +95,9 @@ fun EpisodeBrowser(
                         Card(
                             modifier = Modifier.width(this@BoxWithConstraints.maxWidth / size),
                             onClick = {
-                            actions.episode(it)
-                        }) {
+                                actions.episode(it)
+                            }
+                        ) {
                             Text("Previous Episode")
                             ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
                             Text(it.details)
@@ -107,8 +107,9 @@ fun EpisodeBrowser(
                         Card(
                             modifier = Modifier.width(this@BoxWithConstraints.maxWidth / size),
                             onClick = {
-                            actions.episode(it)
-                        }) {
+                                actions.episode(it)
+                            }
+                        ) {
                             Text("Next Episode")
                             ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
                             Text(it.details)

@@ -19,14 +19,12 @@ import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserViewModel
 import io.rewynd.android.browser.items
 import io.rewynd.android.component.ApiImage
-import io.rewynd.model.SeasonInfo
 import io.rewynd.model.ShowInfo
 
 @Composable
 fun ShowBrowser(
     showInfo: ShowInfo,
     viewModel: BrowserViewModel,
-    onNavigateToSeason: (SeasonInfo) -> Unit,
     actions: BrowserNavigationActions,
     modifier: Modifier = Modifier
 ) {
@@ -49,7 +47,7 @@ fun ShowBrowser(
         LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 150.dp)) {
             items(seasons) {
                 Card(onClick = {
-                    onNavigateToSeason(it)
+                    actions.season(it)
                 }) {
                     ApiImage(it.folderImageId, loadImage = viewModel::loadImage)
                     Text(text = "Season ${it.seasonNumber.toInt()}")

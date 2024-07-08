@@ -19,14 +19,12 @@ import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserViewModel
 import io.rewynd.android.browser.items
 import io.rewynd.android.component.ApiImage
-import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.SeasonInfo
 
 @Composable
 fun SeasonBrowser(
     seasonInfo: SeasonInfo,
     viewModel: BrowserViewModel,
-    onNavigateToEpisode: (EpisodeInfo) -> Unit,
     actions: BrowserNavigationActions,
     modifier: Modifier = Modifier
 ) {
@@ -61,7 +59,7 @@ fun SeasonBrowser(
         ) {
             items(episodes) {
                 Card(onClick = {
-                    onNavigateToEpisode(it)
+                    actions.episode(it)
                 }) {
                     ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
                     Text(text = it.title)

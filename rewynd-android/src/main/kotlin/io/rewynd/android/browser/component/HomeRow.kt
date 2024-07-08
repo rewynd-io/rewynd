@@ -2,7 +2,6 @@ package io.rewynd.android.browser.component
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyRow
@@ -17,6 +16,9 @@ import io.rewynd.android.component.DefaultMediaIcon
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
+private const val DIVISOR = 4
+private const val REMAINDER = DIVISOR - 1
+
 @Composable
 fun <Item : Any> HomeRow(
     title: String,
@@ -29,8 +31,8 @@ fun <Item : Any> HomeRow(
 ) {
     BoxWithConstraints(modifier) Inner@{
         Column {
-            Text(modifier = Modifier.height(this@Inner.maxHeight / 4), text = title)
-            LazyRow(modifier = Modifier.height((this@Inner.maxHeight / 4) * 3)) {
+            Text(modifier = Modifier.height(this@Inner.maxHeight / DIVISOR), text = title)
+            LazyRow(modifier = Modifier.height((this@Inner.maxHeight / DIVISOR) * REMAINDER)) {
                 items(libraries) {
                     BoxWithConstraints Item@{
                         Card(onClick = {
@@ -38,14 +40,14 @@ fun <Item : Any> HomeRow(
                         }) {
                             ApiImage(
                                 it.imageIdAccessor(),
-                                modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
+                                modifier = Modifier.height((this@Item.maxHeight / DIVISOR) * REMAINDER),
                                 loadImage = loadImage,
                             )
                             DefaultMediaIcon(
                                 it.nameAccessor(),
-                                modifier = Modifier.height((this@Item.maxHeight / 4) * 3),
+                                modifier = Modifier.height((this@Item.maxHeight / DIVISOR) * REMAINDER),
                             )
-                            Text(modifier = Modifier.height((this@Item.maxHeight / 4)), text = it.nameAccessor())
+                            Text(modifier = Modifier.height((this@Item.maxHeight / DIVISOR)), text = it.nameAccessor())
                         }
                     }
                 }

@@ -41,7 +41,12 @@ class BrowserActivity : AppCompatActivity() {
             val navController = rememberNavController()
             val state = intent.getBundleExtra(BROWSER_STATE)
             navController.restoreState(state)
-            BrowserRouter(navController, BrowserNavigationActions(navController), viewModel, mkStartPlayerHandler(navController))
+            BrowserRouter(
+                navController,
+                BrowserNavigationActions(navController),
+                viewModel,
+                mkStartPlayerHandler(navController)
+            )
         }
     }
 

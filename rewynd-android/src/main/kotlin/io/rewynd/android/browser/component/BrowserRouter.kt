@@ -17,7 +17,7 @@ import io.rewynd.model.SeasonInfo
 import io.rewynd.model.ShowInfo
 import kotlin.reflect.typeOf
 
-@Suppress("ViewModelForwarding")
+@Suppress("ViewModelForwarding", "ModifierMissing")
 @Composable
 fun BrowserRouter(
     navController: NavHostController,
@@ -42,13 +42,13 @@ fun BrowserRouter(
             typeMap = mapOf(typeOf<ShowInfo>() to parcelableType<ShowInfo>())
         ) {
             val state = it.toRoute<BrowserState.ShowState>()
-            ShowBrowser(state.showInfo, viewModel, actions::season)
+            ShowBrowser(state.showInfo, viewModel, actions)
         }
         composable<BrowserState.SeasonState>(
             typeMap = mapOf(typeOf<SeasonInfo>() to parcelableType<SeasonInfo>())
         ) {
             val state = it.toRoute<BrowserState.SeasonState>()
-            SeasonBrowser(state.seasonInfo, viewModel, actions::episode)
+            SeasonBrowser(state.seasonInfo, viewModel, actions)
         }
         composable<BrowserState.EpisodeState>(
             typeMap = mapOf(typeOf<EpisodeInfo>() to parcelableType<EpisodeInfo>())
@@ -57,11 +57,10 @@ fun BrowserRouter(
             EpisodeBrowser(
                 episodeInfo = state.episodeInfo,
                 viewModel = viewModel,
-                modifier = Modifier,
                 startPlayer = startPlayer,
-                actions = actions
+                actions = actions,
+                modifier = Modifier
             )
         }
     }
 }
-
