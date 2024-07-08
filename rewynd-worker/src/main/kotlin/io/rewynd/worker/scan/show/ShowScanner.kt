@@ -25,6 +25,8 @@ import io.rewynd.model.SeasonInfo
 import io.rewynd.worker.ffprobe.FfprobeInfo
 import io.rewynd.worker.ffprobe.FfprobeResult
 import io.rewynd.worker.scan.Scanner
+import io.rewynd.worker.scan.isImageFile
+import io.rewynd.worker.scan.isSubtitleFile
 import io.rewynd.worker.serialize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -54,13 +56,10 @@ import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-private val imageExtensions = setOf("jpg", "jpeg", "png")
-private val subtitleExtensions = setOf("srt", "wvtt", "vtt")
-
 class ShowScanner(private val lib: Library, private val db: Database) : Scanner {
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     override suspend fun scan() {
-        val memoryIndex: ByteBuffersDirectory = ByteBuffersDirectory()
+        val memoryIndex = ByteBuffersDirectory()
         val analyzer = StandardAnalyzer()
         val start = Clock.System.now()
         lib.rootPaths.forEach { root ->
@@ -229,10 +228,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
         return (
             seasonDir.walk().filter {
                 it.isFile && !it.name.startsWith(".") && it.nameWithoutExtension.isNotBlank() &&
-                    !imageExtensions.contains(
-                        it.extension,
-                    ) &&
-                    !subtitleExtensions.contains(it.extension) && it.extension != "nfo"
+                    !it.isImageFile() && !it.isSubtitleFile() && it.extension != "nfo"
             }
                 .fold(ShowScanResults.EMPTY) { acc, file ->
 
@@ -265,10 +261,8 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 }?.readText()?.parseEpsiodeNfo()
             val subtitleFiles =
                 episodeFile.parentFile.walk().maxDepth(1).filter {
-                    it.name.startsWith(episodeFile.nameWithoutExtension) &&
-                        subtitleExtensions.contains(
-                            it.extension,
-                        )
+                    it.isSubtitleFile() &&
+                        it.name.startsWith(episodeFile.nameWithoutExtension)
                 }.associate { it.nameWithoutExtension to FileLocation.LocalFile(it.absolutePath) }
             val subtitleFileTracks =
                 subtitleFiles.mapValues { entry ->
@@ -377,9 +371,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
         (
             Path(this.parent).toFile().walk().maxDepth(2).filter {
                 it.name.startsWith(this.nameWithoutExtension) &&
-                    imageExtensions.contains(
-                        it.extension,
-                    )
+                    it.isImageFile()
             }.firstOrNull()
             )?.let {
             ServerImageInfo(
@@ -393,7 +385,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
 
     private fun File.findFolderImage(): ServerImageInfo? =
         walk().maxDepth(1).filter {
-            it.nameWithoutExtension == "folder" && imageExtensions.contains(it.extension)
+            it.nameWithoutExtension == "folder" && it.isImageFile()
         }.firstOrNull()?.let {
             ServerImageInfo(
                 location = FileLocation.LocalFile(it.absolutePath),
@@ -406,10 +398,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
 
     private fun File.findBackdropImage(): ServerImageInfo? =
         walk().maxDepth(1).filter {
-            listOf("backdrop", "banner").contains(it.nameWithoutExtension) &&
-                imageExtensions.contains(
-                    it.extension,
-                )
+            listOf("backdrop", "banner").contains(it.nameWithoutExtension) && it.isImageFile()
         }.firstOrNull()?.let {
             ServerImageInfo(
                 location = FileLocation.LocalFile(it.absolutePath),
