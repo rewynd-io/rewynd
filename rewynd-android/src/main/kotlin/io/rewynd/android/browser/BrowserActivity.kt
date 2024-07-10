@@ -34,9 +34,9 @@ class BrowserActivity : AppCompatActivity() {
         )
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
 
+    override fun onResume() {
+        super.onResume()
         setContent {
             val navController = rememberNavController()
             val state = intent.getBundleExtra(BROWSER_STATE)

@@ -43,10 +43,6 @@ fun <Item : Any> HomeRow(
                                 modifier = Modifier.height((this@Item.maxHeight / DIVISOR) * REMAINDER),
                                 loadImage = loadImage,
                             )
-                            DefaultMediaIcon(
-                                it.nameAccessor(),
-                                modifier = Modifier.height((this@Item.maxHeight / DIVISOR) * REMAINDER),
-                            )
                             Text(modifier = Modifier.height((this@Item.maxHeight / DIVISOR)), text = it.nameAccessor())
                         }
                     }
