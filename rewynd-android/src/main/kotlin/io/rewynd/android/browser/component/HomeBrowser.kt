@@ -34,7 +34,7 @@ fun HomeBrowser(
                 Library::name,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { null },
-                viewModel::loadImage,
+                viewModel.imageLoader,
                 onNavigateToLibrary,
             )
             HomeRow(
@@ -43,7 +43,7 @@ fun HomeBrowser(
                 { media.details },
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { media.episodeImageId },
-                viewModel::loadImage,
+                viewModel.imageLoader,
             ) { onNavigateToEpisode(it.media) }
             HomeRow(
                 "Next Up",
@@ -51,7 +51,7 @@ fun HomeBrowser(
                 { media.details },
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { media.episodeImageId },
-                viewModel::loadImage,
+                viewModel.imageLoader,
             ) { onNavigateToEpisode(it.media) }
             HomeRow(
                 "New Additions",
@@ -59,7 +59,7 @@ fun HomeBrowser(
                 { details },
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { episodeImageId },
-                viewModel::loadImage,
+                viewModel.imageLoader,
             ) { onNavigateToEpisode(it) }
         }
     }

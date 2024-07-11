@@ -49,7 +49,7 @@ fun ShowBrowser(
                 Card(onClick = {
                     actions.season(it)
                 }) {
-                    ApiImage(it.folderImageId, loadImage = viewModel::loadImage)
+                    ApiImage(it.folderImageId, loadImage = viewModel.imageLoader)
                     Text(text = "Season ${it.seasonNumber.toInt()}")
                 }
             }

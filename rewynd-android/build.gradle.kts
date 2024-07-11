@@ -89,6 +89,8 @@ dependencies {
     implementation(libs.kotlinx.collections.immutable)
     implementation(libs.arrow.core)
     implementation(libs.arrow.fx.coroutines)
+    implementation(libs.coil.base)
+    implementation(libs.coil.compose)
 
     detektPlugins(libs.detekt.formatting)
     detektPlugins(libs.detekt.compose)

@@ -28,7 +28,7 @@ fun LibraryBrowser(
             Card(onClick = {
                 onNavigateToShow(it)
             }) {
-                ApiImage(it.seriesImageId, Modifier, viewModel::loadImage)
+                ApiImage(it.seriesImageId, Modifier, viewModel.imageLoader)
                 Text(text = it.title)
             }
         }

@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.paging.compose.LazyPagingItems
+import coil3.ImageLoader
 import io.rewynd.android.browser.items
 import io.rewynd.android.component.ApiImage
 import io.rewynd.android.component.DefaultMediaIcon
@@ -26,7 +27,7 @@ fun <Item : Any> HomeRow(
     nameAccessor: Item.() -> String,
     modifier: Modifier = Modifier,
     imageIdAccessor: Item.() -> String? = { null },
-    loadImage: (String) -> Flow<Bitmap?> = { flowOf(null) },
+    loadImage: ImageLoader,
     onNavigateToLibrary: (Item) -> Unit = {}
 ) {
     BoxWithConstraints(modifier) Inner@{

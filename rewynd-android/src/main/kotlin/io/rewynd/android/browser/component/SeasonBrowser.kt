@@ -61,7 +61,7 @@ fun SeasonBrowser(
                 Card(onClick = {
                     actions.episode(it)
                 }) {
-                    ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
+                    ApiImage(it.episodeImageId, loadImage = viewModel.imageLoader)
                     Text(text = it.title)
                 }
             }

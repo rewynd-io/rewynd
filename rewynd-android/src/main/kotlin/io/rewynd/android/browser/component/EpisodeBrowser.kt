@@ -14,7 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserViewModel
 import io.rewynd.android.component.ApiImage
@@ -84,7 +87,7 @@ fun EpisodeBrowser(
                     ),
                 )
             }) {
-                ApiImage(episodeInfo.episodeImageId, loadImage = viewModel::loadImage)
+                ApiImage(episodeInfo.episodeImageId, loadImage = viewModel.imageLoader)
             }
             (episodeInfo.plot ?: episodeInfo.outline)?.let { Text(it, color = Color.White) }
             Text("Rating: ${episodeInfo.rating}", color = Color.White)
@@ -99,7 +102,7 @@ fun EpisodeBrowser(
                             }
                         ) {
                             Text("Previous Episode")
-                            ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
+                            ApiImage(it.episodeImageId, loadImage = viewModel.imageLoader)
                             Text(it.details)
                         }
                     }
@@ -111,7 +114,7 @@ fun EpisodeBrowser(
                             }
                         ) {
                             Text("Next Episode")
-                            ApiImage(it.episodeImageId, loadImage = viewModel::loadImage)
+                            ApiImage(it.episodeImageId, loadImage = viewModel.imageLoader)
                             Text(it.details)
                         }
                     }
