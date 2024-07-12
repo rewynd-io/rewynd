@@ -16,6 +16,8 @@ import io.rewynd.api.BaseHarness
 import io.rewynd.api.plugins.configureSession
 import io.rewynd.api.util.getNextEpisodeInSeason
 import io.rewynd.common.database.Database
+import io.rewynd.common.database.Database.Companion.LIST_EPISODES_MAX_SIZE
+import io.rewynd.common.database.Paged
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerUser
@@ -106,11 +108,12 @@ internal class EpisodeControllerTest : StringSpec({
         Harness.arb.checkAllRun {
             coEvery {
                 db.listEpisodesByLastUpdated(
-                    cursor?.toEpochMilliseconds(),
+                    episodes.size.toLong(),
+                    LIST_EPISODES_MAX_SIZE,
                     libraryIds,
                     ListEpisodesByLastUpdatedOrder.Oldest,
                 )
-            } returns episodes
+            } returns Paged(episodes, episodes.size.toLong())
 
             testCall(
                 {
@@ -118,7 +121,7 @@ internal class EpisodeControllerTest : StringSpec({
                         ListEpisodesByLastUpdatedRequest(
                             ListEpisodesByLastUpdatedOrder.Oldest,
                             libraryIds,
-                            cursor = cursor?.toString(),
+                            cursor = episodes.size.toLong(),
                         ),
                     )
                 },
@@ -128,28 +131,8 @@ internal class EpisodeControllerTest : StringSpec({
                 body() shouldBe
                     ListEpisodesByLastUpdatedResponse(
                         episodes.map(ServerEpisodeInfo::toEpisodeInfo),
-                        episodes.maxByOrNull { it.lastUpdated }?.lastUpdated?.toString(),
+                        episodes.size.toLong()
                     )
-            }
-        }
-    }
-
-    "listByLastUpdated IllegalArgumentException" {
-        Harness.arb.checkAllRun {
-            testCall(
-                {
-                    listEpisodesByLastUpdated(
-                        ListEpisodesByLastUpdatedRequest(
-                            ListEpisodesByLastUpdatedOrder.Oldest,
-                            libraryIds,
-                            "abc",
-                        ),
-                    )
-                },
-                setup = { setupApp(db) },
-            ) {
-                status shouldBe HttpStatusCode.BadRequest.value
-                coVerify(inverse = true) { db.listEpisodesByLastUpdated(any(), any(), any()) }
             }
         }
     }

@@ -32,34 +32,34 @@ fun HomeBrowser(
                 "Libraries",
                 libraries,
                 Library::name,
+                viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { null },
-                viewModel.imageLoader,
                 onNavigateToLibrary,
             )
             HomeRow(
                 "Continue Watching",
                 latestEpisodes,
                 { media.details },
+                viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { media.episodeImageId },
-                viewModel.imageLoader,
             ) { onNavigateToEpisode(it.media) }
             HomeRow(
                 "Next Up",
                 nextEpisodes,
                 { media.details },
+                viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { media.episodeImageId },
-                viewModel.imageLoader,
             ) { onNavigateToEpisode(it.media) }
             HomeRow(
                 "New Additions",
                 newestEpisodes,
                 { details },
+                viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { episodeImageId },
-                viewModel.imageLoader,
             ) { onNavigateToEpisode(it) }
         }
     }

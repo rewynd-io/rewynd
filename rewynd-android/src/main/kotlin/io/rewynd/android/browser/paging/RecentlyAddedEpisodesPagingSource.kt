@@ -8,10 +8,10 @@ import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 
-class RecentlyAddedEpisodesPagingSource(val client: RewyndClient) : PagingSource<String, EpisodeInfo>() {
-    override fun getRefreshKey(state: PagingState<String, EpisodeInfo>): String? = null
+class RecentlyAddedEpisodesPagingSource(val client: RewyndClient) : PagingSource<Long, EpisodeInfo>() {
+    override fun getRefreshKey(state: PagingState<Long, EpisodeInfo>): Long? = null
 
-    override suspend fun load(params: LoadParams<String>): LoadResult<String, EpisodeInfo> {
+    override suspend fun load(params: LoadParams<Long>): LoadResult<Long, EpisodeInfo> {
         val response = client.listEpisodesByLastUpdated(
             ListEpisodesByLastUpdatedRequest(
                 order = ListEpisodesByLastUpdatedOrder.Newest

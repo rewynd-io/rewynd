@@ -285,6 +285,7 @@ open class SqlDatabase(
                 it[Episodes.location] = episode.fileInfo.location.let(Json.Default::encodeToString)
                 it[Episodes.size] = episode.fileInfo.size
                 it[Episodes.lastUpdated] = episode.lastUpdated.toEpochMilliseconds()
+                it[Episodes.lastModified] = episode.lastModified.toEpochMilliseconds()
                 it[Episodes.libraryId] = episode.libraryId
                 it[Episodes.audioTracks] = episode.audioTracks.let(Json.Default::encodeToString)
                 it[Episodes.videoTracks] = episode.videoTracks.let(Json.Default::encodeToString)
@@ -333,45 +334,27 @@ open class SqlDatabase(
 
     override suspend fun listEpisodesByLastUpdated(
         cursor: Long?,
+        limit: Int,
         libraryIds: List<String>?,
         order: ListEpisodesByLastUpdatedOrder,
-    ): List<ServerEpisodeInfo> =
+    ): Paged<ServerEpisodeInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
+            val offset = cursor ?: 0
             Episodes.selectAll().let { query ->
-                when {
-                    cursor != null && libraryIds != null -> {
-                        query.where {
-                            when (order) {
-                                ListEpisodesByLastUpdatedOrder.Newest -> Episodes.lastUpdated.less(cursor)
-                                ListEpisodesByLastUpdatedOrder.Oldest -> Episodes.lastUpdated.greater(cursor)
-                            } and Episodes.libraryId.inList(libraryIds)
-                        }
-                    }
-
-                    cursor == null && libraryIds != null -> {
-                        query.where {
-                            Episodes.libraryId.inList(libraryIds)
-                        }
-                    }
-
-                    cursor != null && libraryIds == null -> {
-                        query.where {
-                            when (order) {
-                                ListEpisodesByLastUpdatedOrder.Newest -> Episodes.lastUpdated.less(cursor)
-                                ListEpisodesByLastUpdatedOrder.Oldest -> Episodes.lastUpdated.greater(cursor)
-                            }
-                        }
-                    }
-
-                    else -> query
+                if (libraryIds != null) {
+                    query.where { Episodes.libraryId.inList(libraryIds) }
+                } else {
+                    query
                 }
             }.orderBy(
-                Episodes.lastUpdated,
+                Episodes.lastModified,
                 when (order) {
                     ListEpisodesByLastUpdatedOrder.Newest -> SortOrder.DESC
                     ListEpisodesByLastUpdatedOrder.Oldest -> SortOrder.ASC
                 },
-            ).limit(LIST_EPISODES_MAX_SIZE).take(LIST_EPISODES_MAX_SIZE).map { it.toServerEpisodeInfo() }
+            ).limit(limit, offset).take(LIST_EPISODES_MAX_SIZE).map { it.toServerEpisodeInfo() }.let {
+                Paged(it, cursor = offset + it.size)
+            }
         }
 
     override suspend fun getMovie(movieId: String): ServerMovieInfo? {
@@ -652,6 +635,7 @@ open class SqlDatabase(
         val size = long("size")
 
         val lastUpdated = long("lastUpdated")
+        val lastModified = long("lastModified")
         val libraryId = text("library_id").references(Libraries.libraryId)
 
         val audioTracks = text("audio_tracks")
@@ -828,6 +812,7 @@ open class SqlDatabase(
                 aired = this[Episodes.aired]?.toDouble(),
                 episodeImageId = this[Episodes.episodeImageId],
                 lastUpdated = Instant.fromEpochMilliseconds(this[Episodes.lastUpdated]),
+                lastModified = Instant.fromEpochMilliseconds(this[Episodes.lastModified]),
                 fileInfo =
                 FileInfo(
                     location = this[Episodes.location].let(Json.Default::decodeFromString),

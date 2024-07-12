@@ -1,8 +1,6 @@
 package io.rewynd.android.component
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -16,16 +14,16 @@ import io.rewynd.android.model.ImageId
 @Composable
 fun ApiImage(
     imageId: String?,
-    modifier: Modifier = Modifier,
     loadImage: ImageLoader,
+    modifier: Modifier = Modifier,
 ) {
     imageId?.let {
         AsyncImage(
             model =
-                ImageRequest
-                    .Builder(LocalContext.current)
-                    .data(ImageId(it))
-                    .build(),
+            ImageRequest
+                .Builder(LocalContext.current)
+                .data(ImageId(it))
+                .build(),
             contentDescription = null, // TODO set description
             imageLoader = loadImage,
             placeholder = painterResource(R.drawable.rewynd_default_media_icon),

@@ -36,6 +36,7 @@ openApiGenerate {
     apiPackage = "io.rewynd.client"
     modelPackage = "io.rewynd.model"
     configOptions.put("library", "multiplatform")
+    configOptions.put("generateOneOfAnyOfWrappers", "true")
     additionalProperties.put("dateLibrary", "kotlinx-datetime")
 }
 

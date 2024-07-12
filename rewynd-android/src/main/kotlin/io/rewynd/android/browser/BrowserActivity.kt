@@ -1,7 +1,6 @@
 package io.rewynd.android.browser
 
 import android.content.Intent
-import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
@@ -33,7 +32,6 @@ class BrowserActivity : AppCompatActivity() {
             ),
         )
     }
-
 
     override fun onResume() {
         super.onResume()

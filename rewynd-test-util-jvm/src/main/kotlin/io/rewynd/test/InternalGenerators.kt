@@ -155,6 +155,7 @@ object InternalGenerators {
                 subtitleTracks = (string to serverSubtitlesTrack).map().bind(),
                 subtitleFileTracks = (string to subtitleFileTrack).map().bind(),
                 lastUpdated = instant.bind(),
+                lastModified = instant.bind(),
             )
         }
 

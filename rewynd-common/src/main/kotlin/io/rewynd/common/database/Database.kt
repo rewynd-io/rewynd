@@ -16,6 +16,8 @@ import io.rewynd.model.Library
 import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import kotlinx.datetime.Instant
 
+data class Paged<T>(val data: List<T>, val cursor: Long? = null)
+
 sealed interface Database {
     suspend fun init()
 
@@ -78,9 +80,10 @@ sealed interface Database {
 
     suspend fun listEpisodesByLastUpdated(
         cursor: Long?,
-        libraryIds: List<String>?,
-        order: ListEpisodesByLastUpdatedOrder,
-    ): List<ServerEpisodeInfo>
+        limit: Int = LIST_EPISODES_MAX_SIZE,
+        libraryIds: List<String>? = null,
+        order: ListEpisodesByLastUpdatedOrder = ListEpisodesByLastUpdatedOrder.Newest,
+    ): Paged<ServerEpisodeInfo>
 
     suspend fun getMovie(movieId: String): ServerMovieInfo?
 

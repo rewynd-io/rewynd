@@ -811,7 +811,8 @@ paths:
 components:
   schemas:
     ListEpisodesByLastUpdatedCursor:
-      type: string
+      type: integer
+      format: int64
 
     ListEpisodesByLastUpdatedOrder:
       type: string
@@ -841,6 +842,8 @@ components:
           $ref: "#/components/schemas/ListEpisodesByLastUpdatedOrder"
         cursor:
           $ref: "#/components/schemas/ListEpisodesByLastUpdatedCursor"
+        limit:
+          type: integer
       required:
         - order
 
@@ -1086,6 +1089,8 @@ components:
           $ref: "#/components/schemas/ImageId"
         lastUpdated:
           $ref: "#/components/schemas/Timestamp"
+        lastModified:
+          $ref: "#/components/schemas/Timestamp"
       required:
         - id
         - seasonId
@@ -1097,6 +1102,7 @@ components:
         - videoTracks
         - subtitleTracks
         - lastUpdated
+        - lastModified
 
     MovieInfo:
       type: object

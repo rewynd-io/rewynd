@@ -1,7 +1,6 @@
 import {
   EpisodeInfo,
   Library,
-  ListEpisodesByLastUpdatedOrder,
   NextEpisodeOrder,
   Progress,
 } from "@rewynd.io/rewynd-client-typescript";
@@ -18,6 +17,7 @@ import "../util";
 import { isNotNil, loadAllLibraries } from "../util";
 import { ApiImage } from "./Image";
 import { Link } from "./Link";
+import { usePages } from "../Pagination";
 
 interface ProgressedEpisodeInfo {
   readonly episode: EpisodeInfo;
@@ -30,7 +30,16 @@ export function Home() {
   const [libraries, setLibraries] = useState<Library[]>([]);
   const [episodes, setEpisodes] = useState<ProgressedEpisodeInfo[]>([]);
   const [nextEpisodes, setNextEpisodes] = useState<ProgressedEpisodeInfo[]>([]);
-  const [newestEpisodes, setNewestEpisodes] = useState<EpisodeInfo[]>([]);
+  const [newestEpisodes] = usePages<EpisodeInfo, number>(
+    async (cursor) => {
+      const res = await HttpClient.listEpisodesByLastUpdated({
+        listEpisodesByLastUpdatedRequest: { cursor: cursor, order: "Newest" },
+      });
+      return [res.episodes, res.cursor];
+    },
+    undefined,
+    100,
+  );
 
   useEffect(() => {
     loadAllLibraries().then(setLibraries);
@@ -64,16 +73,6 @@ export function Home() {
             .toArray(),
         ),
       );
-
-    console.log("retrieving newest episodes");
-    HttpClient.listEpisodesByLastUpdated({
-      listEpisodesByLastUpdatedRequest: {
-        order: ListEpisodesByLastUpdatedOrder.Newest,
-      },
-    }).then((it) => {
-      console.log("Retrieved newest episodes");
-      setNewestEpisodes(it.episodes);
-    });
 
     HttpClient.listProgress({
       listProgressRequest: {

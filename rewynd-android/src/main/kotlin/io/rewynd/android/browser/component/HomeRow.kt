@@ -1,6 +1,5 @@
 package io.rewynd.android.browser.component
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -13,9 +12,6 @@ import androidx.paging.compose.LazyPagingItems
 import coil3.ImageLoader
 import io.rewynd.android.browser.items
 import io.rewynd.android.component.ApiImage
-import io.rewynd.android.component.DefaultMediaIcon
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 
 private const val DIVISOR = 4
 private const val REMAINDER = DIVISOR - 1
@@ -25,9 +21,9 @@ fun <Item : Any> HomeRow(
     title: String,
     libraries: LazyPagingItems<Item>,
     nameAccessor: Item.() -> String,
+    loadImage: ImageLoader,
     modifier: Modifier = Modifier,
     imageIdAccessor: Item.() -> String? = { null },
-    loadImage: ImageLoader,
     onNavigateToLibrary: (Item) -> Unit = {}
 ) {
     BoxWithConstraints(modifier) Inner@{
@@ -41,8 +37,8 @@ fun <Item : Any> HomeRow(
                         }) {
                             ApiImage(
                                 it.imageIdAccessor(),
-                                modifier = Modifier.height((this@Item.maxHeight / DIVISOR) * REMAINDER),
                                 loadImage = loadImage,
+                                modifier = Modifier.height((this@Item.maxHeight / DIVISOR) * REMAINDER),
                             )
                             Text(modifier = Modifier.height((this@Item.maxHeight / DIVISOR)), text = it.nameAccessor())
                         }

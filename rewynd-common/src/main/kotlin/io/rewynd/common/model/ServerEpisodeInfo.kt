@@ -34,6 +34,7 @@ data class ServerEpisodeInfo(
     val audioTracks: Map<String, ServerAudioTrack>,
     val subtitleTracks: Map<String, ServerSubtitleTrack>,
     val subtitleFileTracks: Map<String, SubtitleFileTrack>,
+    val lastModified: Instant,
     val lastUpdated: Instant,
 ) {
     fun toEpisodeInfo() =
@@ -64,6 +65,7 @@ data class ServerEpisodeInfo(
             aired = aired,
             episodeImageId = episodeImageId,
             lastUpdated = lastUpdated,
+            lastModified = lastModified
         )
 
     fun toServerMediaInfo(): ServerMediaInfo =

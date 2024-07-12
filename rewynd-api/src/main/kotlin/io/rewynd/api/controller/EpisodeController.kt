@@ -1,6 +1,5 @@
 package io.rewynd.api.controller
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
@@ -11,6 +10,7 @@ import io.ktor.server.routing.post
 import io.rewynd.api.util.getFirstEpisodeInNextSeason
 import io.rewynd.api.util.getNextEpisodeInSeason
 import io.rewynd.common.database.Database
+import io.rewynd.common.database.Database.Companion.LIST_EPISODES_MAX_SIZE
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.GetNextEpisodeResponse
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
@@ -18,9 +18,6 @@ import io.rewynd.model.ListEpisodesByLastUpdatedResponse
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
 import io.rewynd.model.NextEpisodeOrder
-import kotlinx.datetime.Instant
-
-private val log = KotlinLogging.logger { }
 
 @Suppress("LongMethod")
 fun Route.episodeRoutes(db: Database) {
@@ -32,27 +29,19 @@ fun Route.episodeRoutes(db: Database) {
     }
     post("/episode/listByLastUpdated") {
         call.receive<ListEpisodesByLastUpdatedRequest>().let { request ->
-            try {
-                val cursor = request.cursor?.let { it1 -> Instant.parse(it1) }
-                val episodes =
-                    db.listEpisodesByLastUpdated(
-                        cursor?.toEpochMilliseconds(),
-                        request.libraryIds,
-                        request.order,
-                    )
-                val res =
-                    ListEpisodesByLastUpdatedResponse(
-                        cursor =
-                        episodes.maxByOrNull { it.lastUpdated }
-                            ?.lastUpdated
-                            ?.toString(),
-                        episodes = episodes.map { it.toEpisodeInfo() },
-                    )
-                call.respond(HttpStatusCode.OK, res)
-            } catch (e: IllegalArgumentException) {
-                log.error(e) { "Error while getting episodes" }
-                call.respond(HttpStatusCode.BadRequest, "Invalid cursor: ${request.cursor}")
-            }
+            val episodes =
+                db.listEpisodesByLastUpdated(
+                    request.cursor?.coerceAtLeast(0),
+                    request.limit ?: LIST_EPISODES_MAX_SIZE,
+                    request.libraryIds,
+                    request.order,
+                )
+            val res =
+                ListEpisodesByLastUpdatedResponse(
+                    episodes.data.map { it.toEpisodeInfo() },
+                    episodes.cursor,
+                )
+            call.respond(HttpStatusCode.OK, res)
         }
     }
     get("/episode/get/{episodeId}") {

@@ -36,8 +36,10 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.fold
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
@@ -273,9 +275,10 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                         }
                 }.mapNotNull { it.value }
             val episodeImageFile = episodeFile.findEpisodeImage()
+            val lastModified = episodeFile.lastModified()
             val ffprobe =
                 curr?.let {
-                    if (episodeFile.lastModified() < it.lastUpdated.toEpochMilliseconds()) {
+                    if (lastModified < it.lastUpdated.toEpochMilliseconds()) {
                         it.toFfprobeInfo()
                     } else {
                         null
@@ -318,9 +321,12 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                             fileInfo =
                             FileInfo(
                                 location = FileLocation.LocalFile(episodeFile.absolutePath),
-                                size = Files.size(episodeFile.toPath()),
+                                size = withContext(Dispatchers.IO) {
+                                    Files.size(episodeFile.toPath())
+                                },
                             ),
                             subtitleFileTracks = subtitleFileTracks,
+                            lastModified = lastModified.let(Instant.Companion::fromEpochMilliseconds),
                             lastUpdated = Clock.System.now(),
                         ),
                     ),

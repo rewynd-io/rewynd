@@ -138,11 +138,12 @@ class SqliteDatabase(
 
     override suspend fun listEpisodesByLastUpdated(
         cursor: Long?,
+        limit: Int,
         libraryIds: List<String>?,
         order: ListEpisodesByLastUpdatedOrder,
-    ): List<ServerEpisodeInfo> =
+    ): Paged<ServerEpisodeInfo> =
         mutex.withLock {
-            super.listEpisodesByLastUpdated(cursor, libraryIds, order)
+            super.listEpisodesByLastUpdated(cursor, limit, libraryIds, order)
         }
 
     override suspend fun getMovie(movieId: String): ServerMovieInfo? {
