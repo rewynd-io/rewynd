@@ -387,10 +387,10 @@ export function HlsPlayer(props: HlsPlayerProps) {
             duration={duration}
             available={available}
             buffered={
-              ref.current?.buffered?.length ?? 0 >= 1
-                ? ref.current?.buffered?.end(
+              (ref.current?.buffered?.length ?? 0 >= 1)
+                ? (ref.current?.buffered?.end(
                     ref.current?.buffered?.length - 1,
-                  ) ?? 0
+                  ) ?? 0)
                 : 0
             }
             onSeek={async (desiredStreamTimestamp) => {
