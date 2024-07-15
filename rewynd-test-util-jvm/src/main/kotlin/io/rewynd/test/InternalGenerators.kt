@@ -10,6 +10,7 @@ import io.kotest.property.arbitrary.choice
 import io.kotest.property.arbitrary.double
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.map
+import io.kotest.property.kotlinx.datetime.date
 import io.rewynd.common.cache.queue.JobId
 import io.rewynd.common.model.FileInfo
 import io.rewynd.common.model.FileLocation
@@ -42,6 +43,8 @@ import net.kensand.kielbasa.kotest.property.Generators.boolean
 import net.kensand.kielbasa.kotest.property.Generators.double
 import net.kensand.kielbasa.kotest.property.Generators.duration
 import net.kensand.kielbasa.kotest.property.Generators.instant
+import net.kensand.kielbasa.kotest.property.Generators.int
+import net.kensand.kielbasa.kotest.property.Generators.localDate
 import net.kensand.kielbasa.kotest.property.Generators.long
 import net.kensand.kielbasa.kotest.property.Generators.string
 import net.kensand.kielbasa.kotest.property.Generators.urlEncodedBase64
@@ -142,12 +145,12 @@ object InternalGenerators {
                 writer = string.list().nullable().bind(),
                 credits = string.list().nullable().bind(),
                 rating = double.nullable().bind(),
-                year = double.nullable().bind(),
-                episode = double.nullable().bind(),
-                episodeNumberEnd = double.nullable().bind(),
-                season = double.nullable().bind(),
-                showName = string.nullable().bind(),
-                aired = double.nullable().bind(),
+                year = int.nullable().bind(),
+                episode = int.bind(),
+                episodeNumberEnd = int.nullable().bind(),
+                season = int.bind(),
+                showName = string.bind(),
+                aired = localDate.nullable().bind(),
                 episodeImageId = string.nullable().bind(),
                 fileInfo = fileInfo.bind(),
                 videoTracks = (string to serverVideoTrack).map().bind(),
@@ -176,18 +179,18 @@ object InternalGenerators {
                 plot = string.nullable().bind(),
                 outline = string.nullable().bind(),
                 originalTitle = string.nullable().bind(),
-                premiered = string.nullable().bind(),
-                releaseDate = string.nullable().bind(),
-                endDate = string.nullable().bind(),
+                premiered = localDate.nullable().bind(),
+                releaseDate = localDate.nullable().bind(),
+                endDate = localDate.nullable().bind(),
                 mpaa = string.nullable().bind(),
                 imdbId = string.nullable().bind(),
                 tmdbId = string.nullable().bind(),
                 tvdbId = string.nullable().bind(),
                 tvRageId = string.nullable().bind(),
                 rating = double.nullable().bind(),
-                year = double.nullable().bind(),
+                year = int.nullable().bind(),
                 runTime = double.nullable().bind(),
-                aired = double.nullable().bind(),
+                aired = localDate.nullable().bind(),
                 genre = string.nullable().bind(),
                 studio = string.nullable().bind(),
                 status = string.nullable().bind(),

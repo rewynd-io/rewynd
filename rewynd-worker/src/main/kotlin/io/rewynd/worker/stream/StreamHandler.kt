@@ -27,15 +27,9 @@ private val log by lazy { KotlinLogging.logger { } }
 fun mkStreamJobHandler(cache: Cache): StreamJobHandler =
     { context ->
         val originalStreamProps = context.request
-        val streamProps =
-            originalStreamProps.copy(
-                startOffset =
-                if (originalStreamProps.videoTrack?.canCopy == true) {
-                    findPriorKeyframe(originalStreamProps)
-                } else {
-                    originalStreamProps.startOffset
-                },
-            )
+        val streamProps = originalStreamProps.copy(
+            startOffset = findPriorKeyframe(originalStreamProps)
+        )
         log.info { "Requested: ${originalStreamProps.startOffset}, starting at: ${streamProps.startOffset}" }
 
         val metadataHelper = StreamMetadataHelper(streamProps, context.jobId, cache)

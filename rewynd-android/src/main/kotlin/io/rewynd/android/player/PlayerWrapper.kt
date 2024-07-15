@@ -28,6 +28,7 @@ import kotlinx.datetime.Clock
 import okhttp3.OkHttpClient
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class PlayerWrapper(
     context: Context,
@@ -64,6 +65,12 @@ class PlayerWrapper(
                 super.onEvents(player, events)
                 currentPlayerTime.value = player.currentPosition.milliseconds
                 bufferedPosition.value = player.bufferedPosition.milliseconds
+                val m = media.value
+                if (m != null && currentOffsetTime >= m.runTime.minus(1.seconds)) {
+                    runBlocking {
+                        onNext(this@PlayerWrapper)
+                    }
+                }
                 onEvent()
             }
 
@@ -84,7 +91,7 @@ class PlayerWrapper(
                 this@PlayerWrapper.playbackState.value = playbackState
                 runBlocking {
                     when (playbackState) {
-                        Player.STATE_ENDED -> this@PlayerWrapper.media.value?.let { onNext(this@PlayerWrapper) }
+                        Player.STATE_ENDED -> {}
                         Player.STATE_BUFFERING -> {}
                         Player.STATE_IDLE -> {}
                         Player.STATE_READY -> {}

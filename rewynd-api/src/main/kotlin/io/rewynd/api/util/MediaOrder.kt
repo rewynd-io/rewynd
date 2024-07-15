@@ -5,9 +5,6 @@ import io.rewynd.common.database.listAllEpisodes
 import io.rewynd.common.database.listAllSeasons
 import io.rewynd.common.model.ServerEpisodeInfo
 import kotlinx.coroutines.flow.toList
-import java.text.Collator
-import java.util.Comparator
-import java.util.Locale
 
 suspend fun getFirstEpisodeInNextSeason(
     db: Database,
@@ -29,14 +26,14 @@ suspend fun getFirstEpisodeInNextSeason(
                     chosenIndex + (if (reverse) -1 else 1),
                 )
             }
-        }?.let { season -> db.listEpisodes(season.seasonInfo.id) }?.sort()
+        }?.let { season -> db.listEpisodes(season.seasonInfo.id) }?.sorted()
         ?.let { if (reverse) it.lastOrNull() else it.firstOrNull() }
 
 suspend fun getNextEpisodeInSeason(
     db: Database,
     serverEpisodeInfo: ServerEpisodeInfo,
     reverse: Boolean = false,
-) = db.listAllEpisodes(serverEpisodeInfo.seasonId).toList().sort().let { seasonEpisodes ->
+) = db.listAllEpisodes(serverEpisodeInfo.seasonId).toList().sorted().let { seasonEpisodes ->
     val chosenIndex =
         seasonEpisodes.indexOfFirst {
             it.id == serverEpisodeInfo.id
@@ -48,23 +45,4 @@ suspend fun getNextEpisodeInSeason(
             chosenIndex + (if (reverse) -1 else 1),
         )
     }
-}
-
-fun List<ServerEpisodeInfo>.sort() =
-    if (this.all { it.episode != null }) {
-        this.sortedBy { it.episode }
-    } else {
-        // TODO take Locale as an argument
-        this.sortedWith(
-            ServerEpisodeInfoComparator(),
-        )
-    }
-
-class ServerEpisodeInfoComparator(locale: Locale = Locale.US) : Comparator<ServerEpisodeInfo> {
-    private val collator = Collator.getInstance(locale).apply { strength = Collator.PRIMARY }
-
-    override fun compare(
-        p0: ServerEpisodeInfo,
-        p1: ServerEpisodeInfo,
-    ): Int = collator.compare(p0.title, p1.title)
 }

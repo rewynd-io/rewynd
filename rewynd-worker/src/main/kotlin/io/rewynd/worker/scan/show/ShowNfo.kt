@@ -11,7 +11,7 @@ data class ShowNfo(
     val title: String?,
     val originaltitle: String?,
     val rating: Number?,
-    val year: Number?,
+    val year: Int?,
     // TODO could probably be an enum
     val mpaa: String?,
     // TODO use annotation to fix name

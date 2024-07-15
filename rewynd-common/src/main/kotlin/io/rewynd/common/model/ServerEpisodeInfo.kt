@@ -6,6 +6,7 @@ import io.rewynd.common.toVideoTracks
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.MediaInfo
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -22,12 +23,12 @@ data class ServerEpisodeInfo(
     val writer: List<String>? = null,
     val credits: List<String>? = null,
     val rating: Double? = null,
-    val year: Double? = null,
-    val episode: Double? = null,
-    val episodeNumberEnd: Double? = null,
-    val season: Double? = null,
-    val showName: String? = null,
-    val aired: Double? = null,
+    val year: Int? = null,
+    val episode: Int,
+    val episodeNumberEnd: Int? = null,
+    val season: Int,
+    val showName: String,
+    val aired: LocalDate? = null,
     val episodeImageId: String? = null,
     val fileInfo: FileInfo,
     val videoTracks: Map<String, ServerVideoTrack>,
@@ -36,7 +37,7 @@ data class ServerEpisodeInfo(
     val subtitleFileTracks: Map<String, SubtitleFileTrack>,
     val lastModified: Instant,
     val lastUpdated: Instant,
-) {
+) : Comparable<ServerEpisodeInfo> {
     fun toEpisodeInfo() =
         EpisodeInfo(
             id = id,
@@ -93,4 +94,7 @@ data class ServerEpisodeInfo(
             subtitleTracks = subtitleTracks + subtitleFileTracks.mapValues { it.value.track },
             subtitleFiles = subtitleFileTracks.mapValues { it.value.location },
         )
+
+    override fun compareTo(other: ServerEpisodeInfo): Int =
+        this.episode.compareTo(other.episode)
 }

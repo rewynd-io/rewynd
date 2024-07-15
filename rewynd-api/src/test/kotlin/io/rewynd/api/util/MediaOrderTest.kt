@@ -13,27 +13,10 @@ import io.rewynd.test.list
 import io.rewynd.test.uniqueBy
 
 internal class MediaOrderTest : StringSpec({
-
-    "sort by episode number" {
-        checkAll(InternalGenerators.serverEpisodeInfo.list()) {
-            val expected = it.mapIndexed { index, ep -> ep.copy(episode = index.toDouble()) }
-            expected.shuffled().sort() shouldBe expected
-        }
-    }
-
-    "sort by name" {
-        val alphabet = "abcdefghijklmnopqrstuvwxyz"
-        checkAll(InternalGenerators.serverEpisodeInfo.list(alphabet.toList().indices)) { episodes ->
-            val expected =
-                episodes.mapIndexed { index, ep -> ep.copy(episode = null, title = alphabet[index].toString()) }
-            expected.shuffled().sort() shouldBe expected
-        }
-    }
-
     "next episode in season" {
         checkAll(InternalGenerators.serverEpisodeInfo.list(1..10)) { episodes ->
             val uniqueEpisodes = episodes.uniqueBy { it.id }
-            val sortedEpisodes = uniqueEpisodes.sort()
+            val sortedEpisodes = uniqueEpisodes.sorted()
             val selected = sortedEpisodes.indices.random()
             val db =
                 mockk<Database> {

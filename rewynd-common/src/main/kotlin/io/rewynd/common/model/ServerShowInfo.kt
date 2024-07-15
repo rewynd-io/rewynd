@@ -3,6 +3,7 @@ package io.rewynd.common.model
 import io.rewynd.common.SerializableInstant
 import io.rewynd.model.Actor
 import io.rewynd.model.ShowInfo
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,18 +14,18 @@ data class ServerShowInfo(
     val plot: String? = null,
     val outline: String? = null,
     val originalTitle: String? = null,
-    val premiered: String? = null,
-    val releaseDate: String? = null,
-    val endDate: String? = null,
+    val premiered: LocalDate? = null,
+    val releaseDate: LocalDate? = null,
+    val endDate: LocalDate? = null,
     val mpaa: String? = null,
     val imdbId: String? = null,
     val tmdbId: String? = null,
     val tvdbId: String? = null,
     val tvRageId: String? = null,
     val rating: Double? = null,
-    val year: Double? = null,
+    val year: Int? = null,
     val runTime: Double? = null,
-    val aired: Double? = null,
+    val aired: LocalDate? = null,
     val genre: String? = null,
     val studio: String? = null,
     val status: String? = null,

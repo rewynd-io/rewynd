@@ -7,6 +7,7 @@ import io.rewynd.common.toVideoTracks
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.MovieInfo
 import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -24,12 +25,12 @@ data class ServerMovieInfo(
     val rating: Double? = null,
     val criticRating: Double? = null,
     val mpaa: Double? = null,
-    val premiered: String? = null,
+    val premiered: LocalDate? = null,
     val tagLine: String? = null,
     val country: String? = null,
     val genre: String? = null,
-    val releaseDate: String? = null,
-    val year: Double? = null,
+    val releaseDate: LocalDate? = null,
+    val year: Int? = null,
     val episodeImageId: String? = null,
     val lastUpdated: SerializableInstant = Clock.System.now(),
     val fileInfo: FileInfo,

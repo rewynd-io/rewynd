@@ -46,7 +46,7 @@ fun Application.module(
     configureMonitoring()
     configureSerialization()
 
-    configureSession(db, false) // TODO make config for this
+    configureSession(db, true) // TODO make config for this
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->

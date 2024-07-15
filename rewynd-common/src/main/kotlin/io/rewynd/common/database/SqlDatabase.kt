@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -48,7 +49,6 @@ import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.upsert
 import java.util.UUID
-import kotlin.math.roundToInt
 import org.jetbrains.exposed.sql.Database as Connection
 
 open class SqlDatabase(
@@ -185,18 +185,18 @@ open class SqlDatabase(
                 it[Shows.plot] = show.plot
                 it[Shows.outline] = show.outline
                 it[Shows.originalTitle] = show.originalTitle
-                it[Shows.premiered] = show.premiered
-                it[Shows.releaseDate] = show.releaseDate
-                it[Shows.endDate] = show.endDate
+                it[Shows.premiered] = show.premiered?.toString()
+                it[Shows.releaseDate] = show.releaseDate?.toString()
+                it[Shows.endDate] = show.endDate?.toString()
                 it[Shows.mpaa] = show.mpaa
                 it[Shows.imdbId] = show.imdbId
                 it[Shows.tmdbId] = show.tmdbId
                 it[Shows.tvdbId] = show.tvdbId
                 it[Shows.tvRageId] = show.tvRageId
                 it[Shows.rating] = show.rating
-                it[Shows.year] = show.year?.roundToInt()
+                it[Shows.year] = show.year
                 it[Shows.runTime] = show.runTime
-                it[Shows.aired] = show.aired
+                it[Shows.aired] = show.aired?.toString()
                 it[Shows.genre] = show.genre
                 it[Shows.studio] = show.studio
                 it[Shows.status] = show.status
@@ -237,12 +237,12 @@ open class SqlDatabase(
             Seasons.upsert(Seasons.seasonId) {
                 it[Seasons.seasonId] = season.seasonInfo.id
                 it[Seasons.showId] = season.seasonInfo.showId
-                it[Seasons.seasonNumber] = season.seasonInfo.seasonNumber.roundToInt()
+                it[Seasons.seasonNumber] = season.seasonInfo.seasonNumber
                 it[Seasons.libraryId] = season.libraryData.libraryId
-                it[Seasons.showName] = season.seasonInfo.showName ?: "" // TODO should not be nullable in spec
-                it[Seasons.year] = season.seasonInfo.year?.roundToInt()
-                it[Seasons.premiered] = season.seasonInfo.premiered
-                it[Seasons.releaseDate] = season.seasonInfo.releaseDate
+                it[Seasons.showName] = season.seasonInfo.showName
+                it[Seasons.year] = season.seasonInfo.year
+                it[Seasons.premiered] = season.seasonInfo.premiered?.toString()
+                it[Seasons.releaseDate] = season.seasonInfo.releaseDate?.toString()
                 it[Seasons.folderImageId] = season.seasonInfo.folderImageId
                 it[Seasons.actors] = season.seasonInfo.actors?.let(Json.Default::encodeToString)
                 it[Seasons.libraryId] = season.libraryData.libraryId
@@ -278,9 +278,8 @@ open class SqlDatabase(
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Episodes.upsert(Episodes.episodeId) {
                 it[Episodes.showId] = episode.showId
-                it[Episodes.showName] = episode.showName ?: "" // TODO should not be nullable in spec
+                it[Episodes.showName] = episode.showName
                 it[Episodes.seasonId] = episode.seasonId
-                it[Episodes.season] = episode.season?.roundToInt() ?: 0 // TODO should not be nullable in spec
                 it[Episodes.episodeId] = episode.id
                 it[Episodes.location] = episode.fileInfo.location.let(Json.Default::encodeToString)
                 it[Episodes.size] = episode.fileInfo.size
@@ -299,12 +298,12 @@ open class SqlDatabase(
                 it[Episodes.writers] = episode.writer?.let(Json.Default::encodeToString)
                 it[Episodes.credits] = episode.credits?.let(Json.Default::encodeToString)
                 it[Episodes.rating] = episode.rating
-                it[Episodes.year] = episode.year?.roundToInt()
+                it[Episodes.year] = episode.year
                 it[Episodes.episode] =
-                    episode.episode?.roundToInt() ?: 0 // TODO should not be nullable in spec
-                it[Episodes.episodeNumberEnd] = episode.episodeNumberEnd?.roundToInt()
-                it[Episodes.season] = episode.season?.roundToInt() ?: 0 // TODO should not be nullable in spec
-                it[Episodes.aired] = episode.aired
+                    episode.episode
+                it[Episodes.episodeNumberEnd] = episode.episodeNumberEnd
+                it[Episodes.season] = episode.season
+                it[Episodes.aired] = episode.aired?.toString()
                 it[Episodes.episodeImageId] = episode.episodeImageId
             }.insertedCount == 1
         }
@@ -615,7 +614,7 @@ open class SqlDatabase(
         val episode = integer("episode").nullable()
         val episodeNumberEnd = integer("episode_number_end").nullable()
         val season = integer("season").nullable()
-        val aired = double("aired").nullable()
+        val aired = text("aired").nullable()
         val genre = text("genre").nullable()
         val studio = text("studio").nullable()
         val status = text("status").nullable()
@@ -655,7 +654,7 @@ open class SqlDatabase(
         val episode = integer("episode")
         val episodeNumberEnd = integer("premiered").nullable()
         val season = integer("season")
-        val aired = double("aired").nullable()
+        val aired = text("aired").nullable()
         val episodeImageId = text("episode_image_id").references(Images.imageId).nullable()
     }
 
@@ -746,18 +745,18 @@ open class SqlDatabase(
                 plot = this[Shows.plot],
                 outline = this[Shows.outline],
                 originalTitle = this[Shows.originalTitle],
-                premiered = this[Shows.premiered],
-                releaseDate = this[Shows.releaseDate],
-                endDate = this[Shows.endDate],
+                premiered = this[Shows.premiered]?.let(LocalDate::parse),
+                releaseDate = this[Shows.releaseDate]?.let(LocalDate::parse),
+                endDate = this[Shows.endDate]?.let(LocalDate::parse),
                 mpaa = this[Shows.mpaa],
                 imdbId = this[Shows.imdbId],
                 tmdbId = this[Shows.tmdbId],
                 tvdbId = this[Shows.tvdbId],
                 tvRageId = this[Shows.tvRageId],
                 rating = this[Shows.rating],
-                year = this[Shows.year]?.toDouble(),
+                year = this[Shows.year],
                 runTime = this[Shows.runTime],
-                aired = this[Shows.aired]?.toDouble(),
+                aired = this[Shows.aired]?.let(LocalDate::parse),
                 genre = this[Shows.genre],
                 studio = this[Shows.studio],
                 status = this[Shows.status],
@@ -774,12 +773,12 @@ open class SqlDatabase(
                 SeasonInfo(
                     id = this[Seasons.seasonId],
                     showId = this[Seasons.showId],
-                    seasonNumber = this[Seasons.seasonNumber].toDouble(),
+                    seasonNumber = this[Seasons.seasonNumber],
                     libraryId = this[Seasons.libraryId],
                     showName = this[Seasons.showName],
-                    year = this[Seasons.year]?.toDouble(),
-                    premiered = this[Seasons.premiered],
-                    releaseDate = this[Seasons.releaseDate],
+                    year = this[Seasons.year],
+                    premiered = this[Seasons.premiered]?.let(LocalDate.Companion::parse),
+                    releaseDate = this[Seasons.releaseDate]?.let(LocalDate.Companion::parse),
                     folderImageId = this[Seasons.folderImageId],
                     actors = this[Seasons.actors]?.let(Json.Default::decodeFromString),
                 ),
@@ -804,12 +803,12 @@ open class SqlDatabase(
                 writer = this[Episodes.writers]?.let(Json.Default::decodeFromString),
                 credits = this[Episodes.credits]?.let(Json.Default::decodeFromString),
                 rating = this[Episodes.rating],
-                year = this[Episodes.year]?.toDouble(),
-                episode = this[Episodes.episode].toDouble(),
-                episodeNumberEnd = this[Episodes.episodeNumberEnd]?.toDouble(),
-                season = this[Episodes.season].toDouble(),
+                year = this[Episodes.year],
+                episode = this[Episodes.episode],
+                episodeNumberEnd = this[Episodes.episodeNumberEnd],
+                season = this[Episodes.season],
                 showName = this[Episodes.showName],
-                aired = this[Episodes.aired]?.toDouble(),
+                aired = this[Episodes.aired]?.let(LocalDate::parse),
                 episodeImageId = this[Episodes.episodeImageId],
                 lastUpdated = Instant.fromEpochMilliseconds(this[Episodes.lastUpdated]),
                 lastModified = Instant.fromEpochMilliseconds(this[Episodes.lastModified]),

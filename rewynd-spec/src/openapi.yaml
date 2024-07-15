@@ -950,13 +950,16 @@ components:
         originalTitle:
           type: string
         premiered:
-          type: string # TODO should be Date
+          type: string
+          format: date
         releaseDate:
-          type: string # TODO should be Date
+          type: string
+          format: date
         endDate:
-          type: string # TODO should be Date
+          type: string
+          format: date
         mpaa:
-          type: string # TODO should be enum?
+          type: string
         imdbId:
           type: string
         tmdbId:
@@ -968,11 +971,12 @@ components:
         rating:
           type: number
         year:
-          type: number
+          type: integer
         runTime:
           type: number
         aired:
-          type: number # TODO should be a date
+          type: string
+          format: date
         genre:
           type: string
         studio:
@@ -1008,13 +1012,15 @@ components:
         showName:
           type: string
         year:
-          type: number
+          type: integer
         premiered:
-          type: string # TODO should be a date
+          type: string
+          format: date
         releaseDate:
-          type: string # TODO should be a date
+          type: string
+          format: date
         seasonNumber:
-          type: number
+          type: integer
         folderImageId:
           $ref: "#/components/schemas/ImageId"
         actors:
@@ -1072,19 +1078,20 @@ components:
         rating:
           type: number
         year:
-          type: number
+          type: integer
         runTime:
           type: number
         episode:
-          type: number
+          type: integer
         episodeNumberEnd:
-          type: number
+          type: integer
         season:
-          type: number
+          type: integer
         showName:
           type: string
         aired:
-          type: number # TODO should be a date
+          type: string
+          format: date
         episodeImageId:
           $ref: "#/components/schemas/ImageId"
         lastUpdated:
@@ -1094,7 +1101,10 @@ components:
       required:
         - id
         - seasonId
+        - season
         - showId
+        - showName
+        - episode
         - libraryId
         - title
         - runTime
@@ -1151,6 +1161,7 @@ components:
           type: number
         premiered:
           type: string
+          format: date
         tagLine:
           type: string
         country:
@@ -1159,8 +1170,9 @@ components:
           type: string
         releaseDate:
           type: string
+          format: date
         year:
-          type: number
+          type: integer
         runTime:
           type: number
         episodeImageId:

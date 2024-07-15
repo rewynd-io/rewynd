@@ -27,7 +27,9 @@ export function SeasonBrowser() {
                 <Stack direction={"column"}>
                   <Typography>{seasonInfo.showName}</Typography>
                   <Typography>Season {seasonInfo.seasonNumber}</Typography>
-                  <Typography>{seasonInfo.releaseDate}</Typography>
+                  <Typography>
+                    {seasonInfo.releaseDate?.toDateString()}
+                  </Typography>
                 </Stack>
               </Stack>
               <Grid

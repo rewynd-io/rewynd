@@ -11,6 +11,7 @@ import io.kotest.property.arbitrary.double
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.string
 import io.kotest.property.exhaustive.enum
+import io.kotest.property.kotlinx.datetime.date
 import io.rewynd.model.Actor
 import io.rewynd.model.AudioTrack
 import io.rewynd.model.CreateStreamRequest
@@ -40,6 +41,8 @@ import net.kensand.kielbasa.kotest.property.Generators.boolean
 import net.kensand.kielbasa.kotest.property.Generators.double
 import net.kensand.kielbasa.kotest.property.Generators.duration
 import net.kensand.kielbasa.kotest.property.Generators.instant
+import net.kensand.kielbasa.kotest.property.Generators.int
+import net.kensand.kielbasa.kotest.property.Generators.localDate
 import net.kensand.kielbasa.kotest.property.Generators.string
 
 object ApiGenerators {
@@ -71,12 +74,12 @@ object ApiGenerators {
             SeasonInfo(
                 id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
                 showId = string.bind(),
-                seasonNumber = double.bind(),
+                seasonNumber = int.bind(),
                 libraryId = string.bind(),
                 showName = string.bind(),
-                year = double.nullable().bind(),
-                premiered = string.nullable().bind(),
-                releaseDate = string.nullable().bind(),
+                year = int.nullable().bind(),
+                premiered = localDate.nullable().bind(),
+                releaseDate = localDate.nullable().bind(),
                 folderImageId = string.nullable().bind(),
                 actors = actor.list().bind(),
             )

@@ -57,7 +57,7 @@ export function EpisodeBrowser() {
                 </Stack>
                 <Typography>{episode.plot}</Typography>
                 <Typography>{episode.outline}</Typography>
-                <Typography>{episode.aired}</Typography>
+                <Typography>{episode.aired?.toDateString()}</Typography>
                 <Typography>Rating: {episode.rating}</Typography>
                 {episode.credits?.map((actor) => (
                   <Typography key={actor}>{actor}</Typography>

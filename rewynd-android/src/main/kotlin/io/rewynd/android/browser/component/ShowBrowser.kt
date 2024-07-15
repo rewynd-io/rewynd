@@ -43,14 +43,14 @@ fun ShowBrowser(
             Text(showInfo.title, color = Color.White)
         }
         (showInfo.plot ?: showInfo.outline)?.let { Text(it, color = Color.White) }
-        showInfo.premiered?.let { Text(it, color = Color.White) }
+        showInfo.premiered?.let { Text(it.toString(), color = Color.White) }
         LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 150.dp)) {
             items(seasons) {
                 Card(onClick = {
                     actions.season(it)
                 }) {
                     ApiImage(it.folderImageId, loadImage = viewModel.imageLoader)
-                    Text(text = "Season ${it.seasonNumber.toInt()}")
+                    Text(text = "Season ${it.seasonNumber}")
                 }
             }
         }

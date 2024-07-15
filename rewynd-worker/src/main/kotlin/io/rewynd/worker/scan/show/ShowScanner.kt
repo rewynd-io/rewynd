@@ -40,6 +40,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
@@ -54,7 +55,6 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 import kotlin.io.path.readText
-import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -157,16 +157,16 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 plot = nfo?.plot,
                 outline = nfo?.outline,
                 originalTitle = nfo?.originaltitle,
-                premiered = nfo?.premiered,
-                releaseDate = nfo?.releasedate,
-                endDate = nfo?.enddate,
+                premiered = nfo?.premiered?.let(LocalDate::parse),
+                releaseDate = nfo?.releasedate?.let(LocalDate::parse),
+                endDate = nfo?.enddate?.let(LocalDate::parse),
                 mpaa = nfo?.mpaa,
                 imdbId = nfo?.imdb_id,
                 tmdbId = nfo?.tmdbid,
                 tvdbId = nfo?.tvdbid,
                 tvRageId = nfo?.tvrageid,
                 rating = nfo?.rating?.toDouble(),
-                year = nfo?.year?.toDouble(),
+                year = nfo?.year,
                 runTime = nfo?.runTime?.toDouble(),
                 genre = nfo?.genre,
                 studio = nfo?.studio,
@@ -212,12 +212,12 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                 SeasonInfo(
                     id = seasonId,
                     showId = showInfo.id,
-                    seasonNumber = (nfo?.seasonnumber ?: seasonDir.name.parseSeasonNumber() ?: 0).toDouble(),
+                    seasonNumber = (nfo?.seasonnumber ?: seasonDir.name.parseSeasonNumber() ?: 0),
                     libraryId = lib.name,
                     showName = showInfo.title,
-                    year = nfo?.year?.toDouble(),
-                    premiered = nfo?.premiered,
-                    releaseDate = nfo?.releasedate,
+                    year = nfo?.year,
+                    premiered = nfo?.premiered?.let(LocalDate::parse),
+                    releaseDate = nfo?.releasedate?.let(LocalDate::parse),
                     folderImageId = folderImage?.imageId,
                     actors = listOf(),
                 ),
@@ -290,6 +290,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                     }
                 }
             if (ffprobe != null && ffprobe.videoTracks.isNotEmpty() && ffprobe.runTime > 1.0) {
+                val title = nfo?.title ?: episodeFile.nameWithoutExtension
                 ShowScanResults(
                     images = setOfNotNull(episodeImageFile),
                     episodes =
@@ -302,7 +303,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                             subtitleTracks = ffprobe.subtitleTracks,
                             showId = showInfo.id,
                             seasonId = seasonInfo.seasonInfo.id,
-                            title = nfo?.title ?: episodeFile.nameWithoutExtension,
+                            title = title,
                             runTime = ffprobe.runTime,
                             plot = nfo?.plot,
                             outline = nfo?.outline,
@@ -310,13 +311,12 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                             writer = nfo?.writer,
                             credits = nfo?.credits,
                             rating = nfo?.rating,
-                            year = nfo?.year?.toDouble(),
-                            episode = nfo?.episode?.toDouble(),
-                            episodeNumberEnd = nfo?.episodenumberend?.toDouble(),
+                            year = nfo?.year,
+                            episode = nfo?.episode ?: parseEpisodeNumber(title) ?: 0,
+                            episodeNumberEnd = nfo?.episodenumberend,
                             season = seasonInfo.seasonInfo.seasonNumber,
                             showName = showInfo.title,
-                            // TODO nfo?.aired is and should be a string, not a double
-                            aired = null,
+                            aired = nfo?.aired?.let(LocalDate.Companion::parse),
                             episodeImageId = episodeImageFile?.imageId,
                             fileInfo =
                             FileInfo(
@@ -340,6 +340,14 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
         }.also {
             log.info { "Processed ${episodeFile.absolutePath}" }
         }
+
+    private fun parseEpisodeNumber(title: String): Int? =
+        Regex("([eE]\\d\\d)")
+            .findAll(title)
+            .lastOrNull()
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.toIntOrNull()
 
     private val xmlMapper =
         XmlMapper().apply {
@@ -441,7 +449,7 @@ private fun ServerSeasonInfo.toDocument() =
         add(StoredField("type", SearchResultType.Season.name))
     }
 
-private fun SeasonInfo.formatTitle() = "$showName - Season ${seasonNumber.roundToInt()}"
+private fun SeasonInfo.formatTitle() = "$showName - Season $seasonNumber"
 
 private fun ServerEpisodeInfo.toDocument() =
     Document().apply {
@@ -462,12 +470,12 @@ private fun ServerShowInfo.toDocument() =
     }
 
 private fun ServerEpisodeInfo.formatTitle() =
-    "$showName - S${"%02d".format(season?.roundToInt() ?: 0)}E${
+    "$showName - S${"%02d".format(season)}E${
         "%02d".format(
-            episode?.roundToInt() ?: 0,
+            episode,
         )
     }${
         episodeNumberEnd?.let {
-            "-%02d".format(it.roundToInt())
+            "-%02d".format(it)
         } ?: ""
     } - $title"
