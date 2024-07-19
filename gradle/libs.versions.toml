@@ -53,7 +53,7 @@ nodeGradle = "7.0.2"
 lettuce = "6.3.2.RELEASE"
 margarita = "0.1.0"
 okio = "3.9.0"
-kotlinx-kover = "0.8.2"
+kotlinx-kover = "0.8.3"
 
 # Used for versions outside libraries/plugins
 compose = "1.6.11"
