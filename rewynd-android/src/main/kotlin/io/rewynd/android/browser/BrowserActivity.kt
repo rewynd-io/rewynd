@@ -3,6 +3,8 @@ package io.rewynd.android.browser
 import android.content.Intent
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
@@ -39,12 +41,14 @@ class BrowserActivity : AppCompatActivity() {
             val navController = rememberNavController()
             val state = intent.getBundleExtra(BROWSER_STATE)
             navController.restoreState(state)
-            BrowserRouter(
-                navController,
-                BrowserNavigationActions(navController),
-                viewModel,
-                mkStartPlayerHandler(navController)
-            )
+            MaterialTheme(colorScheme = darkColorScheme()) {
+                BrowserRouter(
+                    navController,
+                    BrowserNavigationActions(navController),
+                    viewModel,
+                    mkStartPlayerHandler(navController),
+                )
+            }
         }
     }
 

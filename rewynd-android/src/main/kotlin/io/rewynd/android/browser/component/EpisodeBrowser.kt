@@ -15,8 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserViewModel
+import io.rewynd.android.browser.IBrowserNavigationActions
 import io.rewynd.android.component.ApiImage
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.android.util.details
@@ -28,7 +28,7 @@ fun EpisodeBrowser(
     episodeInfo: EpisodeInfo,
     viewModel: BrowserViewModel,
     startPlayer: (PlayerMedia) -> Unit,
-    actions: BrowserNavigationActions,
+    actions: IBrowserNavigationActions,
     modifier: Modifier = Modifier
 ) {
     val progressState by viewModel.getProgress(episodeInfo.id).collectAsStateWithLifecycle(null)

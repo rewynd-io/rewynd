@@ -39,6 +39,7 @@ import io.rewynd.common.database.Database
 private val log by lazy { KotlinLogging.logger { } }
 
 fun Application.module(
+    apiSettings: ApiSettings,
     db: Database,
     cache: Cache,
 ) {
@@ -46,7 +47,7 @@ fun Application.module(
     configureMonitoring()
     configureSerialization()
 
-    configureSession(db, true) // TODO make config for this
+    configureSession(db, apiSettings.secureSession)
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->

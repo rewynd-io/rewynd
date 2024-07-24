@@ -10,13 +10,15 @@ fun main(): Unit =
     runBlocking {
         val cache = Cache.fromConfig()
         val db = Database.fromConfig()
+        val apiSettings = ApiSettings.fromConfig()
         db.init()
 
-        runApi(db, cache)
+        runApi(apiSettings, db, cache)
     }
 
 fun runApi(
+    apiSettings: ApiSettings,
     db: Database,
     cache: Cache,
-) = embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = { module(db, cache) })
+) = embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = { module(apiSettings, db, cache) })
     .start(wait = true)

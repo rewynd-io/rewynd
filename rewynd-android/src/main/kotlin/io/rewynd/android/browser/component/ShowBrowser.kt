@@ -15,8 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
-import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserViewModel
+import io.rewynd.android.browser.IBrowserNavigationActions
 import io.rewynd.android.browser.items
 import io.rewynd.android.component.ApiImage
 import io.rewynd.model.ShowInfo
@@ -25,7 +25,7 @@ import io.rewynd.model.ShowInfo
 fun ShowBrowser(
     showInfo: ShowInfo,
     viewModel: BrowserViewModel,
-    actions: BrowserNavigationActions,
+    actions: IBrowserNavigationActions,
     modifier: Modifier = Modifier
 ) {
     val seasons = remember { viewModel.listSeasons(showInfo.id) }.collectAsLazyPagingItems()

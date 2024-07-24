@@ -230,43 +230,41 @@ private fun List<Cue>.takeRemaining(newStartOffset: Duration) =
 private fun mkSubtitleCommand(streamProps: StreamProps): List<String>? {
     val track = streamProps.mediaInfo.subtitleTracks[streamProps.subtitleStreamName]
     val file = streamProps.mediaInfo.subtitleFiles[streamProps.subtitleStreamName]
-    val args =
-        if (file != null) {
-            listOf(
-                "ffmpeg",
-                "-loglevel",
-                "quiet",
-                "-accurate_seek",
-                "-ss",
-                streamProps.startOffset.partialSecondsString,
-                "-i",
-                file.toFfmpegUri(),
-                "-c:s:0",
-                "webvtt",
-                "-f",
-                "webvtt",
-                "pipe:1",
-            )
-        } else if (track != null) {
-            listOf(
-                "ffmpeg",
-                "-loglevel",
-                "quiet",
-                "-accurate_seek",
-                "-ss",
-                streamProps.startOffset.partialSecondsString,
-                "-i",
-                streamProps.mediaInfo.fileInfo.location.toFfmpegUri(),
-                "-c:s:${track.index}",
-                "webvtt",
-                "-f",
-                "webvtt",
-                "pipe:1",
-            )
-        } else {
-            null
-        }
-    return args
+    return if (file != null) {
+        listOf(
+            "ffmpeg",
+            "-loglevel",
+            "quiet",
+            "-accurate_seek",
+            "-ss",
+            streamProps.startOffset.partialSecondsString,
+            "-i",
+            file.toFfmpegUri(),
+            "-c:s:0",
+            "webvtt",
+            "-f",
+            "webvtt",
+            "pipe:1",
+        )
+    } else if (track != null) {
+        listOf(
+            "ffmpeg",
+            "-loglevel",
+            "quiet",
+            "-accurate_seek",
+            "-ss",
+            streamProps.startOffset.partialSecondsString,
+            "-i",
+            streamProps.mediaInfo.fileInfo.location.toFfmpegUri(),
+            "-c:s:${track.index}",
+            "webvtt",
+            "-f",
+            "webvtt",
+            "pipe:1",
+        )
+    } else {
+        null
+    }
 }
 
 private fun Long.leftPad(length: Int = 2) =

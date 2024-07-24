@@ -43,6 +43,10 @@ sealed interface BrowserState {
     @Serializable
     @Parcelize
     data object HomeState : BrowserState, Parcelable
+
+    @Serializable
+    @Parcelize
+    data object SearchState : BrowserState, Parcelable
 }
 
 class SerializableParceler<T : Any>(private val serializer: KSerializer<T>) : Parceler<T> {
