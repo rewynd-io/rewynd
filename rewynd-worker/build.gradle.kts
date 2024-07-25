@@ -85,6 +85,7 @@ tasks.shadowJar {
     }
     archiveVersion.set("")
     mergeServiceFiles()
+    append("reference.conf") // Join reference files. This might not be the best way of handling it, but it works...
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
