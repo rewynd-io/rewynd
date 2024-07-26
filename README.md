@@ -2,10 +2,14 @@
 ![Woodpecker CI pipeline status badge](https://woodpecker-codeberg.kensand.net/api/badges/7/status.svg)![License badge](https://img.shields.io/badge/License-AGPL--v3-blue)![Release badge](https://img.shields.io/gitea/v/release/rewynd-io/rewynd?gitea_url=https%3A%2F%2Fcodeberg.org
 )
 
+<div style="background: yellow;">
+<h2 style="color: darkred"><strong>Warning:</strong> Rewynd is in ALPHA state. Things will break.</h2>
+</div>
+
 Rewynd is a self-hosted media streaming server akin to Jellyfin, Plex, or Emby. Rewynd is scalabe and supports multiple implementations of  databases and caches.
 
 An Android app and web UI is supported, and an iOS app is planned.
-
+  
 ## Running
 
 ### Docker Omni Image
