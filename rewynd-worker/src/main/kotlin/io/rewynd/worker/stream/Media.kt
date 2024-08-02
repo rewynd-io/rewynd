@@ -149,16 +149,15 @@ private val StreamProps.ffmpegArgs
             FFMPEG_END
         )
 
-val ServerVideoTrack.key: String
-    get() = "-c:v:${this.index}"
-val ServerAudioTrack.key: String
-    get() = "-c:a:${this.index}"
 val ServerAudioTrack.filterKey: String
     get() = "-filter:a:${this.index}"
-val ServerVideoTrack.defaultVideoTrackProps: List<String>
+
+val ServerVideoTrack.mkDefaultVideoTrackProps: List<String>
     get() =
         listOf(
-            key,
+            "-map",
+            "0:$index",
+            "-c:v",
             "h264",
             "-preset",
             "medium",
@@ -208,20 +207,31 @@ val StreamProps.videoTrack: ServerVideoTrack?
         mediaInfo.videoTracks[it]
     }
 
-val StreamProps.mkVideoTrackProps: List<String>
-    get() =
-        videoTrack?.mkVideoTrackProps ?: listOf(
-            "-vf",
-            "drawbox=color=black:t=fill",
-            "-video_size",
-            "1x1",
-        )
+val StreamProps.audioTrack: ServerAudioTrack?
+    get() = audioStreamName?.let {
+        mediaInfo.audioTracks[it]
+    }
 
-val ServerVideoTrack.copyProps
-    get() = listOf(key, "copy")
+val StreamProps.mkVideoTrackProps: List<String>
+    get() = videoTrack?.mkVideoTrackProps ?: listOf(
+        "-map",
+        "0:v",
+        "-vf",
+        "drawbox=color=black:t=fill",
+        "-video_size",
+        "1x1",
+    )
+
+val ServerVideoTrack.videoCopyProps
+    get() = listOf(
+        "-map",
+        "0:$index",
+        "-c:v",
+        "copy"
+    )
 
 val ServerVideoTrack.canCopy: Boolean
-    get() = mkVideoTrackProps == copyProps
+    get() = mkVideoTrackProps == videoCopyProps
 
 val ServerVideoTrack.mkVideoTrackProps
     get() =
@@ -230,28 +240,28 @@ val ServerVideoTrack.mkVideoTrackProps
             "h264" -> mkH264TrackProps
             "h265" -> mkH265TrackProps
             "hevc" -> mkHevcTrackProps
-            else -> defaultVideoTrackProps
+            else -> mkDefaultVideoTrackProps
         }
 
 val ServerVideoTrack.mkAv1TrackProps
     get() =
         if (pixFmt?.lowercase() in supportedPixelFormats) {
-            copyProps
+            videoCopyProps
         } else {
-            defaultVideoTrackProps
+            mkDefaultVideoTrackProps
         }
 
 val ServerVideoTrack.mkH264TrackProps
     get() =
         if (pixFmt?.lowercase() in supportedPixelFormats) {
-            copyProps
+            videoCopyProps
         } else {
-            defaultVideoTrackProps
+            mkDefaultVideoTrackProps
         }
 
-val ServerVideoTrack.mkHevcTrackProps get() = defaultVideoTrackProps
+val ServerVideoTrack.mkHevcTrackProps get() = mkDefaultVideoTrackProps
 
-val ServerVideoTrack.mkH265TrackProps get() = defaultVideoTrackProps
+val ServerVideoTrack.mkH265TrackProps get() = mkDefaultVideoTrackProps
 
 val supportedPixelFormats =
     setOf(
@@ -265,21 +275,36 @@ val supportedPixelFormats =
 
 val StreamProps.mkAudioTrackProps: List<String>
     get() =
-        audioStreamName?.let {
-            mediaInfo.audioTracks[it]?.let { audioTrack ->
-                when (audioTrack.codecName?.lowercase()) {
-                    "aac",
-                    "ac3",
-                    "vorbis",
-                    "mp3",
-                    -> listOf(audioTrack.key, "copy")
+        audioTrack?.let {
+            it.mkAudioTrackProps + (normalization?.mkNormalizationProps(it) ?: emptyList())
+        } ?: listOf("-an")
 
-                    else -> listOf(audioTrack.key, "aac")
-                } + (normalization?.mkNormalizationProps(audioTrack) ?: emptyList())
-            }
-        } ?: listOf(
-            "-an",
-        )
+val ServerAudioTrack.mkAudioTrackProps
+    get() = when (codecName?.lowercase()) {
+        "aac",
+        "ac3",
+        "vorbis",
+        "mp3",
+        -> mkCopyAudioTrackProps
+
+        else -> mkDefaultAudioTrackProps
+    }
+
+val ServerAudioTrack.mkCopyAudioTrackProps
+    get() = listOf(
+        "-map",
+        "0:$index",
+        "-c:a",
+        "copy"
+    )
+
+val ServerAudioTrack.mkDefaultAudioTrackProps
+    get() = listOf(
+        "-map",
+        "0:$index",
+        "-c:a",
+        "aac"
+    )
 
 private fun NormalizationProps.mkNormalizationProps(audioTrack: ServerAudioTrack): List<String> =
     when (method) {
