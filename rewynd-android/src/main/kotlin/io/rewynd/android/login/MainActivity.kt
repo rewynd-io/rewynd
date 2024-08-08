@@ -19,8 +19,8 @@ class MainActivity : AppCompatActivity() {
         MainViewModel(this.application)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onResume() {
+        super.onResume()
 
         setContent {
             val loginState by viewModel.loginState.collectAsState()
