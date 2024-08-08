@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/no-namespace: 0 */
 /* eslint @typescript-eslint/no-empty-interface: 0 */
+/* eslint @typescript-eslint/no-empty-object-type: 0 */
 
 import { User as ClientUser } from "@rewynd.io/rewynd-client-typescript";
 
