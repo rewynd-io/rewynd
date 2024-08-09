@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.9.1"
-agp = "8.5.1"
+agp = "8.5.2"
 androidx-junit = "1.2.1"
 annotation = "1.8.2"
 appcompat = "1.7.0"
