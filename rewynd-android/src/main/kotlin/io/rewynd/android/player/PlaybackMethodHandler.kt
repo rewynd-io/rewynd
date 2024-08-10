@@ -11,6 +11,7 @@ object PlaybackMethodHandler {
     ): PlayerMedia? =
         when (playerMedia) {
             is PlayerMedia.Episode -> EpisodePlaybackMethodHandler.next(client, playerMedia)
+            is PlayerMedia.Movie -> null
         }
 
     suspend fun prev(
@@ -19,5 +20,6 @@ object PlaybackMethodHandler {
     ): PlayerMedia? =
         when (playerMedia) {
             is PlayerMedia.Episode -> EpisodePlaybackMethodHandler.prev(client, playerMedia)
+            is PlayerMedia.Movie -> null
         }
 }

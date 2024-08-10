@@ -11,6 +11,7 @@ import coil3.ImageLoader
 import io.ktor.http.HttpStatusCode
 import io.rewynd.android.browser.paging.EpisodesPagingSource
 import io.rewynd.android.browser.paging.LibraryPagingSource
+import io.rewynd.android.browser.paging.MoviesPagingSource
 import io.rewynd.android.browser.paging.NextEpisodesPagingSource
 import io.rewynd.android.browser.paging.RecentlyAddedEpisodesPagingSource
 import io.rewynd.android.browser.paging.RecentlyWatchedEpisodesPagingSource
@@ -33,12 +34,13 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
+import net.kensand.kielbasa.coroutines.coRunCatching
 import org.openapitools.client.infrastructure.HttpResponse
 
 @OptIn(FlowPreview::class)
@@ -83,6 +85,12 @@ class BrowserViewModel(
             pagingSourceFactory = { ShowsPagingSource(libraryName, client) },
         ).flow.cachedIn(viewModelScope)
 
+    fun listMovies(libraryName: String) =
+        Pager(
+            config = PAGING_CONFIG,
+            pagingSourceFactory = { MoviesPagingSource(libraryName, client) },
+        ).flow.cachedIn(viewModelScope)
+
     fun listSeasons(showId: String) =
         Pager(
             config = PAGING_CONFIG,
@@ -106,6 +114,8 @@ class BrowserViewModel(
     fun getSeason(id: String) = getState(id, client::getSeasons)
 
     fun getShow(id: String) = getState(id, client::getShow)
+
+    fun getMovie(id: String) = getState(id, client::getMovie)
 
     fun getLibrary(id: String) = getState(id, client::getLibrary)
 
@@ -137,19 +147,26 @@ class BrowserViewModel(
                             .parMap {
                                 when (it.resultType) {
                                     SearchResultType.Episode ->
-                                        LoadedSearchResult.Episode(
-                                            it,
-                                            client.getEpisode(it.id).body(),
-                                        )
+                                        getEpisode(it.id).firstOrNull()?.let { episode ->
+                                            LoadedSearchResult.Episode(
+                                                it,
+                                                episode,
+                                            )
+                                        }
 
                                     SearchResultType.Season ->
-                                        LoadedSearchResult.Season(
-                                            it,
-                                            client.getSeasons(it.id).body(),
-                                        )
+                                        getSeason(it.id).firstOrNull()?.let { season ->
+                                            LoadedSearchResult.Season(
+                                                it,
+                                                season,
+                                            )
+                                        }
 
-                                    SearchResultType.Show -> LoadedSearchResult.Show(it, client.getShow(it.id).body())
-                                    SearchResultType.Movie -> null // TODO Support Movies
+                                    SearchResultType.Show -> getShow(it.id).firstOrNull()
+                                        ?.let { show -> LoadedSearchResult.Show(it, show) }
+
+                                    SearchResultType.Movie -> getMovie(it.id).firstOrNull()
+                                        ?.let { movie -> LoadedSearchResult.Movie(it, movie) }
                                 }
                             }.filterNotNull()
                             .toList()
@@ -167,8 +184,8 @@ fun <Id, Response : Any> getState(
     id: Id,
     func: suspend (Id) -> HttpResponse<Response>,
 ) = flow {
-    val res = func(id)
-    when (res.status) {
+    val res = coRunCatching { func(id) }.getOrNull()
+    when (res?.status) {
         HttpStatusCode.OK.value -> {
             emit(res.body())
         }

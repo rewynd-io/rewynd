@@ -46,6 +46,39 @@ fun SearchResultCard(
                 actions,
                 Modifier.height(maxHeight / HEIGHT_DIVISOR)
             )
+
+            is LoadedSearchResult.Movie -> MovieSearchResultCard(
+                result,
+                imageLoader,
+                actions,
+                Modifier.height(maxHeight / HEIGHT_DIVISOR)
+            )
+        }
+    }
+}
+
+@Composable
+private fun MovieSearchResultCard(
+    result: LoadedSearchResult.Movie,
+    imageLoader: ImageLoader,
+    actions: IBrowserNavigationActions,
+    modifier: Modifier = Modifier,
+) {
+    Card(onClick = {
+        actions.movie(result.media)
+    }, modifier = modifier) {
+        BoxWithConstraints {
+            Row {
+                ApiImage(
+                    result.media.posterImageId,
+                    imageLoader,
+                    Modifier.width(this@BoxWithConstraints.maxWidth / WIDTH_DIVISOR),
+                )
+                Column {
+                    Text(result.result.title)
+                    Text(result.result.description)
+                }
+            }
         }
     }
 }

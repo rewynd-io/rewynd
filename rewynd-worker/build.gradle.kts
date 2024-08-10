@@ -32,6 +32,7 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.lettuce.core)
     implementation(libs.kotlin.logging)
+    implementation(libs.kielbasa.coroutines)
 
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)

@@ -3,6 +3,7 @@ package io.rewynd.android.browser
 import androidx.navigation.NavHostController
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.Library
+import io.rewynd.model.MovieInfo
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.ShowInfo
 
@@ -12,6 +13,7 @@ interface IBrowserNavigationActions {
     fun episode(episodeInfo: EpisodeInfo)
     fun library(library: Library)
     fun show(showInfo: ShowInfo)
+    fun movie(movieInfo: MovieInfo)
     fun season(seasonInfo: SeasonInfo)
     fun wrap(wrapper: (BrowserState) -> Unit): IBrowserNavigationActions = object : IBrowserNavigationActions {
         override fun home() {
@@ -32,6 +34,11 @@ interface IBrowserNavigationActions {
         override fun library(library: Library) {
             wrapper(BrowserState.LibraryState(library))
             this@IBrowserNavigationActions.library(library)
+        }
+
+        override fun movie(movieInfo: MovieInfo) {
+            wrapper(BrowserState.MovieState(movieInfo))
+            this@IBrowserNavigationActions.movie(movieInfo)
         }
 
         override fun show(showInfo: ShowInfo) {
@@ -74,6 +81,16 @@ class BrowserNavigationActions(private val navController: NavHostController) : I
     }
 
     override fun library(library: Library) = BrowserState.LibraryState(library).let {
+        navController.navigate(it) {
+            popUpTo(it) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    override fun movie(movieInfo: MovieInfo) = BrowserState.MovieState(movieInfo).let {
         navController.navigate(it) {
             popUpTo(it) {
                 saveState = true

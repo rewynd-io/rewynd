@@ -120,6 +120,14 @@ class StreamHeartbeat(
                     audioTrackName = audioTrackName,
                     normalizationMethod = normalizationMethod,
                 )
+            is PlayerMedia.Movie ->
+                this.copy(
+                    startOffset = startOffset,
+                    videoTrackName = videoTrackName,
+                    subtitleTrackName = subtitleTrackName,
+                    audioTrackName = audioTrackName,
+                    normalizationMethod = normalizationMethod,
+                )
         }
     }
 }

@@ -8,6 +8,7 @@ import io.ktor.util.decodeBase64String
 import io.ktor.util.encodeBase64
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.Library
+import io.rewynd.model.MovieInfo
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.ShowInfo
 import kotlinx.parcelize.Parceler
@@ -35,6 +36,10 @@ sealed interface BrowserState {
     @Serializable
     @Parcelize
     class ShowState(@TypeParceler<ShowInfo, ShowParceler> val showInfo: ShowInfo) : BrowserState, Parcelable
+
+    @Serializable
+    @Parcelize
+    class MovieState(@TypeParceler<MovieInfo, MovieParceler> val movieInfo: MovieInfo) : BrowserState, Parcelable
 
     @Serializable
     @Parcelize
@@ -77,6 +82,15 @@ class ShowParceler : Parceler<ShowInfo> {
     }
 
     override fun create(parcel: Parcel): ShowInfo =
+        Json.decodeFromString(requireNotNull(parcel.readString()).decodeBase64String())
+}
+
+class MovieParceler : Parceler<MovieInfo> {
+    override fun MovieInfo.write(parcel: Parcel, flags: Int) {
+        parcel.writeString(Json.encodeToString(this).encodeBase64())
+    }
+
+    override fun create(parcel: Parcel): MovieInfo =
         Json.decodeFromString(requireNotNull(parcel.readString()).decodeBase64String())
 }
 

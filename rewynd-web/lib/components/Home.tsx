@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import { ButtonLink } from "./ButtonLink";
 import { WebRoutes } from "../routes";
 import { NavBar } from "./NavBar";
-import { Box, Grid, Typography } from "@mui/material";
+import { Grid, Stack, Typography } from "@mui/material";
 import { List } from "immutable";
 import { cardWidth, HttpClient } from "../const";
 import { EpisodeCard } from "./browser/card/EpisodeCard";
@@ -142,31 +142,27 @@ export function Home() {
         </Grid>
         <Grid
           container
-          xs={2}
           direction={"row"}
           justifyContent={"flex-start"}
           wrap={"nowrap"}
-          sx={{ overflowX: "scroll", maxWidth: undefined }}
-          minHeight={"15em"}
-          width={"100%"}
+          sx={{ overflowX: "scroll" }}
+          height={"15em"}
         >
           {libEntries.map((libEntry) => {
             return (
-              <Box sx={{ minWidth: cardWidth }} key={libEntry.name}>
-                <ButtonLink
-                  to={libEntry.route}
-                  style={{ minHeight: "12em", width: "100%" }}
-                >
+              <Stack
+                key={libEntry.name}
+                sx={{ width: cardWidth }}
+                direction={"column"}
+              >
+                <ButtonLink to={libEntry.route} sx={{ width: "100%" }}>
                   {/* TODO display random image from Library */}
-                  <ApiImage
-                    alt={libEntry.name}
-                    sx={{ minHeight: "12em", width: "100%" }}
-                  ></ApiImage>
+                  <ApiImage alt={libEntry.name} sx={{ height: "12em" }} />
                 </ButtonLink>
                 <Link to={libEntry.route}>
                   <Typography align={"center"}>{libEntry.name}</Typography>
                 </Link>
-              </Box>
+              </Stack>
             );
           })}
         </Grid>

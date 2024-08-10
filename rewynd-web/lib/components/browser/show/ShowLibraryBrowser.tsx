@@ -39,9 +39,8 @@ export function ShowLibraryBrowser() {
                       key={showEpisodeInfo.id}
                       to={WebRoutes.formatShowRoute(showEpisodeInfo.id)}
                       sx={{
-                        width: "100%",
                         height: "100%",
-                        minHeight: cardWidth,
+                        width: cardWidth,
                       }}
                     >
                       <ApiImage

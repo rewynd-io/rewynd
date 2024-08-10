@@ -368,16 +368,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Library"
 
-  /api/movie/list/{libraryId}:
-    get:
+  /api/movie/list:
+    post:
       operationId: listMovies
-      parameters:
-        - name: libraryId
-          in: path
-          required: true
-          description: "The id for the desired LibraryInfo."
-          schema:
-            $ref: "#/components/schemas/LibraryId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListMoviesRequest"
       security:
         - CookieAuth: []
       responses:
@@ -386,9 +384,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MovieInfo"
+                $ref: "#/components/schemas/ListMoviesResponse"
 
   /api/movie/get/{movieId}:
     get:
@@ -860,6 +856,31 @@ components:
       required:
         - libraryId
 
+    ListMoviesCursor:
+      type: string
+
+    ListMoviesRequest:
+      type: object
+      properties:
+        libraryId:
+          $ref: "#/components/schemas/LibraryId"
+        cursor:
+          $ref: "#/components/schemas/ListMoviesCursor"
+      required:
+        - libraryId
+
+    ListMoviesResponse:
+      type: object
+      properties:
+        page:
+          type: array
+          items:
+            $ref: "#/components/schemas/MovieInfo"
+        cursor:
+          $ref: "#/components/schemas/ListMoviesCursor"
+      required:
+        - page
+
     NextEpisodeOrder:
       type: string
       enum:
@@ -1139,9 +1160,11 @@ components:
           type: string
         title:
           type: string
-        director:
-          type: string
-        writer:
+        directors:
+          type: array
+          items:
+            type: string
+        writers:
           type: array
           items:
             type: string
@@ -1156,9 +1179,9 @@ components:
         rating:
           type: number
         criticRating:
-          type: number
+          type: integer
         mpaa:
-          type: number
+          type: string
         premiered:
           type: string
           format: date
@@ -1175,7 +1198,9 @@ components:
           type: integer
         runTime:
           type: number
-        episodeImageId:
+        backdropImageId:
+          $ref: "#/components/schemas/ImageId"
+        posterImageId:
           $ref: "#/components/schemas/ImageId"
       required:
         - id

@@ -146,21 +146,28 @@ class SqliteDatabase(
             super.listEpisodesByLastUpdated(cursor, limit, libraryIds, order)
         }
 
-    override suspend fun getMovie(movieId: String): ServerMovieInfo? {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getMovie(movieId: String): ServerMovieInfo? =
+        mutex.withLock {
+            super.getMovie(movieId)
+        }
 
-    override suspend fun upsertMovie(movieInfo: ServerMovieInfo): Boolean {
-        TODO("Not yet implemented")
-    }
+    override suspend fun upsertMovie(movieInfo: ServerMovieInfo): Boolean =
+        mutex.withLock {
+            super.upsertMovie(movieInfo)
+        }
 
-    override suspend fun deleteMovie(movieId: String): Boolean {
-        TODO("Not yet implemented")
-    }
+    override suspend fun deleteMovie(movieId: String): Boolean =
+        mutex.withLock {
+            super.deleteMovie(movieId)
+        }
 
-    override suspend fun listMovies(libraryId: String): List<ServerMovieInfo> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun listMovies(
+        libraryId: String,
+        cursor: String?,
+    ): List<ServerMovieInfo> =
+        mutex.withLock {
+            super.listMovies(libraryId, cursor)
+        }
 
     override suspend fun getSchedule(scheduleId: String): ServerScheduleInfo? =
         mutex.withLock {
@@ -220,6 +227,13 @@ class SqliteDatabase(
                     superStorage.read(id)
                 }
         }
+    }
+
+    override suspend fun cleanMovies(
+        start: Instant,
+        libraryId: String,
+    ) = mutex.withLock {
+        super.cleanMovies(start, libraryId)
     }
 
     override suspend fun cleanShows(

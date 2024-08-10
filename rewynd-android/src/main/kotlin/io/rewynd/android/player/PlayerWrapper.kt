@@ -197,6 +197,17 @@ class PlayerWrapper(
                         )
                     }.onFailure { log.error(it) { "Failed to putUserProgress" } }
                 }
+                is PlayerMedia.Movie -> {
+                    kotlin.runCatching {
+                        client.putUserProgress(
+                            Progress(
+                                m.info.id,
+                                (currentOffsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
+                                Clock.System.now(),
+                            ),
+                        )
+                    }.onFailure { log.error(it) { "Failed to putUserProgress" } }
+                }
             }
         }
 

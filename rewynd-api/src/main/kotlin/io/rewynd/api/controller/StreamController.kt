@@ -128,7 +128,7 @@ fun Route.streamRoutes(
                 call.sessionId<UserSession>()?.let { sessionId ->
                     when (library.type) {
                         LibraryType.Show -> db.getEpisode(req.id)?.toServerMediaInfo()
-                        LibraryType.Movie -> TODO()
+                        LibraryType.Movie -> db.getMovie(req.id)?.toServerMediaInfo()
                         LibraryType.Image -> TODO()
                     }?.let { serverMediaInfo ->
                         // Lock to prevent parallel creation of streams using the same session

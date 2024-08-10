@@ -1,7 +1,7 @@
 import React, { ReactElement, useEffect, useState } from "react";
 import { MovieInfo } from "@rewynd.io/rewynd-client-typescript";
-import { HttpClient } from "../../../const";
 import { Loading } from "../../Loading";
+import { loadAllMovies } from "../../../util";
 
 export interface MoviesLoaderProps {
   libraryId: string;
@@ -13,9 +13,7 @@ export function MoviesLoader(props: MoviesLoaderProps) {
   const [movies, setMovies] = useState<MovieInfo[]>();
 
   useEffect(() => {
-    HttpClient.listMovies({ libraryId: props.libraryId }).then(
-      (it: MovieInfo[]) => setMovies(it),
-    );
+    loadAllMovies(props.libraryId).then((it) => setMovies(it));
   }, [props.libraryId]);
 
   return (

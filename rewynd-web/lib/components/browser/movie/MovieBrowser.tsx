@@ -21,7 +21,7 @@ export function MovieBrowser() {
               <Typography>{movie.title}</Typography>
               <ButtonLink to={WebRoutes.Player.formatMovieRoute(movie.id)}>
                 <ApiImage
-                  id={movie.episodeImageId}
+                  id={movie.posterImageId}
                   style={{ width: "100%" }}
                   alt={movie.title}
                 ></ApiImage>{" "}

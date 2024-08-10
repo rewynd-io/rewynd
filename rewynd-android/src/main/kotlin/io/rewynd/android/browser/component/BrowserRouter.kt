@@ -14,6 +14,7 @@ import io.rewynd.android.browser.parcelableType
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.Library
+import io.rewynd.model.MovieInfo
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.ShowInfo
 import kotlin.reflect.typeOf
@@ -44,7 +45,7 @@ fun BrowserRouter(
         ) {
             val state = it.toRoute<BrowserState.LibraryState>()
             BrowserWrapper(actions) {
-                LibraryBrowser(state.library.name, actions::show, viewModel)
+                LibraryBrowser(state.library, actions, viewModel)
             }
         }
         composable<BrowserState.ShowState>(
@@ -53,6 +54,14 @@ fun BrowserRouter(
             val state = it.toRoute<BrowserState.ShowState>()
             BrowserWrapper(actions) {
                 ShowBrowser(state.showInfo, viewModel, actions)
+            }
+        }
+        composable<BrowserState.MovieState>(
+            typeMap = mapOf(typeOf<MovieInfo>() to parcelableType<MovieInfo>()),
+        ) {
+            val state = it.toRoute<BrowserState.MovieState>()
+            BrowserWrapper(actions) {
+                MovieBrowser(state.movieInfo, viewModel, startPlayer, actions)
             }
         }
         composable<BrowserState.SeasonState>(

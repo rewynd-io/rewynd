@@ -107,6 +107,19 @@ export async function loadAllLibraries() {
   return libs;
 }
 
+export async function loadAllMovies(libraryId: string) {
+  let cursor: string | undefined = undefined;
+  const libs = [];
+  do {
+    const res = await HttpClient.listMovies({
+      listMoviesRequest: { cursor: cursor, libraryId: libraryId },
+    });
+    cursor = res.cursor;
+    libs.push(...res.page);
+  } while (cursor);
+  return libs;
+}
+
 export async function loadAllShows(libraryId: string) {
   let cursor: string | undefined = undefined;
   const libs = [];

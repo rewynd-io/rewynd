@@ -16,6 +16,7 @@ import io.rewynd.api.controller.authRoutes
 import io.rewynd.api.controller.episodeRoutes
 import io.rewynd.api.controller.imageRoutes
 import io.rewynd.api.controller.libRoutes
+import io.rewynd.api.controller.movieRoutes
 import io.rewynd.api.controller.progressRoutes
 import io.rewynd.api.controller.scheduleRoutes
 import io.rewynd.api.controller.searchRoutes
@@ -60,6 +61,7 @@ fun Application.module(
             install(mkAuthNPlugin())
             authRoutes(db)
             libRoutes(db, cache.getScanJobQueue())
+            movieRoutes(db)
             showRoutes(db)
             seasonRoutes(db)
             episodeRoutes(db)

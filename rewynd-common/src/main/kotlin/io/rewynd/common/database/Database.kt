@@ -91,7 +91,7 @@ sealed interface Database {
 
     suspend fun deleteMovie(movieId: String): Boolean
 
-    suspend fun listMovies(libraryId: String): List<ServerMovieInfo>
+    suspend fun listMovies(libraryId: String, cursor: String?): List<ServerMovieInfo>
 
     suspend fun getImage(imageId: String): ServerImageInfo?
 
@@ -119,6 +119,11 @@ sealed interface Database {
     ): Int
 
     suspend fun cleanImages(
+        start: Instant,
+        libraryId: String,
+    ): Int
+
+    suspend fun cleanMovies(
         start: Instant,
         libraryId: String,
     ): Int

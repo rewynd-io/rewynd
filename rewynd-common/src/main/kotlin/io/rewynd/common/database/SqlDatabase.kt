@@ -2,6 +2,8 @@ package io.rewynd.common.database
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.database.Database.Companion.LIST_EPISODES_MAX_SIZE
+import io.rewynd.common.database.SqlDatabase.Episodes.nullable
+import io.rewynd.common.database.SqlDatabase.Episodes.references
 import io.rewynd.common.generateSalt
 import io.rewynd.common.hashPassword
 import io.rewynd.common.model.FileInfo
@@ -60,6 +62,7 @@ open class SqlDatabase(
                 Users,
                 Sessions,
                 Libraries,
+                Movies,
                 Shows,
                 Seasons,
                 Episodes,
@@ -93,18 +96,24 @@ open class SqlDatabase(
 
     override suspend fun getUser(username: String): ServerUser? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Users.selectAll().where { Users.username eq username }.limit(1).firstOrNull()?.toServerUser()
+            Users
+                .selectAll()
+                .where { Users.username eq username }
+                .limit(1)
+                .firstOrNull()
+                ?.toServerUser()
         }
 
     override suspend fun upsertUser(user: ServerUser): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Users.upsert(Users.username) {
-                it[Users.username] = user.user.username
-                it[Users.hashedPassword] = user.hashedPass
-                it[Users.preferences] = Json.encodeToString(user.user.preferences)
-                it[Users.permissions] = Json.encodeToString(user.user.permissions)
-                it[Users.salt] = user.salt
-            }.insertedCount == 1
+            Users
+                .upsert(Users.username) {
+                    it[username] = user.user.username
+                    it[hashedPassword] = user.hashedPass
+                    it[preferences] = Json.encodeToString(user.user.preferences)
+                    it[permissions] = Json.encodeToString(user.user.permissions)
+                    it[salt] = user.salt
+                }.insertedCount == 1
         }
 
     override suspend fun deleteUser(username: String): Boolean =
@@ -116,15 +125,18 @@ open class SqlDatabase(
 
     override suspend fun listUsers(cursor: String?): List<ServerUser> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Users.selectAll().let {
-                if (cursor != null) {
-                    it.where { Users.username greater cursor }
-                } else {
-                    it
+            Users
+                .selectAll()
+                .let {
+                    if (cursor != null) {
+                        it.where { Users.username greater cursor }
+                    } else {
+                        it
+                    }
+                }.orderBy(Users.username, SortOrder.ASC)
+                .map {
+                    it.toServerUser()
                 }
-            }.orderBy(Users.username, SortOrder.ASC).map {
-                it.toServerUser()
-            }
         }
 
     override suspend fun getLibrary(libraryId: String): Library? =
@@ -140,11 +152,12 @@ open class SqlDatabase(
 
     override suspend fun upsertLibrary(lib: Library): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Libraries.upsert(Libraries.libraryId) {
-                it[Libraries.libraryId] = lib.name
-                it[Libraries.type] = lib.type
-                it[Libraries.rootPaths] = Json.encodeToString(lib.rootPaths)
-            }.insertedCount == 1
+            Libraries
+                .upsert(Libraries.libraryId) {
+                    it[libraryId] = lib.name
+                    it[type] = lib.type
+                    it[rootPaths] = Json.encodeToString(lib.rootPaths)
+                }.insertedCount == 1
         }
 
     override suspend fun deleteLibrary(libraryId: String): Boolean =
@@ -156,56 +169,64 @@ open class SqlDatabase(
 
     override suspend fun listLibraries(cursor: String?): List<Library> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Libraries.selectAll().let {
-                if (cursor != null) {
-                    it.where { Libraries.libraryId greater cursor }
-                } else {
-                    it
+            Libraries
+                .selectAll()
+                .let {
+                    if (cursor != null) {
+                        it.where { Libraries.libraryId greater cursor }
+                    } else {
+                        it
+                    }
+                }.orderBy(Libraries.libraryId, SortOrder.ASC)
+                .map {
+                    Library(
+                        name = it[Libraries.libraryId],
+                        type = it[Libraries.type],
+                        rootPaths = Json.decodeFromString<List<String>>(it[Libraries.rootPaths]),
+                    )
                 }
-            }.orderBy(Libraries.libraryId, SortOrder.ASC).map {
-                Library(
-                    name = it[Libraries.libraryId],
-                    type = it[Libraries.type],
-                    rootPaths = Json.decodeFromString<List<String>>(it[Libraries.rootPaths]),
-                )
-            }
         }
 
     override suspend fun getShow(showId: String): ServerShowInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Shows.selectAll().where { Shows.showId eq showId }.firstOrNull()?.toServerShowInfo()
+            Shows
+                .selectAll()
+                .where { Shows.showId eq showId }
+                .firstOrNull()
+                ?.toServerShowInfo()
         }
 
     override suspend fun upsertShow(show: ServerShowInfo): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Shows.upsert(Shows.showId) {
-                it[Shows.showId] = show.id
-                it[Shows.libraryId] = show.libraryId
-                it[Shows.title] = show.title
-                it[Shows.plot] = show.plot
-                it[Shows.outline] = show.outline
-                it[Shows.originalTitle] = show.originalTitle
-                it[Shows.premiered] = show.premiered?.toString()
-                it[Shows.releaseDate] = show.releaseDate?.toString()
-                it[Shows.endDate] = show.endDate?.toString()
-                it[Shows.mpaa] = show.mpaa
-                it[Shows.imdbId] = show.imdbId
-                it[Shows.tmdbId] = show.tmdbId
-                it[Shows.tvdbId] = show.tvdbId
-                it[Shows.tvRageId] = show.tvRageId
-                it[Shows.rating] = show.rating
-                it[Shows.year] = show.year
-                it[Shows.runTime] = show.runTime
-                it[Shows.aired] = show.aired?.toString()
-                it[Shows.genre] = show.genre
-                it[Shows.studio] = show.studio
-                it[Shows.status] = show.status
-                it[Shows.tag] = show.tag?.let(Json.Default::encodeToString)
-                it[Shows.actors] = show.actors?.let(Json.Default::encodeToString)
-                it[Shows.seriesImageId] = show.seriesImageId
-                it[Shows.backdropImageId] = show.backdropImageId
-                it[Shows.lastUpdated] = show.lastUpdated.toEpochMilliseconds()
-            }.insertedCount == 1
+            Shows
+                .upsert(Shows.showId) {
+                    it[showId] = show.id
+                    it[libraryId] = show.libraryId
+                    it[title] = show.title
+                    it[plot] = show.plot
+                    it[outline] = show.outline
+                    it[originalTitle] = show.originalTitle
+                    it[premiered] = show.premiered?.toString()
+                    it[releaseDate] = show.releaseDate?.toString()
+                    it[endDate] = show.endDate?.toString()
+                    it[mpaa] = show.mpaa
+                    it[imdbId] = show.imdbId
+                    it[tmdbId] = show.tmdbId
+                    it[tvdbId] = show.tvdbId
+                    it[tvRageId] = show.tvRageId
+                    it[rating] = show.rating
+                    it[year] = show.year
+                    it[runTime] = show.runTime
+                    it[aired] = show.aired?.toString()
+                    it[genre] = show.genre
+                    it[studio] = show.studio
+                    it[status] = show.status
+                    it[tag] = show.tag?.let(Json.Default::encodeToString)
+                    it[actors] = show.actors?.let(Json.Default::encodeToString)
+                    it[seriesImageId] = show.seriesImageId
+                    it[backdropImageId] = show.backdropImageId
+                    it[lastUpdated] = show.lastUpdated.toEpochMilliseconds()
+                }.insertedCount == 1
         }
 
     override suspend fun deleteShow(showId: String): Boolean =
@@ -218,36 +239,44 @@ open class SqlDatabase(
         cursor: String?,
     ): List<ServerShowInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Shows.selectAll().where {
-                if (cursor == null) {
-                    Shows.libraryId eq libraryId
-                } else {
-                    (Shows.libraryId eq libraryId) and (Shows.showId greater cursor)
-                }
-            }.orderBy(Shows.showId, SortOrder.ASC).map { it.toServerShowInfo() }
+            Shows
+                .selectAll()
+                .where {
+                    if (cursor == null) {
+                        Shows.libraryId eq libraryId
+                    } else {
+                        (Shows.libraryId eq libraryId) and (Shows.showId greater cursor)
+                    }
+                }.orderBy(Shows.showId, SortOrder.ASC)
+                .map { it.toServerShowInfo() }
         }
 
     override suspend fun getSeason(seasonId: String): ServerSeasonInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Seasons.selectAll().where { Seasons.seasonId eq seasonId }.firstOrNull()?.toServerSeasonInfo()
+            Seasons
+                .selectAll()
+                .where { Seasons.seasonId eq seasonId }
+                .firstOrNull()
+                ?.toServerSeasonInfo()
         }
 
     override suspend fun upsertSeason(season: ServerSeasonInfo): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Seasons.upsert(Seasons.seasonId) {
-                it[Seasons.seasonId] = season.seasonInfo.id
-                it[Seasons.showId] = season.seasonInfo.showId
-                it[Seasons.seasonNumber] = season.seasonInfo.seasonNumber
-                it[Seasons.libraryId] = season.libraryData.libraryId
-                it[Seasons.showName] = season.seasonInfo.showName
-                it[Seasons.year] = season.seasonInfo.year
-                it[Seasons.premiered] = season.seasonInfo.premiered?.toString()
-                it[Seasons.releaseDate] = season.seasonInfo.releaseDate?.toString()
-                it[Seasons.folderImageId] = season.seasonInfo.folderImageId
-                it[Seasons.actors] = season.seasonInfo.actors?.let(Json.Default::encodeToString)
-                it[Seasons.libraryId] = season.libraryData.libraryId
-                it[Seasons.lastUpdated] = season.libraryData.lastUpdated.toEpochMilliseconds()
-            }.insertedCount == 1
+            Seasons
+                .upsert(Seasons.seasonId) {
+                    it[seasonId] = season.seasonInfo.id
+                    it[showId] = season.seasonInfo.showId
+                    it[seasonNumber] = season.seasonInfo.seasonNumber
+                    it[libraryId] = season.libraryData.libraryId
+                    it[showName] = season.seasonInfo.showName
+                    it[year] = season.seasonInfo.year
+                    it[premiered] = season.seasonInfo.premiered?.toString()
+                    it[releaseDate] = season.seasonInfo.releaseDate?.toString()
+                    it[folderImageId] = season.seasonInfo.folderImageId
+                    it[actors] = season.seasonInfo.actors?.let(Json.Default::encodeToString)
+                    it[libraryId] = season.libraryData.libraryId
+                    it[lastUpdated] = season.libraryData.lastUpdated.toEpochMilliseconds()
+                }.insertedCount == 1
         }
 
     override suspend fun deleteSeason(seasonId: String): Boolean =
@@ -260,52 +289,60 @@ open class SqlDatabase(
         cursor: String?,
     ): List<ServerSeasonInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Seasons.selectAll().where {
-                if (cursor == null) {
-                    Seasons.showId eq showId
-                } else {
-                    (Seasons.showId eq showId) and (Seasons.seasonId greater cursor)
-                }
-            }.orderBy(Seasons.seasonId, SortOrder.ASC).map { it.toServerSeasonInfo() }
+            Seasons
+                .selectAll()
+                .where {
+                    if (cursor == null) {
+                        Seasons.showId eq showId
+                    } else {
+                        (Seasons.showId eq showId) and (Seasons.seasonId greater cursor)
+                    }
+                }.orderBy(Seasons.seasonId, SortOrder.ASC)
+                .map { it.toServerSeasonInfo() }
         }
 
     override suspend fun getEpisode(episodeId: String): ServerEpisodeInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes.selectAll().where { Episodes.episodeId eq episodeId }.firstOrNull()?.toServerEpisodeInfo()
+            Episodes
+                .selectAll()
+                .where { Episodes.episodeId eq episodeId }
+                .firstOrNull()
+                ?.toServerEpisodeInfo()
         }
 
     override suspend fun upsertEpisode(episode: ServerEpisodeInfo): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes.upsert(Episodes.episodeId) {
-                it[Episodes.showId] = episode.showId
-                it[Episodes.showName] = episode.showName
-                it[Episodes.seasonId] = episode.seasonId
-                it[Episodes.episodeId] = episode.id
-                it[Episodes.location] = episode.fileInfo.location.let(Json.Default::encodeToString)
-                it[Episodes.size] = episode.fileInfo.size
-                it[Episodes.lastUpdated] = episode.lastUpdated.toEpochMilliseconds()
-                it[Episodes.lastModified] = episode.lastModified.toEpochMilliseconds()
-                it[Episodes.libraryId] = episode.libraryId
-                it[Episodes.audioTracks] = episode.audioTracks.let(Json.Default::encodeToString)
-                it[Episodes.videoTracks] = episode.videoTracks.let(Json.Default::encodeToString)
-                it[Episodes.subtitleTracks] = episode.subtitleTracks.let(Json.Default::encodeToString)
-                it[Episodes.subtitleFiles] = episode.subtitleFileTracks.let(Json.Default::encodeToString)
-                it[Episodes.title] = episode.title
-                it[Episodes.runTime] = episode.runTime
-                it[Episodes.plot] = episode.plot
-                it[Episodes.outline] = episode.outline
-                it[Episodes.directors] = episode.director?.let(Json.Default::encodeToString)
-                it[Episodes.writers] = episode.writer?.let(Json.Default::encodeToString)
-                it[Episodes.credits] = episode.credits?.let(Json.Default::encodeToString)
-                it[Episodes.rating] = episode.rating
-                it[Episodes.year] = episode.year
-                it[Episodes.episode] =
-                    episode.episode
-                it[Episodes.episodeNumberEnd] = episode.episodeNumberEnd
-                it[Episodes.season] = episode.season
-                it[Episodes.aired] = episode.aired?.toString()
-                it[Episodes.episodeImageId] = episode.episodeImageId
-            }.insertedCount == 1
+            Episodes
+                .upsert(Episodes.episodeId) {
+                    it[showId] = episode.showId
+                    it[showName] = episode.showName
+                    it[seasonId] = episode.seasonId
+                    it[episodeId] = episode.id
+                    it[location] = episode.fileInfo.location.let(Json.Default::encodeToString)
+                    it[size] = episode.fileInfo.size
+                    it[lastUpdated] = episode.lastUpdated.toEpochMilliseconds()
+                    it[lastModified] = episode.lastModified.toEpochMilliseconds()
+                    it[libraryId] = episode.libraryId
+                    it[audioTracks] = episode.audioTracks.let(Json.Default::encodeToString)
+                    it[videoTracks] = episode.videoTracks.let(Json.Default::encodeToString)
+                    it[subtitleTracks] = episode.subtitleTracks.let(Json.Default::encodeToString)
+                    it[subtitleFiles] = episode.subtitleFileTracks.let(Json.Default::encodeToString)
+                    it[title] = episode.title
+                    it[runTime] = episode.runTime
+                    it[plot] = episode.plot
+                    it[outline] = episode.outline
+                    it[directors] = episode.director?.let(Json.Default::encodeToString)
+                    it[writers] = episode.writer?.let(Json.Default::encodeToString)
+                    it[credits] = episode.credits?.let(Json.Default::encodeToString)
+                    it[rating] = episode.rating
+                    it[year] = episode.year
+                    it[Episodes.episode] =
+                        episode.episode
+                    it[episodeNumberEnd] = episode.episodeNumberEnd
+                    it[season] = episode.season
+                    it[aired] = episode.aired?.toString()
+                    it[episodeImageId] = episode.episodeImageId
+                }.insertedCount == 1
         }
 
     override suspend fun deleteEpisode(episodeId: String): Boolean =
@@ -320,13 +357,13 @@ open class SqlDatabase(
         cursor: String?,
     ): List<ServerEpisodeInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes.selectAll()
+            Episodes
+                .selectAll()
                 .where {
                     cursor?.let {
                         Episodes.seasonId eq seasonId and (Episodes.episodeId greater it)
                     } ?: (Episodes.seasonId eq seasonId)
-                }
-                .orderBy(Episodes.episodeId, SortOrder.ASC)
+                }.orderBy(Episodes.episodeId, SortOrder.ASC)
                 .limit(LIST_EPISODES_MAX_SIZE)
                 .map { it.toServerEpisodeInfo() }
         }
@@ -339,52 +376,127 @@ open class SqlDatabase(
     ): Paged<ServerEpisodeInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             val offset = cursor ?: 0
-            Episodes.selectAll().let { query ->
-                if (libraryIds != null) {
-                    query.where { Episodes.libraryId.inList(libraryIds) }
-                } else {
-                    query
+            Episodes
+                .selectAll()
+                .let { query ->
+                    if (libraryIds != null) {
+                        query.where { Episodes.libraryId.inList(libraryIds) }
+                    } else {
+                        query
+                    }
+                }.orderBy(
+                    Episodes.lastModified,
+                    when (order) {
+                        ListEpisodesByLastUpdatedOrder.Newest -> SortOrder.DESC
+                        ListEpisodesByLastUpdatedOrder.Oldest -> SortOrder.ASC
+                    },
+                ).limit(limit, offset)
+                .take(LIST_EPISODES_MAX_SIZE)
+                .map { it.toServerEpisodeInfo() }
+                .let {
+                    Paged(it, cursor = offset + it.size)
                 }
-            }.orderBy(
-                Episodes.lastModified,
-                when (order) {
-                    ListEpisodesByLastUpdatedOrder.Newest -> SortOrder.DESC
-                    ListEpisodesByLastUpdatedOrder.Oldest -> SortOrder.ASC
-                },
-            ).limit(limit, offset).take(LIST_EPISODES_MAX_SIZE).map { it.toServerEpisodeInfo() }.let {
-                Paged(it, cursor = offset + it.size)
+        }
+
+    override suspend fun getMovie(movieId: String): ServerMovieInfo? =
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            Movies
+                .selectAll()
+                .where { Movies.movieId eq movieId }
+                .firstOrNull()
+                ?.toServerMovieInfo()
+        }
+
+    override suspend fun upsertMovie(movieInfo: ServerMovieInfo): Boolean =
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            Movies
+                .upsert(Movies.movieId) {
+                    it[movieId] = movieInfo.id
+                    it[libraryId] = movieInfo.libraryId
+                    it[title] = movieInfo.title
+                    it[plot] = movieInfo.plot
+                    it[outline] = movieInfo.outline
+                    it[directors] = movieInfo.directors.let(Json::encodeToString)
+                    it[writers] = movieInfo.writers.let(Json::encodeToString)
+                    it[credits] = movieInfo.credits.let(Json::encodeToString)
+                    it[studios] = movieInfo.studios.let(Json::encodeToString)
+                    it[directors] = movieInfo.directors.let(Json::encodeToString)
+                    it[rating] = movieInfo.rating
+                    it[criticRating] = movieInfo.criticRating
+                    it[mpaa] = movieInfo.mpaa
+                    it[premiered] = movieInfo.premiered?.toString()
+                    it[tagline] = movieInfo.tagLine
+                    it[runTime] = movieInfo.runTime
+                    it[country] = movieInfo.country
+                    it[releaseDate] = movieInfo.releaseDate?.toString()
+                    it[year] = movieInfo.year
+                    it[lastModified] = movieInfo.lastModified.toEpochMilliseconds()
+                    it[lastUpdated] = movieInfo.lastUpdated.toEpochMilliseconds()
+                    it[location] = movieInfo.fileInfo.location.let(Json::encodeToString)
+                    it[size] = movieInfo.fileInfo.size
+                    it[subtitleFiles] = movieInfo.subtitleFileTracks.let(Json::encodeToString)
+                    it[subtitleTracks] = movieInfo.subtitleTracks.let(Json::encodeToString)
+                    it[videoTracks] = movieInfo.videoTracks.let(Json::encodeToString)
+                    it[audioTracks] = movieInfo.audioTracks.let(Json::encodeToString)
+                    it[posterImageId] = movieInfo.posterImageId
+                    it[backdropImageId] = movieInfo.backdropImageId
+                }.insertedCount == 1
+        }
+
+    override suspend fun deleteMovie(movieId: String): Boolean =
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            Movies.deleteWhere { Movies.movieId eq movieId } == 1
+        }
+
+    override suspend fun listMovies(
+        libraryId: String,
+        cursor: String?,
+    ): List<ServerMovieInfo> =
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            Movies
+                .selectAll()
+                .let {
+                    if (cursor != null) {
+                        it.where {
+                            Movies.movieId greater cursor
+                        }
+                    } else {
+                        it
+                    }
+                }.orderBy(Movies.movieId, SortOrder.ASC)
+                .limit(LIST_EPISODES_MAX_SIZE)
+                .map { it.toServerMovieInfo() }
+        }
+
+    override suspend fun cleanMovies(
+        start: Instant,
+        libraryId: String,
+    ): Int =
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            Movies.deleteWhere {
+                lastUpdated less start.toEpochMilliseconds() and (
+                        Movies.libraryId eq libraryId
+                )
             }
         }
 
-    override suspend fun getMovie(movieId: String): ServerMovieInfo? {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun upsertMovie(movieInfo: ServerMovieInfo): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun deleteMovie(movieId: String): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun listMovies(libraryId: String): List<ServerMovieInfo> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getSchedule(scheduleId: String): ServerScheduleInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Schedules.selectAll().where { Schedules.scheduleId eq scheduleId }.firstOrNull()
+            Schedules
+                .selectAll()
+                .where { Schedules.scheduleId eq scheduleId }
+                .firstOrNull()
                 ?.toServerScheduleInfo()
         }
 
     override suspend fun upsertSchedule(schedule: ServerScheduleInfo): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Schedules.upsert(Schedules.scheduleId) {
-                it[Schedules.scheduleId] = schedule.id
-                it[Schedules.cronExpression] = schedule.cronExpression
-                it[Schedules.scanTasks] = Json.encodeToString(schedule.scanTasks)
-            }.insertedCount == 1
+            Schedules
+                .upsert(Schedules.scheduleId) {
+                    it[scheduleId] = schedule.id
+                    it[cronExpression] = schedule.cronExpression
+                    it[scanTasks] = Json.encodeToString(schedule.scanTasks)
+                }.insertedCount == 1
         }
 
     override suspend fun deleteSchedule(scheduleId: String): Boolean =
@@ -396,35 +508,43 @@ open class SqlDatabase(
 
     override suspend fun listSchedules(cursor: String?): List<ServerScheduleInfo> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Schedules.selectAll().let {
-                if (cursor != null) {
-                    it.where { Schedules.scheduleId greater cursor }
-                } else {
-                    it
+            Schedules
+                .selectAll()
+                .let {
+                    if (cursor != null) {
+                        it.where { Schedules.scheduleId greater cursor }
+                    } else {
+                        it
+                    }
+                }.orderBy(Schedules.scheduleId, SortOrder.ASC)
+                .map {
+                    ServerScheduleInfo(
+                        id = it[Schedules.scheduleId],
+                        cronExpression = it[Schedules.cronExpression],
+                        scanTasks = Json.decodeFromString(it[Schedules.scanTasks]),
+                    )
                 }
-            }.orderBy(Schedules.scheduleId, SortOrder.ASC).map {
-                ServerScheduleInfo(
-                    id = it[Schedules.scheduleId],
-                    cronExpression = it[Schedules.cronExpression],
-                    scanTasks = Json.decodeFromString(it[Schedules.scanTasks]),
-                )
-            }
         }
 
     override suspend fun getImage(imageId: String): ServerImageInfo? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Images.selectAll().where { Images.imageId eq imageId }.firstOrNull()?.toServerImageInfo()
+            Images
+                .selectAll()
+                .where { Images.imageId eq imageId }
+                .firstOrNull()
+                ?.toServerImageInfo()
         }
 
     override suspend fun upsertImage(imageInfo: ServerImageInfo): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Images.upsert(Images.imageId) {
-                it[Images.imageId] = imageInfo.imageId
-                it[Images.size] = imageInfo.size
-                it[Images.lastUpdated] = imageInfo.lastUpdated.toEpochMilliseconds()
-                it[Images.libraryId] = imageInfo.libraryId
-                it[Images.location] = imageInfo.location.let(Json.Default::encodeToString)
-            }.insertedCount == 1
+            Images
+                .upsert(Images.imageId) {
+                    it[imageId] = imageInfo.imageId
+                    it[size] = imageInfo.size
+                    it[lastUpdated] = imageInfo.lastUpdated.toEpochMilliseconds()
+                    it[libraryId] = imageInfo.libraryId
+                    it[location] = imageInfo.location.let(Json.Default::encodeToString)
+                }.insertedCount == 1
         }
 
     override suspend fun deleteImage(imageId: String): Boolean {
@@ -435,12 +555,12 @@ open class SqlDatabase(
         TODO("Not yet implemented")
     }
 
-    override suspend fun mkSessionStorage(): SessionStorage {
-        return object : SessionStorage {
+    override suspend fun mkSessionStorage(): SessionStorage =
+        object : SessionStorage {
             override suspend fun invalidate(id: String) =
                 newSuspendedTransaction(currentCoroutineContext(), conn) {
                     Sessions.deleteWhere {
-                        Sessions.sessionId eq id
+                        sessionId eq id
                     }
                     Unit
                 }
@@ -450,7 +570,7 @@ open class SqlDatabase(
                 value: String,
             ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
                 Sessions.upsert(Sessions.sessionId) {
-                    it[Sessions.sessionId] = id
+                    it[sessionId] = id
                     it[Sessions.value] = value
                 }
                 Unit
@@ -458,20 +578,23 @@ open class SqlDatabase(
 
             override suspend fun read(id: String): String =
                 newSuspendedTransaction(currentCoroutineContext(), conn) {
-                    Sessions.selectAll().where { Sessions.sessionId eq id }.firstOrNull()?.getOrNull(Sessions.value)
+                    Sessions
+                        .selectAll()
+                        .where { Sessions.sessionId eq id }
+                        .firstOrNull()
+                        ?.getOrNull(Sessions.value)
                         ?: throw NoSuchElementException("Session $id not found")
                 }
         }
-    }
 
     override suspend fun cleanShows(
         start: Instant,
         libraryId: String,
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
         Shows.deleteWhere {
-            Shows.lastUpdated less start.toEpochMilliseconds() and (
-                Shows.libraryId eq libraryId
-                )
+            lastUpdated less start.toEpochMilliseconds() and (
+                    Shows.libraryId eq libraryId
+                    )
         }
     }
 
@@ -480,7 +603,7 @@ open class SqlDatabase(
         libraryId: String,
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
         Seasons.deleteWhere {
-            Seasons.lastUpdated less start.toEpochMilliseconds() and (Seasons.libraryId eq libraryId)
+            lastUpdated less start.toEpochMilliseconds() and (Seasons.libraryId eq libraryId)
         }
     }
 
@@ -489,7 +612,7 @@ open class SqlDatabase(
         libraryId: String,
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
         Episodes.deleteWhere {
-            Episodes.lastUpdated less start.toEpochMilliseconds() and (Episodes.libraryId eq libraryId)
+            lastUpdated less start.toEpochMilliseconds() and (Episodes.libraryId eq libraryId)
         }
     }
 
@@ -498,7 +621,7 @@ open class SqlDatabase(
         libraryId: String,
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
         Images.deleteWhere {
-            Images.lastUpdated less start.toEpochMilliseconds() and (Images.libraryId eq libraryId)
+            lastUpdated less start.toEpochMilliseconds() and (Images.libraryId eq libraryId)
         }
     }
 
@@ -507,21 +630,23 @@ open class SqlDatabase(
         updatedAfter: Instant?,
     ): LibraryIndex? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            LibraryIndicies.selectAll().where {
-                if (updatedAfter != null) {
-                    LibraryIndicies.libraryId eq libraryId and
-                        (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
-                } else {
-                    LibraryIndicies.libraryId eq libraryId
-                }
-            }.firstOrNull()
+            LibraryIndicies
+                .selectAll()
+                .where {
+                    if (updatedAfter != null) {
+                        LibraryIndicies.libraryId eq libraryId and
+                                (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
+                    } else {
+                        LibraryIndicies.libraryId eq libraryId
+                    }
+                }.firstOrNull()
         }?.toLibraryIndex()
 
     override suspend fun upsertLibraryIndex(index: LibraryIndex): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             LibraryIndicies.upsert(LibraryIndicies.libraryId) {
-                it[LibraryIndicies.libraryId] = index.libraryId
-                it[LibraryIndicies.lastUpdated] = index.lastUpdated.toEpochMilliseconds()
+                it[libraryId] = index.libraryId
+                it[lastUpdated] = index.lastUpdated.toEpochMilliseconds()
                 it[LibraryIndicies.index] = ExposedBlob(index.index)
             }
         }.insertedCount == 1
@@ -540,17 +665,22 @@ open class SqlDatabase(
         username: String,
     ): UserProgress? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Progression.selectAll().where { Progression.mediaId eq id }.firstOrNull()?.toProgress()
+            Progression
+                .selectAll()
+                .where { Progression.mediaId eq id }
+                .firstOrNull()
+                ?.toProgress()
         }
 
     override suspend fun upsertProgress(progress: UserProgress): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Progression.upsert(Progression.mediaId) {
-                it[Progression.mediaId] = progress.id
-                it[Progression.timestamp] = progress.timestamp.toEpochMilliseconds()
-                it[Progression.username] = progress.username
-                it[Progression.percent] = progress.percent
-            }.insertedCount == 1
+            Progression
+                .upsert(Progression.mediaId) {
+                    it[mediaId] = progress.id
+                    it[timestamp] = progress.timestamp.toEpochMilliseconds()
+                    it[username] = progress.username
+                    it[percent] = progress.percent
+                }.insertedCount == 1
         }
 
     override suspend fun deleteProgress(
@@ -559,7 +689,7 @@ open class SqlDatabase(
     ): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Progression.deleteWhere {
-                Progression.mediaId eq id
+                mediaId eq id
             } == 1
         }
 
@@ -571,19 +701,21 @@ open class SqlDatabase(
         limit: Int,
     ): List<UserProgress> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Progression.selectAll().where {
-                (
-                    Progression.percent.lessEq(maxPercent) and
-                        Progression.percent.greaterEq(minPercent) and
-                        Progression.username.eq(username)
-                    ).let {
-                    if (cursor != null) {
-                        it and Progression.timestamp.less(cursor.toEpochMilliseconds())
-                    } else {
-                        it
-                    }
-                }
-            }.orderBy(Progression.timestamp to SortOrder.DESC, Progression.mediaId to SortOrder.DESC)
+            Progression
+                .selectAll()
+                .where {
+                    (
+                            Progression.percent.lessEq(maxPercent) and
+                                    Progression.percent.greaterEq(minPercent) and
+                                    Progression.username.eq(username)
+                            ).let {
+                            if (cursor != null) {
+                                it and Progression.timestamp.less(cursor.toEpochMilliseconds())
+                            } else {
+                                it
+                            }
+                        }
+                }.orderBy(Progression.timestamp to SortOrder.DESC, Progression.mediaId to SortOrder.DESC)
                 .limit(limit)
                 .asFlow()
                 .map { it.toProgress() }
@@ -633,8 +765,8 @@ open class SqlDatabase(
         val location = text("location")
         val size = long("size")
 
-        val lastUpdated = long("lastUpdated")
-        val lastModified = long("lastModified")
+        val lastUpdated = long("last_updated")
+        val lastModified = long("last_modified")
         val libraryId = text("library_id").references(Libraries.libraryId)
 
         val audioTracks = text("audio_tracks")
@@ -664,12 +796,47 @@ open class SqlDatabase(
         val showId = text("show_id").references(Shows.showId)
         val showName = text("show_name")
         val libraryId = text("library_id").references(Libraries.libraryId)
-        val lastUpdated = long("lastUpdated")
+        val lastUpdated = long("last_updated")
         val year = integer("year").nullable()
         val premiered = text("premiered").nullable()
         val releaseDate = text("release_date").nullable()
         val folderImageId = text("series_image_id").references(Images.imageId).nullable()
         val actors = text("actors").nullable()
+    }
+
+    object Movies : IntIdTable() {
+        val movieId = text("movie_id").uniqueIndex()
+        val tagline = text("tagline").nullable()
+        val country = text("country").nullable()
+        val releaseDate = text("release_date").nullable()
+
+        val location = text("location")
+        val size = long("size")
+
+        val lastUpdated = long("last_updated")
+        val lastModified = long("last_modified")
+        val premiered = text("premiered").nullable()
+        val libraryId = text("library_id").references(Libraries.libraryId)
+
+        val audioTracks = text("audio_tracks")
+        val videoTracks = text("video_tracks")
+        val subtitleTracks = text("subtitle_tracks")
+        val subtitleFiles = text("subtitle_files")
+
+        val title = text("title")
+        val runTime = double("run_time")
+        val plot = text("plot").nullable()
+        val outline = text("outline").nullable()
+        val directors = text("directors").nullable()
+        val studios = text("studios").nullable()
+        val writers = text("writers").nullable()
+        val credits = text("credits").nullable()
+        val rating = double("rating").nullable()
+        val year = integer("year").nullable()
+        val criticRating = integer("critic_rating").nullable()
+        val mpaa = text("mpaa").nullable()
+        val posterImageId = text("poster_image_id").references(Images.imageId).nullable()
+        val backdropImageId = text("backdrop_image_id").references(Images.imageId).nullable()
     }
 
     object Images : IntIdTable() {
@@ -720,6 +887,50 @@ open class SqlDatabase(
 
     companion object {
         val log = KotlinLogging.logger { }
+
+        private fun ResultRow.toServerMovieInfo() =
+            ServerMovieInfo(
+                id = this[Movies.movieId],
+                libraryId = this[Movies.libraryId],
+                title = this[Movies.title],
+                plot = this[Movies.plot],
+                outline = this[Movies.outline],
+                directors = this[Movies.directors]?.let { Json.decodeFromString(it) },
+                writers = this[Movies.writers]?.let { Json.decodeFromString(it) },
+                credits = this[Movies.credits]?.let { Json.decodeFromString(it) },
+                studios = this[Movies.studios]?.let { Json.decodeFromString(it) },
+                rating = this[Movies.rating],
+                criticRating = this[Movies.criticRating],
+                mpaa = this[Movies.mpaa],
+                premiered = this[Movies.premiered]?.let(LocalDate::parse),
+                tagLine = this[Movies.tagline],
+                runTime = this[Movies.runTime],
+                country = this[Movies.country],
+                releaseDate = this[Movies.releaseDate]?.let(LocalDate::parse),
+                year = this[Movies.year],
+                lastModified = this[Movies.lastModified].let(Instant::fromEpochMilliseconds),
+                lastUpdated = this[Movies.lastUpdated].let(Instant::fromEpochMilliseconds),
+                backdropImageId = this[Movies.backdropImageId],
+                posterImageId = this[Movies.posterImageId],
+                fileInfo =
+                FileInfo(
+                    location = this[Movies.location].let(Json.Default::decodeFromString),
+                    size = this[Movies.size],
+                ),
+                subtitleFileTracks = this[Movies.subtitleFiles].let(Json.Default::decodeFromString),
+                audioTracks =
+                this[Movies.audioTracks].let {
+                    Json.decodeFromString<Map<String, ServerAudioTrack>>(it)
+                },
+                videoTracks =
+                this[Movies.videoTracks].let {
+                    Json.decodeFromString<Map<String, ServerVideoTrack>>(it)
+                },
+                subtitleTracks =
+                this[Movies.subtitleTracks].let {
+                    Json.decodeFromString<Map<String, ServerSubtitleTrack>>(it)
+                },
+            )
 
         private fun ResultRow.toServerScheduleInfo() =
             ServerScheduleInfo(

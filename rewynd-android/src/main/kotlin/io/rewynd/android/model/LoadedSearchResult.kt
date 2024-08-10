@@ -1,6 +1,7 @@
 package io.rewynd.android.model
 
 import io.rewynd.model.EpisodeInfo
+import io.rewynd.model.MovieInfo
 import io.rewynd.model.SearchResult
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.ShowInfo
@@ -21,5 +22,10 @@ sealed interface LoadedSearchResult {
     data class Show(
         override val result: SearchResult,
         val media: ShowInfo
+    ) : LoadedSearchResult
+
+    data class Movie(
+        override val result: SearchResult,
+        val media: MovieInfo
     ) : LoadedSearchResult
 }

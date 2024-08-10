@@ -9,7 +9,6 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.database.Database
-import io.rewynd.common.md5
 import io.rewynd.common.model.FileInfo
 import io.rewynd.common.model.FileLocation
 import io.rewynd.common.model.LibraryData
@@ -25,6 +24,8 @@ import io.rewynd.model.SeasonInfo
 import io.rewynd.worker.ffprobe.FfprobeInfo
 import io.rewynd.worker.ffprobe.FfprobeResult
 import io.rewynd.worker.scan.Scanner
+import io.rewynd.worker.scan.findMediaImage
+import io.rewynd.worker.scan.id
 import io.rewynd.worker.scan.isImageFile
 import io.rewynd.worker.scan.isSubtitleFile
 import io.rewynd.worker.serialize
@@ -266,6 +267,8 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                     it.isSubtitleFile() &&
                         it.name.startsWith(episodeFile.nameWithoutExtension)
                 }.associate { it.nameWithoutExtension to FileLocation.LocalFile(it.absolutePath) }
+
+            // TODO skip subtitle track ffprobing if it hasn't changed
             val subtitleFileTracks =
                 subtitleFiles.mapValues { entry ->
                     FfprobeResult.parseFile(Path(entry.value.path).toFile())
@@ -274,7 +277,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                             SubtitleFileTrack(entry.value, it)
                         }
                 }.mapNotNull { it.value }
-            val episodeImageFile = episodeFile.findEpisodeImage()
+            val episodeImageFile = episodeFile.findMediaImage(lib)
             val lastModified = episodeFile.lastModified()
             val ffprobe =
                 curr?.let {
@@ -349,13 +352,14 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
             ?.getOrNull(1)
             ?.toIntOrNull()
 
-    private val xmlMapper =
+    private val xmlMapper by lazy {
         XmlMapper().apply {
             registerModule(
                 KotlinModule.Builder().build(),
             )
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         }
+    }
 
     private fun String.parseSeasonNfo(): SeasonNfo? =
         try {
@@ -379,22 +383,6 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
         } catch (e: Exception) {
             log.error(e) { "Failed to parse XML: $this" }
             null
-        }
-
-    private fun File.findEpisodeImage(): ServerImageInfo? =
-        (
-            Path(this.parent).toFile().walk().maxDepth(2).filter {
-                it.name.startsWith(this.nameWithoutExtension) &&
-                    it.isImageFile()
-            }.firstOrNull()
-            )?.let {
-            ServerImageInfo(
-                location = FileLocation.LocalFile(it.absolutePath),
-                size = 0L,
-                libraryId = this@ShowScanner.lib.name,
-                imageId = it.id(lib),
-                lastUpdated = Clock.System.now(),
-            )
         }
 
     private fun File.findFolderImage(): ServerImageInfo? =
@@ -427,8 +415,6 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
         private val log by lazy { KotlinLogging.logger { } }
     }
 }
-
-private fun File.id(lib: Library) = md5("${lib.name}:${this.absolutePath}")
 
 private fun String.parseSeasonNumber(): Int? = split(" ").lastOrNull()?.toIntOrNull()
 
