@@ -26,7 +26,6 @@ import io.rewynd.android.client.cookie.CookieStorageCookieJar
 import io.rewynd.android.client.cookie.PersistentCookiesStorage
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.android.model.PlayerMedia
-import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import io.rewynd.client.RewyndClient
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +38,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 class PlayerService : Service() {

@@ -26,7 +26,7 @@ fun File.findMediaImage(lib: Library, suffix: String? = null): ServerImageInfo? 
         Path(this.parent).toFile().walk().maxDepth(2).filter {
             it.name.startsWith(this.nameWithoutExtension) &&
                 it.isImageFile() &&
-                    (suffix == null || it.nameWithoutExtension == (this.nameWithoutExtension + suffix))
+                (suffix == null || it.nameWithoutExtension == (this.nameWithoutExtension + suffix))
         }.firstOrNull()
         )?.let {
         ServerImageInfo(

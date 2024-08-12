@@ -475,8 +475,8 @@ open class SqlDatabase(
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Movies.deleteWhere {
                 lastUpdated less start.toEpochMilliseconds() and (
-                        Movies.libraryId eq libraryId
-                )
+                    Movies.libraryId eq libraryId
+                    )
             }
         }
 
@@ -593,8 +593,8 @@ open class SqlDatabase(
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
         Shows.deleteWhere {
             lastUpdated less start.toEpochMilliseconds() and (
-                    Shows.libraryId eq libraryId
-                    )
+                Shows.libraryId eq libraryId
+                )
         }
     }
 
@@ -635,7 +635,7 @@ open class SqlDatabase(
                 .where {
                     if (updatedAfter != null) {
                         LibraryIndicies.libraryId eq libraryId and
-                                (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
+                            (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
                     } else {
                         LibraryIndicies.libraryId eq libraryId
                     }
@@ -705,16 +705,16 @@ open class SqlDatabase(
                 .selectAll()
                 .where {
                     (
-                            Progression.percent.lessEq(maxPercent) and
-                                    Progression.percent.greaterEq(minPercent) and
-                                    Progression.username.eq(username)
-                            ).let {
-                            if (cursor != null) {
-                                it and Progression.timestamp.less(cursor.toEpochMilliseconds())
-                            } else {
-                                it
-                            }
+                        Progression.percent.lessEq(maxPercent) and
+                            Progression.percent.greaterEq(minPercent) and
+                            Progression.username.eq(username)
+                        ).let {
+                        if (cursor != null) {
+                            it and Progression.timestamp.less(cursor.toEpochMilliseconds())
+                        } else {
+                            it
                         }
+                    }
                 }.orderBy(Progression.timestamp to SortOrder.DESC, Progression.mediaId to SortOrder.DESC)
                 .limit(limit)
                 .asFlow()

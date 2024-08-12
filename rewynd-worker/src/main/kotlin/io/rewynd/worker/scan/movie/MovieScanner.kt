@@ -66,10 +66,10 @@ class MovieScanner(
                 .walk()
                 .filter {
                     !it.name.startsWith(".") &&
-                            it.isFile &&
-                            !it.isSubtitleFile() &&
-                            !it.isImageFile() &&
-                            !it.isNfoFile()
+                        it.isFile &&
+                        !it.isSubtitleFile() &&
+                        !it.isImageFile() &&
+                        !it.isNfoFile()
                 }.asFlow()
                 .parMapUnordered { movieFile ->
                     coRunCatching {
@@ -90,7 +90,7 @@ class MovieScanner(
                                     .maxDepth(1)
                                     .filter {
                                         it.isSubtitleFile() &&
-                                                it.name.startsWith(movieFile.nameWithoutExtension)
+                                            it.name.startsWith(movieFile.nameWithoutExtension)
                                     }.associate { it.nameWithoutExtension to FileLocation.LocalFile(it.absolutePath) }
 
                             // TODO skip subtitle track ffprobing if it hasn't changed
@@ -106,7 +106,8 @@ class MovieScanner(
                                                 SubtitleFileTrack(entry.value, it)
                                             }
                                     }.mapNotNull { it.value }
-                            val posterImageFile = movieFile.findMediaImage(lib, "-poster") ?: movieFile.findMediaImage(lib)
+                            val posterImageFile = movieFile.findMediaImage(lib, "-poster")
+                                ?: movieFile.findMediaImage(lib)
                             val backdropImageFile = movieFile.findMediaImage(lib, "-backdrop")
                             val lastModified = movieFile.lastModified()
                             val ffprobe =

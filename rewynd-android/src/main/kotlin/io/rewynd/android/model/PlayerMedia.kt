@@ -22,7 +22,6 @@ sealed interface PlayerMedia {
 
     fun atBeginning(): PlayerMedia
 
-
     @kotlinx.serialization.Serializable
     data class Episode(
         val playbackMethod: EpisodePlaybackMethod,
@@ -42,7 +41,6 @@ sealed interface PlayerMedia {
 
         override fun atBeginning() = copy(startOffset = Duration.ZERO)
     }
-
 
     @kotlinx.serialization.Serializable
     data class Movie(
@@ -122,5 +120,4 @@ sealed interface PlayerMedia {
                 )
             }
         }
-
 }

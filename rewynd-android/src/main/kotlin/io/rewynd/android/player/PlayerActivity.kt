@@ -271,6 +271,7 @@ class PlayerActivity : AppCompatActivity() {
                     }
                 }
             }
+
             is PlayerActivityAction.Stop -> {
                 this.intent.getBundleExtra(BROWSER_STATE)?.let {
                     startActivity(
@@ -310,97 +311,109 @@ fun PlayerWrapper(
     val isLoading by serviceInterface.isLoading.collectAsState()
     if (isLoading) {
         CircularProgressIndicator(modifier = Modifier.background(Color.Transparent))
-    }
-    nullableMedia?.let { media ->
-        Log.d("PlayerActivity", media.toString())
-        LaunchedEffect(key1 = media, key2 = updateMedia) {
-            updateMedia()
-        }
-        val prev by serviceInterface.prev.collectAsState()
-        val next by serviceInterface.next.collectAsState()
-        val isPlaying by serviceInterface.isPlayingState.collectAsState()
-        val bufferedPosition by serviceInterface.bufferedPosition.collectAsState()
-        val actualStartOffset by serviceInterface.actualStartOffset.collectAsState()
-        val currentPlayerTime by serviceInterface.currentPlayerTime.collectAsState()
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            AndroidView(
-                modifier =
-                Modifier.clickable {
-                    viewModel.setAreControlsVisible(areControlsVisible.not())
-                }.background(Color.Black).fillMaxHeight().fillMaxWidth(),
-                factory = { context ->
-                    serviceInterface.getPlayerView(context).apply {
-                        useController = false
-                        this.addOnLayoutChangeListener {
-                                view: View, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int, _: Int ->
-                            view.useRect()
+    } else {
+        nullableMedia?.let { media ->
+            Log.d("PlayerActivity", media.toString())
+            LaunchedEffect(key1 = media, key2 = updateMedia) {
+                updateMedia()
+            }
+            val prev by serviceInterface.prev.collectAsState()
+            val next by serviceInterface.next.collectAsState()
+            val isPlaying by serviceInterface.isPlayingState.collectAsState()
+            val bufferedPosition by serviceInterface.bufferedPosition.collectAsState()
+            val actualStartOffset by serviceInterface.actualStartOffset.collectAsState()
+            val currentPlayerTime by serviceInterface.currentPlayerTime.collectAsState()
+            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                AndroidView(
+                    modifier =
+                    Modifier.clickable {
+                        viewModel.setAreControlsVisible(areControlsVisible.not())
+                    }.background(Color.Black).fillMaxHeight().fillMaxWidth(),
+                    factory = { context ->
+                        serviceInterface.getPlayerView(context).apply {
+                            useController = false
+                            this.addOnLayoutChangeListener {
+                                    view: View,
+                                    _: Int,
+                                    _: Int,
+                                    _: Int,
+                                    _: Int,
+                                    _: Int,
+                                    _: Int,
+                                    _: Int,
+                                    _: Int ->
+                                view.useRect()
+                            }
+                            this.useRect()
                         }
-                        this.useRect()
-                    }
-                },
-            )
-            PlayerControls(
-                modifier = Modifier.fillMaxSize(),
-                isVisible = areControlsVisible,
-                isPlaying = isPlaying,
-                title = media.details,
-                onPrev =
-                if (prev == null) {
-                    null
-                } else {
-                    { serviceInterface.playPrev() }
-                },
-                onNext =
-                if (next == null) {
-                    null
-                } else {
-                    { serviceInterface.playNext() }
-                },
-                onPlay = { serviceInterface.play() },
-                onPause = { serviceInterface.pause() },
-                onSeek = { serviceInterface.seek(it) },
-                bufferedPosition = actualStartOffset + bufferedPosition,
-                currentPlayerTime = actualStartOffset + currentPlayerTime,
-                runTime = media.runTime,
-                onAudioChange = {
-                    MainScope().launch {
-                        serviceInterface.loadMedia(
-                            media.copy(
-                                audioTrackName = it,
-                                startOffset = actualStartOffset + currentPlayerTime,
-                            ),
-                        )
-                    }
-                },
-                onVideoChange = {
-                    MainScope().launch {
-                        serviceInterface.loadMedia(
-                            media.copy(
-                                videoTrackName = it,
-                                startOffset = actualStartOffset + currentPlayerTime,
-                            ),
-                        )
-                    }
-                },
-                onSubtitleChange = {
-                    MainScope().launch {
-                        serviceInterface.loadMedia(
-                            media.copy(
-                                subtitleTrackName = it,
-                                startOffset = actualStartOffset + currentPlayerTime,
-                            ),
-                        )
-                    }
-                },
-                currentMedia = media,
-                onNormalizationChange = {
-                    MainScope().launch {
-                        serviceInterface.loadMedia(
-                            media.copy(normalizationMethod = it, startOffset = actualStartOffset + currentPlayerTime),
-                        )
-                    }
-                },
-            )
+                    },
+                )
+                PlayerControls(
+                    modifier = Modifier.fillMaxSize(),
+                    isVisible = areControlsVisible,
+                    isPlaying = isPlaying,
+                    title = media.details,
+                    onPrev =
+                    if (prev == null) {
+                        null
+                    } else {
+                        { serviceInterface.playPrev() }
+                    },
+                    onNext =
+                    if (next == null) {
+                        null
+                    } else {
+                        { serviceInterface.playNext() }
+                    },
+                    onPlay = { serviceInterface.play() },
+                    onPause = { serviceInterface.pause() },
+                    onSeek = { serviceInterface.seek(it) },
+                    bufferedPosition = actualStartOffset + bufferedPosition,
+                    currentPlayerTime = actualStartOffset + currentPlayerTime,
+                    runTime = media.runTime,
+                    onAudioChange = {
+                        MainScope().launch {
+                            serviceInterface.loadMedia(
+                                media.copy(
+                                    audioTrackName = it,
+                                    startOffset = actualStartOffset + currentPlayerTime,
+                                ),
+                            )
+                        }
+                    },
+                    onVideoChange = {
+                        MainScope().launch {
+                            serviceInterface.loadMedia(
+                                media.copy(
+                                    videoTrackName = it,
+                                    startOffset = actualStartOffset + currentPlayerTime,
+                                ),
+                            )
+                        }
+                    },
+                    onSubtitleChange = {
+                        MainScope().launch {
+                            serviceInterface.loadMedia(
+                                media.copy(
+                                    subtitleTrackName = it,
+                                    startOffset = actualStartOffset + currentPlayerTime,
+                                ),
+                            )
+                        }
+                    },
+                    currentMedia = media,
+                    onNormalizationChange = {
+                        MainScope().launch {
+                            serviceInterface.loadMedia(
+                                media.copy(
+                                    normalizationMethod = it,
+                                    startOffset = actualStartOffset + currentPlayerTime
+                                ),
+                            )
+                        }
+                    },
+                )
+            }
         }
     }
 }
