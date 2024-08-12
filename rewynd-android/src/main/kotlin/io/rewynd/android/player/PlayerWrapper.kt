@@ -61,7 +61,6 @@ class PlayerWrapper(
                 player: Player,
                 events: Player.Events,
             ) {
-                log.info { "Got player events" }
                 super.onEvents(player, events)
                 currentPlayerTime.value = player.currentPosition.milliseconds
                 bufferedPosition.value = player.bufferedPosition.milliseconds
