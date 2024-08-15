@@ -26,18 +26,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.browser.BrowserActivity
 import io.rewynd.android.browser.BrowserActivity.Companion.BROWSER_STATE
 import io.rewynd.android.component.player.PlayerControls
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration.Companion.seconds
 
 @Serializable
 sealed interface PlayerActivityAction {
@@ -56,45 +65,40 @@ class PlayerActivity : AppCompatActivity() {
         get() = PlayerService.instance.value
 
     private fun updatePictureInPictureParams() {
+        val state = playerService?.playerState?.value
         val next =
-            if (playerService?.next?.value != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                playerService?.nextPendingIntent?.let { nextPendingIntent ->
-                    RemoteAction(
-                        Icon.createWithResource(
-                            this@PlayerActivity,
-                            androidx.media3.ui.R.drawable.exo_icon_next,
-                        ),
-                        "Next",
-                        "Next",
-                        nextPendingIntent,
-                    )
-                }
+            if (state?.next != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                RemoteAction(
+                    Icon.createWithResource(
+                        this@PlayerActivity,
+                        androidx.media3.ui.R.drawable.exo_icon_next,
+                    ),
+                    "Next",
+                    "Next",
+                    mkPlayerServiceIntent(PlayerServiceProps.Next),
+                )
             } else {
                 null
             }
 
         val prev =
-            if (playerService?.prev?.value != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                playerService?.prevPendingIntent?.let { prevPendingIntent ->
-                    RemoteAction(
-                        Icon.createWithResource(
-                            this@PlayerActivity,
-                            androidx.media3.ui.R.drawable.exo_icon_previous,
-                        ),
-                        "Prev",
-                        "Prev",
-                        prevPendingIntent,
-                    )
-                }
+            if (state?.next != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                RemoteAction(
+                    Icon.createWithResource(
+                        this@PlayerActivity,
+                        androidx.media3.ui.R.drawable.exo_icon_previous,
+                    ),
+                    "Prev",
+                    "Prev",
+                    mkPlayerServiceIntent(PlayerServiceProps.Prev),
+                )
             } else {
                 null
             }
 
-        val pausePendingIntent = playerService?.pausePendingIntent
-        val playPendingIntent = playerService?.playPendingIntent
         val playPause =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (pausePendingIntent != null) {
+                if (state?.isPlaying == true) {
                     RemoteAction(
                         Icon.createWithResource(
                             this@PlayerActivity,
@@ -102,9 +106,9 @@ class PlayerActivity : AppCompatActivity() {
                         ),
                         "Pause",
                         "Pause",
-                        pausePendingIntent,
+                        mkPlayerServiceIntent(PlayerServiceProps.Pause),
                     )
-                } else if (playPendingIntent != null) {
+                } else {
                     RemoteAction(
                         Icon.createWithResource(
                             this@PlayerActivity,
@@ -112,10 +116,8 @@ class PlayerActivity : AppCompatActivity() {
                         ),
                         "Play",
                         "Play",
-                        playPendingIntent,
+                        mkPlayerServiceIntent(PlayerServiceProps.Play),
                     )
-                } else {
-                    null
                 }
             } else {
                 null
@@ -175,7 +177,7 @@ class PlayerActivity : AppCompatActivity() {
             super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         }
         if (isInPictureInPictureMode) {
-            this.viewModel.areControlsVisible.value = false
+            this.viewModel.setControlsVisible(false)
         }
     }
 
@@ -205,14 +207,14 @@ class PlayerActivity : AppCompatActivity() {
                 } else {
                     @Suppress("DEPRECATION")
                     window.decorView.systemUiVisibility = (
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            // Hide the nav bar and status bar
-                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_FULLSCREEN
-                        )
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                    // Hide the nav bar and status bar
+                                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                            )
                 }
 
                 val props = action.props
@@ -249,24 +251,30 @@ class PlayerActivity : AppCompatActivity() {
                     }
 
                     setContent {
-                        val service by PlayerService.instance.collectAsState()
+                        val service by PlayerService.instance.collectAsStateWithLifecycle()
                         service?.let { serviceInterface ->
-                            val isPlaying by serviceInterface.isPlayingState.collectAsState()
-                            LaunchedEffect(isPlaying) {
+                            val playerState by serviceInterface.playerState.collectAsStateWithLifecycle()
+                            var currentPlayerTime by remember { mutableStateOf(playerState.currentPlayerTime) }
+
+                            LaunchedEffect(playerState.isPlaying) {
                                 updatePictureInPictureParams()
-                                if (isPlaying) {
+                                if (playerState.isPlaying) {
                                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                                    while (true) {
+                                        delay(1.seconds)
+                                        currentPlayerTime = serviceInterface.getCurrentPosition()
+                                    }
                                 } else {
                                     window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                                 }
                             }
 
-                            PlayerWrapper(viewModel, serviceInterface, {
+                            PlayerWrapper(viewModel, playerState.copy(currentPlayerTime = currentPlayerTime), serviceInterface, {
                                 rect = it
                             }) { updatePictureInPictureParams() }
-                        } ?: CircularProgressIndicator()
+                        } ?: CircularProgressIndicator(Modifier.fillMaxSize())
                     }
-                    if (playerService?.isPlayingState?.value == true) {
+                    if (playerService?.playerState?.value?.isPlaying == true) {
                         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     }
                 }
@@ -287,12 +295,14 @@ class PlayerActivity : AppCompatActivity() {
 
     companion object {
         const val PLAYER_ACTIVITY_ACTION_KEY = "PlayerActivityAction"
+        private val log = KotlinLogging.logger { }
     }
 }
 
 @Composable
 fun PlayerWrapper(
     viewModel: PlayerViewModel,
+    state: PlayerState,
     serviceInterface: PlayerServiceInterface,
     setBoundingRect: (Rect) -> Unit,
     modifier: Modifier = Modifier,
@@ -307,60 +317,53 @@ fun PlayerWrapper(
     }
 
     val areControlsVisible by viewModel.areControlsVisible.collectAsState()
-    val nullableMedia by serviceInterface.media.collectAsState()
-    val isLoading by serviceInterface.isLoading.collectAsState()
-    if (isLoading) {
+
+    if (state.isLoading) {
         CircularProgressIndicator(modifier = Modifier.background(Color.Transparent))
     } else {
-        nullableMedia?.let { media ->
+        state.media?.let { media ->
             Log.d("PlayerActivity", media.toString())
             LaunchedEffect(key1 = media, key2 = updateMedia) {
                 updateMedia()
             }
-            val prev by serviceInterface.prev.collectAsState()
-            val next by serviceInterface.next.collectAsState()
-            val isPlaying by serviceInterface.isPlayingState.collectAsState()
-            val bufferedPosition by serviceInterface.bufferedPosition.collectAsState()
-            val actualStartOffset by serviceInterface.actualStartOffset.collectAsState()
-            val currentPlayerTime by serviceInterface.currentPlayerTime.collectAsState()
             Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 AndroidView(
                     modifier =
                     Modifier.clickable {
-                        viewModel.setAreControlsVisible(areControlsVisible.not())
+                        viewModel.setControlsVisible(areControlsVisible.not())
                     }.background(Color.Black).fillMaxHeight().fillMaxWidth(),
                     factory = { context ->
                         serviceInterface.getPlayerView(context).apply {
                             useController = false
-                            this.addOnLayoutChangeListener {
-                                    view: View,
-                                    _: Int,
-                                    _: Int,
-                                    _: Int,
-                                    _: Int,
-                                    _: Int,
-                                    _: Int,
-                                    _: Int,
-                                    _: Int ->
+                            this.addOnLayoutChangeListener { view: View,
+                                                             _: Int,
+                                                             _: Int,
+                                                             _: Int,
+                                                             _: Int,
+                                                             _: Int,
+                                                             _: Int,
+                                                             _: Int,
+                                                             _: Int ->
                                 view.useRect()
                             }
                             this.useRect()
                         }
                     },
                 )
+                // TODO reset controls visibility on any button press
                 PlayerControls(
                     modifier = Modifier.fillMaxSize(),
                     isVisible = areControlsVisible,
-                    isPlaying = isPlaying,
+                    isPlaying = state.isPlaying,
                     title = media.details,
                     onPrev =
-                    if (prev == null) {
+                    if (state.prev == null) {
                         null
                     } else {
                         { serviceInterface.playPrev() }
                     },
                     onNext =
-                    if (next == null) {
+                    if (state.next == null) {
                         null
                     } else {
                         { serviceInterface.playNext() }
@@ -368,15 +371,15 @@ fun PlayerWrapper(
                     onPlay = { serviceInterface.play() },
                     onPause = { serviceInterface.pause() },
                     onSeek = { serviceInterface.seek(it) },
-                    bufferedPosition = actualStartOffset + bufferedPosition,
-                    currentPlayerTime = actualStartOffset + currentPlayerTime,
+                    bufferedPosition = state.actualStartOffset + state.bufferedPosition,
+                    currentPlayerTime = state.offsetTime,
                     runTime = media.runTime,
                     onAudioChange = {
                         MainScope().launch {
                             serviceInterface.loadMedia(
                                 media.copy(
                                     audioTrackName = it,
-                                    startOffset = actualStartOffset + currentPlayerTime,
+                                    startOffset = state.offsetTime,
                                 ),
                             )
                         }
@@ -386,7 +389,7 @@ fun PlayerWrapper(
                             serviceInterface.loadMedia(
                                 media.copy(
                                     videoTrackName = it,
-                                    startOffset = actualStartOffset + currentPlayerTime,
+                                    startOffset = state.offsetTime,
                                 ),
                             )
                         }
@@ -396,7 +399,7 @@ fun PlayerWrapper(
                             serviceInterface.loadMedia(
                                 media.copy(
                                     subtitleTrackName = it,
-                                    startOffset = actualStartOffset + currentPlayerTime,
+                                    startOffset = state.offsetTime,
                                 ),
                             )
                         }
@@ -407,7 +410,7 @@ fun PlayerWrapper(
                             serviceInterface.loadMedia(
                                 media.copy(
                                     normalizationMethod = it,
-                                    startOffset = actualStartOffset + currentPlayerTime
+                                    startOffset = state.offsetTime
                                 ),
                             )
                         }

@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
             when (loginState) {
                 is LoginState.LoggedIn -> {
                     startActivity(Intent(this, BrowserActivity::class.java))
+                    finish()
                 }
                 is LoginState.LoggedOut -> {
                     viewModel.verify() // Check if we are already logged in

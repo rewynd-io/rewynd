@@ -14,14 +14,19 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.ui.PlayerView
+import arrow.atomic.Atomic
+import arrow.atomic.update
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.MILLIS_PER_SECOND
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import io.rewynd.client.RewyndClient
 import io.rewynd.model.Progress
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
@@ -30,30 +35,66 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+data class PlayerState(
+    val bufferedPosition: Duration = Duration.ZERO,
+    val currentPlayerTime: Duration = Duration.ZERO,
+    val isLoading: Boolean = true,
+    val media: PlayerMedia? = null,
+    val next: PlayerMedia? = null,
+    val prev: PlayerMedia? = null,
+    val actualStartOffset: Duration = Duration.ZERO,
+    val isPlaying: Boolean = true,
+    val playbackState: PlaybackState = PlaybackState.Idle
+) {
+    val offsetTime = actualStartOffset + currentPlayerTime
+
+    sealed interface PlaybackState {
+        data object Unknown : PlaybackState
+        data object Ended : PlaybackState
+        data object Buffering : PlaybackState
+        data object Idle : PlaybackState
+        data object Ready : PlaybackState
+    }
+}
+
+private fun <T> MutableStateFlow<T>.updateAndGet(block: (T) -> T): T {
+    val v = block(value)
+    value = v
+    return v
+}
+
 class PlayerWrapper(
     context: Context,
     httpClient: OkHttpClient,
     val client: RewyndClient,
     val onEvent: () -> Unit = {},
-    onNext: suspend (player: PlayerWrapper) -> Unit = {},
 ) {
     private val datasourceFactory by lazy { OkHttpDataSource.Factory(httpClient) }
 
-    val bufferedPosition: MutableStateFlow<Duration> = MutableStateFlow(0.milliseconds)
-    val currentPlayerTime: MutableStateFlow<Duration> = MutableStateFlow(0.milliseconds)
-    val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    val playbackState: MutableStateFlow<Int> = MutableStateFlow(Player.STATE_IDLE)
-    val media: MutableStateFlow<PlayerMedia?> = MutableStateFlow(null)
-    val actualStartOffset: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
-    val isPlayingState by lazy { MutableStateFlow(player.playWhenReady) }
+    private val _state = MutableStateFlow(PlayerState())
+    val state: StateFlow<PlayerState>
+        get() = _state
+
+    fun MutableStateFlow<PlayerState>.reload(desired: Duration? = null) = updateAndGet {
+        it.copy(
+            media = it.media?.copy(startOffset = desired ?: it.offsetTime),
+            actualStartOffset = desired ?: it.offsetTime,
+            currentPlayerTime = Duration.ZERO
+        )
+    }.let {
+        it.media?.let(this@PlayerWrapper::load) ?: Unit
+    }
 
     private val player: ExoPlayer by lazy {
         ExoPlayer.Builder(context).build().apply {
             addListener(listener)
             addAnalyticsListener(EventLogger())
-            playWhenReady = true
+            playWhenReady = state.value.isPlaying
         }
     }
+
+    val currentPosition
+        get() = player.currentPosition.milliseconds
 
     private val listener =
         object : Player.Listener {
@@ -62,40 +103,46 @@ class PlayerWrapper(
                 events: Player.Events,
             ) {
                 super.onEvents(player, events)
-                currentPlayerTime.value = player.currentPosition.milliseconds
-                bufferedPosition.value = player.bufferedPosition.milliseconds
-                val m = media.value
-                if (m != null && currentOffsetTime >= m.runTime.minus(1.seconds)) {
-                    runBlocking {
-                        onNext(this@PlayerWrapper)
+                log.info { "TimeUpdate: ${player.currentPosition}" }
+                _state.updateAndGet {
+                    it.copy(
+                        currentPlayerTime = player.currentPosition.milliseconds,
+                        bufferedPosition = player.bufferedPosition.milliseconds
+                    )
+                }.let {
+                    if (it.media != null && it.offsetTime >= it.media.runTime.minus(1.seconds)) {
+                        runBlocking {
+                            next(startAtZero = true)
+                        }
                     }
                 }
+
                 onEvent()
             }
 
             override fun onPlayerError(e: PlaybackException) =
                 runBlocking {
                     log.error(e) { "Player Error!" }
-                    media.value?.copy(currentPlayerTime.value)
-                        ?.let { this@PlayerWrapper.load(it) } ?: Unit
+                    _state.reload()
                 }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                runBlocking {
-                    isPlayingState.value = isPlaying
+                _state.updateAndGet {
+                    it.copy(isPlaying = isPlaying)
                 }
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
-                this@PlayerWrapper.playbackState.value = playbackState
-                runBlocking {
-                    when (playbackState) {
-                        Player.STATE_ENDED -> {}
-                        Player.STATE_BUFFERING -> {}
-                        Player.STATE_IDLE -> {}
-                        Player.STATE_READY -> {}
-                    }
-                    Unit
+                _state.updateAndGet {
+                    it.copy(
+                        playbackState = when (playbackState) {
+                            Player.STATE_BUFFERING -> PlayerState.PlaybackState.Buffering
+                            Player.STATE_READY -> PlayerState.PlaybackState.Ready
+                            Player.STATE_IDLE -> PlayerState.PlaybackState.Idle
+                            Player.STATE_ENDED -> PlayerState.PlaybackState.Ended
+                            else -> PlayerState.PlaybackState.Unknown
+                        }
+                    )
                 }
             }
         }
@@ -134,6 +181,46 @@ class PlayerWrapper(
         player.prepare()
     }
 
+    fun next(startAtZero: Boolean = false) {
+        _state.updateAndGet {
+            it.copy(
+                media = it.next?.run {
+                    if (startAtZero) {
+                        copy(startOffset = Duration.ZERO)
+                    } else {
+                        this
+                    }
+                },
+                prev = it.media,
+                next = runBlocking { it.next?.let { nonNullNext -> PlaybackMethodHandler.next(client, nonNullNext) } },
+                actualStartOffset = Duration.ZERO,
+                currentPlayerTime = Duration.ZERO
+            )
+        }.let {
+            it.media?.let(this@PlayerWrapper::load) ?: Unit
+        }
+    }
+
+    fun prev(startAtZero: Boolean = false) {
+        _state.updateAndGet {
+            it.copy(
+                media = it.prev?.run {
+                    if (startAtZero) {
+                        copy(startOffset = Duration.ZERO)
+                    } else {
+                        this
+                    }
+                },
+                prev = runBlocking { it.next?.let { nonNullNext -> PlaybackMethodHandler.prev(client, nonNullNext) } },
+                next = it.media,
+                actualStartOffset = Duration.ZERO,
+                currentPlayerTime = Duration.ZERO
+            )
+        }.let {
+            it.media?.let(this@PlayerWrapper::load) ?: Unit
+        }
+    }
+
     fun stop() =
         runBlocking {
             player.stop()
@@ -150,8 +237,20 @@ class PlayerWrapper(
 
     fun load(playerMedia: PlayerMedia) =
         runBlocking {
-            this@PlayerWrapper.isLoading.value = true
-            media.value = playerMedia
+            _state.updateAndGet {
+                runBlocking {
+                    if (playerMedia != it.media) {
+                        it.copy(
+                            next = PlaybackMethodHandler.next(client, playerMedia),
+                            prev = PlaybackMethodHandler.prev(client, playerMedia),
+                            isLoading = true,
+                            media = playerMedia
+                        )
+                    } else {
+                        it.copy(isLoading = true, media = playerMedia)
+                    }
+                }
+            }
 
             heartbeat.load(playerMedia.toCreateStreamRequest())
             this@PlayerWrapper.onEvent()
@@ -163,45 +262,57 @@ class PlayerWrapper(
             client = client,
             onCanceled = {
                 log.info { "Heartbeat Cancelled" }
-                it.copy(startOffset = currentOffsetTime.inWholeMilliseconds / 1000.0)
+                _state.updateAndGet {
+                    it.copy(
+                        media = it.media?.copy(startOffset = it.offsetTime),
+                        actualStartOffset = it.offsetTime,
+                        currentPlayerTime = Duration.ZERO
+                    )
+                }.media?.toCreateStreamRequest()
             },
             onAvailable = { _, actualStartOffset ->
                 log.info { "Heartbeat Available" }
                 putProgress()
-                this.actualStartOffset.value = actualStartOffset
+                _state.updateAndGet {
+                    it.copy(actualStartOffset = actualStartOffset)
+                }
             },
-        ) {
+        ) { streamProps ->
             log.info { "Heartbeat Loading" }
 
-            val uri = Uri.parse(client.baseUrl + it.url)
+            val uri = Uri.parse(client.baseUrl + streamProps.url)
             log.info { "Loading media: $uri" }
 
             loadUri(uri)
-            this.isLoading.value = false
+            _state.updateAndGet {
+                it.copy(isLoading = false)
+            }
         }
     }
 
     private fun putProgress() =
         MainScope().launch {
-            when (val m = media.value) {
+            val s = _state.value
+            when (val m = s.media) {
                 null -> {}
                 is PlayerMedia.Episode -> {
                     kotlin.runCatching {
                         client.putUserProgress(
                             Progress(
                                 m.info.id,
-                                (currentOffsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
+                                (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
                                 Clock.System.now(),
                             ),
                         )
                     }.onFailure { log.error(it) { "Failed to putUserProgress" } }
                 }
+
                 is PlayerMedia.Movie -> {
                     kotlin.runCatching {
                         client.putUserProgress(
                             Progress(
                                 m.info.id,
-                                (currentOffsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
+                                (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
                                 Clock.System.now(),
                             ),
                         )
@@ -210,21 +321,15 @@ class PlayerWrapper(
             }
         }
 
-    val currentOffsetTime: Duration
-        get() = this.currentPlayerTime.value + (actualStartOffset.value)
-
     fun seek(desired: Duration) =
-        this.media.value?.let { playerMedia ->
+        _state.value.media?.let { playerMedia ->
             if (
                 desired > playerMedia.startOffset &&
                 desired < playerMedia.startOffset + this.player.duration.milliseconds
             ) {
                 this.player.seekTo((desired - playerMedia.startOffset).inWholeMilliseconds)
             } else {
-                runBlocking {
-                    this@PlayerWrapper.actualStartOffset.value = desired
-                    this@PlayerWrapper.load(playerMedia.copy(startOffset = desired))
-                }
+                _state.reload(desired)
             }
         } ?: Unit
 

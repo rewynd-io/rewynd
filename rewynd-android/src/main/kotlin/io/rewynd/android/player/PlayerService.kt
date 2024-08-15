@@ -56,24 +56,6 @@ class PlayerService : Service() {
             .build()
     }
 
-    private suspend fun onNext(playerWrapper: PlayerWrapper) {
-        next.value =
-            next.value?.let { nonNullNext ->
-                prev.value = playerWrapper.media.value
-                playerWrapper.load(nonNullNext)
-                PlaybackMethodHandler.next(client, nonNullNext)
-            }
-    }
-
-    private suspend fun onPrev(playerWrapper: PlayerWrapper) {
-        prev.value =
-            prev.value?.let { nonNullPrev ->
-                next.value = playerWrapper.media.value
-                playerWrapper.load(nonNullPrev)
-                PlaybackMethodHandler.prev(client, nonNullPrev)
-            }
-    }
-
     private val player by lazy {
         PlayerWrapper(this, httpClient, client, onEvent = {
             // Relies on the stop() setting instance.value to null, which isn't great
@@ -81,13 +63,6 @@ class PlayerService : Service() {
                 setPlaybackState()
                 createNotification()
             }
-        }, onNext = { playerWrapper ->
-            next.value =
-                next.value?.let { nonNullNext ->
-                    prev.value = playerWrapper.media.value
-                    playerWrapper.load(nonNullNext.atBeginning())
-                    PlaybackMethodHandler.next(client, nonNullNext)
-                }
         })
     }
 
@@ -177,7 +152,7 @@ class PlayerService : Service() {
     }
 
     private fun handleStartIntent(props: PlayerServiceProps.Start) {
-        if (props.interruptPlayback || player.media.value == null) {
+        if (props.interruptPlayback || player.state.value.media == null) {
             this.originalPlayerProps = props.playerProps
             client = mkRewyndClient(props.serverUrl)
             runBlocking {
@@ -193,8 +168,9 @@ class PlayerService : Service() {
     }
 
     private fun setPlaybackState() {
+        val state = player.state.value
         val playPause =
-            if (this.player.isPlayingState.value) {
+            if (state.isPlaying) {
                 PlaybackState.ACTION_PAUSE
             } else {
                 PlaybackState.ACTION_PLAY
@@ -223,22 +199,22 @@ class PlayerService : Service() {
                     PlaybackState.ACTION_REWIND or
                     PlaybackState.ACTION_STOP,
             ).setState(
-                when (this.player.playbackState.value) {
-                    Player.STATE_BUFFERING -> PlaybackState.STATE_BUFFERING
-                    Player.STATE_IDLE -> PlaybackState.STATE_PAUSED
-                    Player.STATE_READY ->
-                        if (this.player.isPlayingState.value) {
+                when (state.playbackState) {
+                    is PlayerState.PlaybackState.Buffering -> PlaybackState.STATE_BUFFERING
+                    is PlayerState.PlaybackState.Idle -> PlaybackState.STATE_PAUSED
+                    is PlayerState.PlaybackState.Ready ->
+                        if (state.isPlaying) {
                             PlaybackState.STATE_PLAYING
                         } else {
                             PlaybackState.STATE_PAUSED
                         }
 
-                    Player.STATE_ENDED -> PlaybackState.STATE_PAUSED
-                    else -> PlaybackState.STATE_NONE
+                    is PlayerState.PlaybackState.Ended -> PlaybackState.STATE_PAUSED
+                    is PlayerState.PlaybackState.Unknown -> PlaybackState.STATE_NONE
                 },
-                this.player.currentOffsetTime.inWholeMilliseconds,
+                state.offsetTime.inWholeMilliseconds,
                 1.0f,
-            ).setBufferedPosition(player.bufferedPosition.value.inWholeMilliseconds)
+            ).setBufferedPosition(state.bufferedPosition.inWholeMilliseconds)
             .addCustomAction(
                 PlaybackState.CustomAction.Builder(
                     CUSTOM_ACTION_STOP,
@@ -254,10 +230,10 @@ class PlayerService : Service() {
         this.mediaSession.setMetadata(
             MediaMetadata
                 .Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, player.media.value?.title)
+                .putString(MediaMetadata.METADATA_KEY_TITLE, state.media?.title)
                 // Artist.
                 // Could also be the channel name or TV series.
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, player.media.value?.artist)
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, state.media?.artist)
                 // TODO load media image as a bitmap
                 // Album art.
                 // Could also be a screenshot or hero image for video content
@@ -269,7 +245,7 @@ class PlayerService : Service() {
                 // indicator won't be shown on the seekbar.
                 .putLong(
                     MediaMetadata.METADATA_KEY_DURATION,
-                    player.media.value
+                    state.media
                         ?.runTime
                         ?.inWholeMilliseconds ?: 0,
                 ) // 4
@@ -284,24 +260,6 @@ class PlayerService : Service() {
             notificationManager.deleteNotificationChannel(PLAYER_SERVICE_NOTIFICATION_CHANNEL_ID)
         }
     }
-
-    private fun mkPlayerServiceIntent(props: PlayerServiceProps): PendingIntent =
-        Intent(
-            this,
-            PlayerService::class.java,
-        ).apply {
-            putExtra(
-                PLAYER_SERVICE_INTENT_BUNDLE_PROPS_KEY,
-                Json.encodeToString(props),
-            )
-        }.let {
-            PendingIntent.getService(
-                this,
-                props.requestCode,
-                it,
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-            )
-        }
 
     private fun mkMediaIntent(playerMedia: PlayerMedia) =
         Intent(
@@ -346,8 +304,8 @@ class PlayerService : Service() {
 
     // https://android-developers.googleblog.com/2020/08/playing-nicely-with-media-controls.html
     @Suppress("MagicNumber")
-    private fun createNotification(): Unit =
-        this.player.media.value?.let { playerMedia ->
+    private fun createNotification(): Unit = player.state.value.run {
+        media?.let { playerMedia ->
             // Creating a NotificationChannel is required for Android O and up.
             createNotificationChannel()
 
@@ -361,11 +319,11 @@ class PlayerService : Service() {
             val builder =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     Notification.Builder(
-                        this,
+                        this@PlayerService,
                         PLAYER_SERVICE_NOTIFICATION_CHANNEL_ID,
                     )
                 } else {
-                    Notification.Builder(this)
+                    Notification.Builder(this@PlayerService)
                 }
 
             mediaSession.setSessionActivity(playerPendingIntent)
@@ -382,7 +340,7 @@ class PlayerService : Service() {
                 .setContentIntent(playerPendingIntent)
                 .setProgress(
                     playerMedia.runTime.inWholeSeconds.toInt(),
-                    player.currentOffsetTime.inWholeSeconds.toInt(),
+                    offsetTime.inWholeSeconds.toInt(),
                     false,
                 ).addAction(
                     Notification.Action
@@ -405,7 +363,7 @@ class PlayerService : Service() {
                             prevPendingIntent,
                         ).build(),
                 ).addAction(
-                    if (this@PlayerService.player.isPlayingState.value) {
+                    if (isPlaying) {
                         Notification.Action
                             .Builder(
                                 Icon.createWithResource(
@@ -444,104 +402,9 @@ class PlayerService : Service() {
             }
 
             notification = builder.build()
-//
-// //            notification =
-//            (
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                        Notification.Builder(
-//                            this,
-//                            PLAYER_SERVICE_NOTIFICATION_CHANNEL_ID,
-//                        )
-//                    } else {
-//                        Notification.Builder(this)
-//                    }
-//                    ).apply {
-//                    setProgress(
-//                        playerMedia.runTime.inWholeSeconds.toInt(),
-//                        player.currentOffsetTime.inWholeSeconds.toInt(),
-//                        false,
-//                    )
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                        setFlag(Notification.FLAG_ONGOING_EVENT and Notification.FLAG_NO_CLEAR, true)
-//                    }
-//                    setOngoing(true)
-//                    setContentTitle(playerMedia.title)
-//                    setSmallIcon(R.drawable.rewynd_icon_basic_monochrome)
-//                    // Enable launching the player by clicking the notification
-//                    setContentIntent(playerPendingIntent)
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//                        setAllowSystemGeneratedContextualActions(false)
-//                    }
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                        setColorized(true)
-//                    }
-//
-//                    // TODO use non-private icons
-//                    // 0
-//                    addAction(
-//                        Notification.Action.Builder(
-//                            Icon.createWithResource(
-//                                this@PlayerService,
-//                                androidx.media3.ui.R.drawable.exo_icon_stop,
-//                            ),
-//                            "Stop",
-//                            stopPendingIntent,
-//                        ).build(),
-//                    )
-//                    // 1
-//                    addAction(
-//                        Notification.Action.Builder(
-//                            Icon.createWithResource(
-//                                this@PlayerService,
-//                                androidx.media3.ui.R.drawable.exo_icon_previous,
-//                            ),
-//                            "Previous",
-//                            prevPendingIntent,
-//                        ).build(),
-//                    )
-//                    // 2
-//                    addAction(
-//                        if (this@PlayerService.player.isPlayingState.value) {
-//                            Notification.Action.Builder(
-//                                Icon.createWithResource(
-//                                    this@PlayerService,
-//                                    androidx.media3.ui.R.drawable.exo_icon_pause,
-//                                ),
-//                                "Pause",
-//                                pausePendingIntent,
-//                            ).build()
-//                        } else {
-//                            Notification.Action.Builder(
-//                                Icon.createWithResource(
-//                                    this@PlayerService,
-//                                    androidx.media3.ui.R.drawable.exo_icon_play,
-//                                ),
-//                                "Play",
-//                                playPendingIntent,
-//                            ).build()
-//                        },
-//                    )
-//                    // 3
-//                    addAction(
-//                        Notification.Action.Builder(
-//                            Icon.createWithResource(
-//                                this@PlayerService,
-//                                androidx.media3.ui.R.drawable.exo_icon_next,
-//                            ),
-//                            "Next",
-//                            nextPendingIntent,
-//                        ).build(),
-//                    )
-//                    setColor(Color.GREEN)
-// //                    style =
-// //                        Notification.MediaStyle()
-// //                            .setMediaSession(mediaSession.sessionToken)
-// //                            .setShowActionsInCompactView(1, 2, 3)
-//                    setDeleteIntent(stopPendingIntent)
-//                }.build()
-
             startForeground(PLAYER_SERVICE_NOTIFICATION_ID, notification)
         } ?: Unit
+    }
 
     companion object {
         const val CUSTOM_ACTION_STOP = "Stop"
@@ -560,72 +423,16 @@ class PlayerService : Service() {
         object : PlayerServiceInterface {
             override val browserState: Bundle?
                 get() = this@PlayerService.browserState
-            override val isLoading: StateFlow<Boolean>
-                get() = this@PlayerService.player.isLoading
-            override val isPlayingState: StateFlow<Boolean>
-                get() = this@PlayerService.player.isPlayingState
-            override val media: StateFlow<PlayerMedia?>
-                get() = this@PlayerService.player.media
-            override val next: StateFlow<PlayerMedia?>
-                get() = this@PlayerService.next
-            override val prev: StateFlow<PlayerMedia?>
-                get() = this@PlayerService.prev
-            override val bufferedPosition: StateFlow<Duration>
-                get() = this@PlayerService.player.bufferedPosition
-            override val actualStartOffset: StateFlow<Duration>
-                get() = this@PlayerService.player.actualStartOffset
-            override val currentPlayerTime: StateFlow<Duration>
-                get() = this@PlayerService.player.currentPlayerTime
-            override val nextPendingIntent: PendingIntent?
-                get() =
-                    next.value?.let {
-                        this@PlayerService.mkPlayerServiceIntent(
-                            PlayerServiceProps.Next,
-                        )
-                    }
-            override val prevPendingIntent: PendingIntent?
-                get() =
-                    prev.value?.let {
-                        this@PlayerService.mkPlayerServiceIntent(
-                            PlayerServiceProps.Prev,
-                        )
-                    }
-            override val pausePendingIntent: PendingIntent?
-                get() =
-                    if (isPlayingState.value) {
-                        this@PlayerService.mkPlayerServiceIntent(
-                            PlayerServiceProps.Pause,
-                        )
-                    } else {
-                        null
-                    }
-            override val playPendingIntent: PendingIntent?
-                get() =
-                    if (isPlayingState.value) {
-                        null
-                    } else {
-                        this@PlayerService.mkPlayerServiceIntent(
-                            PlayerServiceProps.Play,
-                        )
-                    }
+            override val playerState: StateFlow<PlayerState>
+                get() = this@PlayerService.player.state
+
+            override fun getCurrentPosition(): Duration = player.currentPosition
 
             override fun getPlayerView(context: Context): PlayerView = this@PlayerService.player.getPlayerView(context)
 
-            override fun playNext(): Unit =
-                this@PlayerService.next.value?.let {
-                    MainScope().launch {
-                        onNext(this@PlayerService.player)
-                    }
-                    Unit
-                } ?: Unit
+            override fun playNext(): Unit = this@PlayerService.player.next()
 
-            override fun playPrev() =
-                this@PlayerService.prev.value?.let {
-                    MainScope().launch {
-                        onPrev(this@PlayerService.player)
-                    }
-                    Unit
-                } ?: Unit
+            override fun playPrev() = this@PlayerService.player.prev()
 
             override fun stop() = this@PlayerService.stop()
 
