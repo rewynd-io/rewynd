@@ -7,6 +7,11 @@ import { settingsSlice } from "./slice/SettingsSlice";
 import { userPreferencesSlice } from "./slice/UserPreferencesSlice";
 import { adminSettingsSlice } from "./slice/AdminSettingsSlice";
 
+import {
+  createReduxMiddleware,
+  defaultOptions,
+} from "@karmaniverous/serify-deserify";
+
 export const store = configureStore({
   reducer: {
     // player: playerSlice.reducer,
@@ -17,6 +22,8 @@ export const store = configureStore({
     settings: settingsSlice.reducer,
     userPrefs: userPreferencesSlice.reducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(createReduxMiddleware(defaultOptions)),
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

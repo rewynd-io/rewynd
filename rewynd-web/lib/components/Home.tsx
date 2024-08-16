@@ -209,7 +209,7 @@ export function Home() {
           justifyContent={"flex-start"}
           wrap={"nowrap"}
           sx={{ overflowX: "scroll" }}
-          minHeight={"15em"}
+          height={"15em"}
           width={"100%"}
         >
           {nextEpisodes.map((episode) => (

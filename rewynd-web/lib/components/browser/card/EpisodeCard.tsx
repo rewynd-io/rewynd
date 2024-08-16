@@ -1,4 +1,4 @@
-import { Grid, Stack, styled, Typography } from "@mui/material";
+import { Container, Stack, styled, Typography } from "@mui/material";
 import { ButtonLink } from "../../ButtonLink";
 import { WebRoutes } from "../../../routes";
 import { ApiImage } from "../../Image";
@@ -47,19 +47,19 @@ export function EpisodeCard(props: EpisodeCardProps) {
   const showRoute = formatShowRoute(props.episode.showId.toString());
   const playerRoute = formatPlayerRoute(props.episode.id.toString());
   return (
-    <Grid xs={2} sx={{ width: "auto", minHeight: "15em" }}>
+    <Container sx={{ width: "auto", height: "15em" }}>
       <ButtonLink
         to={playerRoute}
         style={{ width: "100%" }}
-        sx={{ width: "auto", minHeight: "12em", minWidth: cardWidth }}
+        sx={{ width: "auto", height: "12em", minWidth: cardWidth }}
       >
-        <Stack style={{ width: "100%", height: "100%" }}>
+        <Row style={{ width: "100%", height: "100%" }}>
           <ApiImage
             id={props.episode.episodeImageId}
-            style={{ width: "100%", height: "100%" }}
+            style={{ height: "100%" }}
             alt={props.episode.title}
           ></ApiImage>
-        </Stack>
+        </Row>
       </ButtonLink>
       <Stack
         sx={{
@@ -94,6 +94,6 @@ export function EpisodeCard(props: EpisodeCardProps) {
           </UnpaddedButtonLink>
         </Row>
       </Stack>
-    </Grid>
+    </Container>
   );
 }

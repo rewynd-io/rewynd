@@ -11,7 +11,6 @@ import { useAppDispatch, useAppSelector } from "../../../store/store";
 import {
   EpisodeState,
   setEpisodeState,
-  updateEpisodeState,
 } from "../../../store/slice/EpisodeSlice";
 import { HttpClient } from "../../../const";
 import { WebRoutes } from "../../../routes";
@@ -83,7 +82,7 @@ export function EpisodeHlsPlayer() {
 
       // Update ui last
       dispatch(
-        updateEpisodeState({
+        setEpisodeState({
           percent: perc,
           nextId: nextNext,
           previousId: last.id,
@@ -188,7 +187,7 @@ export function EpisodeHlsPlayer() {
 
                 // Update ui last
                 dispatch(
-                  updateEpisodeState({
+                  setEpisodeState({
                     percent: perc,
                     nextId: last.id,
                     previousId: prevPrev,
