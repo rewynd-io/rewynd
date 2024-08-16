@@ -14,17 +14,13 @@ import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.ui.PlayerView
-import arrow.atomic.Atomic
-import arrow.atomic.update
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.MILLIS_PER_SECOND
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import io.rewynd.client.RewyndClient
 import io.rewynd.model.Progress
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

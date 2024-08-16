@@ -27,7 +27,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.browser.BrowserActivity
 import io.rewynd.android.browser.BrowserActivity.Companion.BROWSER_STATE
 import io.rewynd.android.component.player.PlayerControls
@@ -43,7 +41,6 @@ import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.seconds
@@ -207,14 +204,14 @@ class PlayerActivity : AppCompatActivity() {
                 } else {
                     @Suppress("DEPRECATION")
                     window.decorView.systemUiVisibility = (
-                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                    // Hide the nav bar and status bar
-                                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                            )
+                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            // Hide the nav bar and status bar
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        )
                 }
 
                 val props = action.props
@@ -269,9 +266,14 @@ class PlayerActivity : AppCompatActivity() {
                                 }
                             }
 
-                            PlayerWrapper(viewModel, playerState.copy(currentPlayerTime = currentPlayerTime), serviceInterface, {
-                                rect = it
-                            }) { updatePictureInPictureParams() }
+                            PlayerWrapper(
+                                viewModel,
+                                playerState.copy(currentPlayerTime = currentPlayerTime),
+                                serviceInterface,
+                                {
+                                    rect = it
+                                }
+                            ) { updatePictureInPictureParams() }
                         } ?: CircularProgressIndicator(Modifier.fillMaxSize())
                     }
                     if (playerService?.playerState?.value?.isPlaying == true) {
@@ -295,7 +297,6 @@ class PlayerActivity : AppCompatActivity() {
 
     companion object {
         const val PLAYER_ACTIVITY_ACTION_KEY = "PlayerActivityAction"
-        private val log = KotlinLogging.logger { }
     }
 }
 

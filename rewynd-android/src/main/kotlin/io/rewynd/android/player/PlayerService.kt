@@ -17,7 +17,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
-import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
 import io.rewynd.android.R
 import io.rewynd.android.browser.BrowserActivity
@@ -27,10 +26,8 @@ import io.rewynd.android.client.cookie.PersistentCookiesStorage
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
