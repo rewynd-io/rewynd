@@ -2,29 +2,23 @@ package io.rewynd.android.browser.component
 
 import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserState
 import io.rewynd.android.browser.BrowserViewModel
-import io.rewynd.android.browser.IBrowserNavigationActions
-import io.rewynd.android.browser.parcelableType
 import io.rewynd.android.model.PlayerMedia
-import io.rewynd.model.EpisodeInfo
-import io.rewynd.model.Library
-import io.rewynd.model.MovieInfo
-import io.rewynd.model.SeasonInfo
-import io.rewynd.model.ShowInfo
-import kotlin.reflect.typeOf
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter") // TODO use padding
 @Suppress("ViewModelForwarding", "ModifierMissing")
 @Composable
 fun BrowserRouter(
     navController: NavHostController,
-    actions: IBrowserNavigationActions,
+    actions: BrowserNavigationActions,
     viewModel: BrowserViewModel,
     startPlayer: (PlayerMedia) -> Unit,
 ) {
@@ -40,45 +34,35 @@ fun BrowserRouter(
                 HomeBrowser(actions::library, actions::episode, viewModel)
             }
         }
-        composable<BrowserState.LibraryState>(
-            typeMap = mapOf(typeOf<Library>() to parcelableType<Library>()),
-        ) {
+        composable<BrowserState.LibraryState> {
             val state = it.toRoute<BrowserState.LibraryState>()
             BrowserWrapper(actions) {
-                LibraryBrowser(state.library, actions, viewModel)
+                LibraryBrowser(state.id, actions, viewModel)
             }
         }
-        composable<BrowserState.ShowState>(
-            typeMap = mapOf(typeOf<ShowInfo>() to parcelableType<ShowInfo>()),
-        ) {
+        composable<BrowserState.ShowState> {
             val state = it.toRoute<BrowserState.ShowState>()
             BrowserWrapper(actions) {
-                ShowBrowser(state.showInfo, viewModel, actions)
+                ShowBrowser(state.id, viewModel, actions)
             }
         }
-        composable<BrowserState.MovieState>(
-            typeMap = mapOf(typeOf<MovieInfo>() to parcelableType<MovieInfo>()),
-        ) {
+        composable<BrowserState.MovieState> {
             val state = it.toRoute<BrowserState.MovieState>()
             BrowserWrapper(actions) {
-                MovieBrowser(state.movieInfo, viewModel, startPlayer, actions)
+                MovieBrowser(state.id, viewModel, startPlayer, actions)
             }
         }
-        composable<BrowserState.SeasonState>(
-            typeMap = mapOf(typeOf<SeasonInfo>() to parcelableType<SeasonInfo>()),
-        ) {
+        composable<BrowserState.SeasonState> {
             val state = it.toRoute<BrowserState.SeasonState>()
             BrowserWrapper(actions) {
-                SeasonBrowser(state.seasonInfo, viewModel, actions)
+                SeasonBrowser(state.id, viewModel, actions)
             }
         }
-        composable<BrowserState.EpisodeState>(
-            typeMap = mapOf(typeOf<EpisodeInfo>() to parcelableType<EpisodeInfo>()),
-        ) {
+        composable<BrowserState.EpisodeState> {
             val state = it.toRoute<BrowserState.EpisodeState>()
             BrowserWrapper(actions) {
                 EpisodeBrowser(
-                    episodeInfo = state.episodeInfo,
+                    episodeId = state.id,
                     viewModel = viewModel,
                     startPlayer = startPlayer,
                     actions = actions,

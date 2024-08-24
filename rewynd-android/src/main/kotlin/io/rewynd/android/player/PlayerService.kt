@@ -26,6 +26,7 @@ import io.rewynd.android.client.cookie.PersistentCookiesStorage
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.runBlocking
@@ -420,10 +421,10 @@ class PlayerService : Service() {
         object : PlayerServiceInterface {
             override val browserState: Bundle?
                 get() = this@PlayerService.browserState
-            override val playerState: StateFlow<PlayerState>
+            override val playerState: Flow<PlayerState>
                 get() = this@PlayerService.player.state
 
-            override fun getCurrentPosition(): Duration = player.currentPosition
+            override fun getState() = player.getState()
 
             override fun getPlayerView(context: Context): PlayerView = this@PlayerService.player.getPlayerView(context)
 
@@ -450,7 +451,7 @@ class PlayerService : Service() {
                 return super.onMediaButtonEvent(mediaButtonIntent)
             }
 
-//            override fun onStop() = this@PlayerService.stop()
+            override fun onStop() = this@PlayerService.stop()
 
             override fun onPlay() = this@PlayerService.player.play()
 

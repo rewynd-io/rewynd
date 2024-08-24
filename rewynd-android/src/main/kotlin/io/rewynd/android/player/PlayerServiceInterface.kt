@@ -7,16 +7,16 @@ import android.os.Bundle
 import androidx.media3.ui.PlayerView
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.android.player.PlayerService.Companion.PLAYER_SERVICE_INTENT_BUNDLE_PROPS_KEY
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration
 
 interface PlayerServiceInterface {
     val browserState: Bundle?
-    val playerState: StateFlow<PlayerState>
+    val playerState: Flow<PlayerState>
 
-    fun getCurrentPosition(): Duration
+    fun getState(): PlayerState
     fun getPlayerView(context: Context): PlayerView
 
     fun playNext()

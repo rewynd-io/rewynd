@@ -51,6 +51,10 @@ data class PlayerState(
         data object Idle : PlaybackState
         data object Ready : PlaybackState
     }
+
+    companion object {
+        val DEFAULT = PlayerState()
+    }
 }
 
 private fun <T> MutableStateFlow<T>.updateAndGet(block: (T) -> T): T {
@@ -71,26 +75,38 @@ class PlayerWrapper(
     val state: StateFlow<PlayerState>
         get() = _state
 
-    fun MutableStateFlow<PlayerState>.reload(desired: Duration? = null) = updateAndGet {
-        it.copy(
-            media = it.media?.copy(startOffset = desired ?: it.offsetTime),
-            actualStartOffset = desired ?: it.offsetTime,
-            currentPlayerTime = Duration.ZERO
-        )
-    }.let {
-        it.media?.let(this@PlayerWrapper::load) ?: Unit
+    fun MutableStateFlow<PlayerState>.reload(desired: Duration? = null) {
+        updateAndGet { playerState ->
+            playerState.copy(
+                media = playerState.media?.copy(startOffset = desired ?: playerState.offsetTime),
+                actualStartOffset = desired ?: playerState.offsetTime,
+                currentPlayerTime = Duration.ZERO
+            ).also { it.media?.let(this@PlayerWrapper::load) }
+        }
     }
 
     private val player: ExoPlayer by lazy {
         ExoPlayer.Builder(context).build().apply {
             addListener(listener)
             addAnalyticsListener(EventLogger())
-            playWhenReady = state.value.isPlaying
+            playWhenReady = _state.value.isPlaying
         }
     }
 
-    val currentPosition
-        get() = player.currentPosition.milliseconds
+    fun getState() = _state.updateAndGet {
+        it.copy(
+            currentPlayerTime = player.currentPosition.milliseconds,
+            bufferedPosition = player.bufferedPosition.milliseconds,
+            playbackState = when (player.playbackState) {
+                Player.STATE_BUFFERING -> PlayerState.PlaybackState.Buffering
+                Player.STATE_READY -> PlayerState.PlaybackState.Ready
+                Player.STATE_IDLE -> PlayerState.PlaybackState.Idle
+                Player.STATE_ENDED -> PlayerState.PlaybackState.Ended
+                else -> PlayerState.PlaybackState.Unknown
+            },
+            isPlaying = player.isPlaying
+        )
+    }
 
     private val listener =
         object : Player.Listener {
@@ -100,12 +116,7 @@ class PlayerWrapper(
             ) {
                 super.onEvents(player, events)
                 log.info { "TimeUpdate: ${player.currentPosition}" }
-                _state.updateAndGet {
-                    it.copy(
-                        currentPlayerTime = player.currentPosition.milliseconds,
-                        bufferedPosition = player.bufferedPosition.milliseconds
-                    )
-                }.let {
+                getState().let {
                     if (it.media != null && it.offsetTime >= it.media.runTime.minus(1.seconds)) {
                         runBlocking {
                             next(startAtZero = true)
@@ -125,20 +136,6 @@ class PlayerWrapper(
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 _state.updateAndGet {
                     it.copy(isPlaying = isPlaying)
-                }
-            }
-
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                _state.updateAndGet {
-                    it.copy(
-                        playbackState = when (playbackState) {
-                            Player.STATE_BUFFERING -> PlayerState.PlaybackState.Buffering
-                            Player.STATE_READY -> PlayerState.PlaybackState.Ready
-                            Player.STATE_IDLE -> PlayerState.PlaybackState.Idle
-                            Player.STATE_ENDED -> PlayerState.PlaybackState.Ended
-                            else -> PlayerState.PlaybackState.Unknown
-                        }
-                    )
                 }
             }
         }

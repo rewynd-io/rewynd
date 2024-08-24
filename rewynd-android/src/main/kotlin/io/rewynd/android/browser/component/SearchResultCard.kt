@@ -10,7 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import coil3.ImageLoader
-import io.rewynd.android.browser.IBrowserNavigationActions
+import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.component.ApiImage
 import io.rewynd.android.model.LoadedSearchResult
 
@@ -21,7 +21,7 @@ private const val WIDTH_DIVISOR = 4
 fun SearchResultCard(
     result: LoadedSearchResult,
     imageLoader: ImageLoader,
-    actions: IBrowserNavigationActions,
+    actions: BrowserNavigationActions,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier) {
@@ -61,11 +61,11 @@ fun SearchResultCard(
 private fun MovieSearchResultCard(
     result: LoadedSearchResult.Movie,
     imageLoader: ImageLoader,
-    actions: IBrowserNavigationActions,
+    actions: BrowserNavigationActions,
     modifier: Modifier = Modifier,
 ) {
     Card(onClick = {
-        actions.movie(result.media)
+        actions.movie(result.media.id)
     }, modifier = modifier) {
         BoxWithConstraints {
             Row {
@@ -87,11 +87,11 @@ private fun MovieSearchResultCard(
 private fun EpisodeSearchResultCard(
     result: LoadedSearchResult.Episode,
     imageLoader: ImageLoader,
-    actions: IBrowserNavigationActions,
+    actions: BrowserNavigationActions,
     modifier: Modifier = Modifier,
 ) {
     Card(onClick = {
-        actions.episode(result.media)
+        actions.episode(result.media.id)
     }, modifier = modifier) {
         BoxWithConstraints {
             Row {
@@ -113,11 +113,11 @@ private fun EpisodeSearchResultCard(
 private fun SeasonSearchResultCard(
     result: LoadedSearchResult.Season,
     imageLoader: ImageLoader,
-    actions: IBrowserNavigationActions,
+    actions: BrowserNavigationActions,
     modifier: Modifier = Modifier,
 ) {
     Card(onClick = {
-        actions.season(result.media)
+        actions.season(result.media.id)
     }, modifier = modifier) {
         BoxWithConstraints {
             Row {
@@ -139,11 +139,11 @@ private fun SeasonSearchResultCard(
 private fun ShowSearchResultCard(
     result: LoadedSearchResult.Show,
     imageLoader: ImageLoader,
-    actions: IBrowserNavigationActions,
+    actions: BrowserNavigationActions,
     modifier: Modifier = Modifier,
 ) {
     Card(onClick = {
-        actions.show(result.media)
+        actions.show(result.media.id)
     }, modifier = modifier) {
         BoxWithConstraints {
             Row {

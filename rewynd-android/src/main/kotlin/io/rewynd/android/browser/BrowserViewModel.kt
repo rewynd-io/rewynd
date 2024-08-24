@@ -1,6 +1,11 @@
 package io.rewynd.android.browser
 
 import android.app.Application
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -22,11 +27,16 @@ import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.android.image.RewyndClientFetcher
 import io.rewynd.android.model.LoadedSearchResult
 import io.rewynd.client.RewyndClient
+import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.GetNextEpisodeRequest
+import io.rewynd.model.Library
+import io.rewynd.model.MovieInfo
 import io.rewynd.model.NextEpisodeOrder
 import io.rewynd.model.Progress
 import io.rewynd.model.SearchRequest
 import io.rewynd.model.SearchResultType
+import io.rewynd.model.SeasonInfo
+import io.rewynd.model.ShowInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,10 +44,8 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import net.kensand.kielbasa.coroutines.coRunCatching
@@ -103,27 +111,78 @@ class BrowserViewModel(
             pagingSourceFactory = { EpisodesPagingSource(seasonId, client) },
         ).flow.cachedIn(viewModelScope)
 
-    fun getProgress(id: String) =
-        getState(
-            id,
-            client::getUserProgress,
-        ).map { it ?: Progress(id, 0.0, kotlinx.datetime.Instant.fromEpochSeconds(0)) }
+    var progress by mutableStateOf<Progress?>(null)
+        private set
 
-    fun getEpisode(id: String) = getState(id, client::getEpisode)
+    @Composable
+    fun loadProgress(id: String) = LaunchedEffect(id) {
+        progress = null
+        progress = client.getUserProgress(id).body()
+            .let { it ?: Progress(id, 0.0, kotlinx.datetime.Instant.fromEpochSeconds(0)) }
+    }
 
-    fun getSeason(id: String) = getState(id, client::getSeasons)
+    var episode by mutableStateOf<EpisodeInfo?>(null)
+        private set
 
-    fun getShow(id: String) = getState(id, client::getShow)
+    @Composable
+    fun loadEpisode(id: String) = LaunchedEffect(id) {
+        episode = null
+        episode = client.getEpisode(id).body()
+    }
 
-    fun getMovie(id: String) = getState(id, client::getMovie)
+    var nextEpisode by mutableStateOf<EpisodeInfo?>(null)
+        private set
 
-    fun getLibrary(id: String) = getState(id, client::getLibrary)
+    @Composable
+    fun loadNextEpisode(id: String) = LaunchedEffect(id) {
+        nextEpisode = null
+        nextEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, NextEpisodeOrder.next)).body().episodeInfo
+    }
 
-    fun getNextEpisode(id: String) =
-        getState(GetNextEpisodeRequest(id, NextEpisodeOrder.next), client::getNextEpisode).map { it?.episodeInfo }
+    var prevEpisode by mutableStateOf<EpisodeInfo?>(null)
+        private set
 
-    fun getPrevEpisode(id: String) =
-        getState(GetNextEpisodeRequest(id, NextEpisodeOrder.previous), client::getNextEpisode).map { it?.episodeInfo }
+    @Composable
+    fun loadPrevEpisode(id: String) = LaunchedEffect(id) {
+        prevEpisode = null
+        prevEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, NextEpisodeOrder.previous)).body().episodeInfo
+    }
+
+    var season by mutableStateOf<SeasonInfo?>(null)
+        private set
+
+    @Composable
+    fun loadSeason(id: String) = LaunchedEffect(id) {
+        season = null
+        season = client.getSeasons(id).body()
+    }
+
+    var show by mutableStateOf<ShowInfo?>(null)
+        private set
+
+    @Composable
+    fun loadShow(id: String) = LaunchedEffect(id) {
+        show = null
+        show = client.getShow(id).body()
+    }
+
+    var movie by mutableStateOf<MovieInfo?>(null)
+        private set
+
+    @Composable
+    fun loadMovie(id: String) = LaunchedEffect(id) {
+        movie = null
+        movie = client.getMovie(id).body()
+    }
+
+    var library by mutableStateOf<Library?>(null)
+        private set
+
+    @Composable
+    fun loadLibrary(id: String) = LaunchedEffect(id) {
+        library = null
+        library = client.getLibrary(id).body()
+    }
 
     private val _searchText = MutableStateFlow("")
     private val _searchResults = MutableStateFlow<List<LoadedSearchResult>>(emptyList())
@@ -147,7 +206,7 @@ class BrowserViewModel(
                             .parMap {
                                 when (it.resultType) {
                                     SearchResultType.Episode ->
-                                        getEpisode(it.id).firstOrNull()?.let { episode ->
+                                        client.getEpisode(it.id).body().let { episode ->
                                             LoadedSearchResult.Episode(
                                                 it,
                                                 episode,
@@ -155,18 +214,18 @@ class BrowserViewModel(
                                         }
 
                                     SearchResultType.Season ->
-                                        getSeason(it.id).firstOrNull()?.let { season ->
+                                        client.getSeasons(it.id).body().let { season ->
                                             LoadedSearchResult.Season(
                                                 it,
                                                 season,
                                             )
                                         }
 
-                                    SearchResultType.Show -> getShow(it.id).firstOrNull()
-                                        ?.let { show -> LoadedSearchResult.Show(it, show) }
+                                    SearchResultType.Show -> client.getShow(it.id).body()
+                                        .let { show -> LoadedSearchResult.Show(it, show) }
 
-                                    SearchResultType.Movie -> getMovie(it.id).firstOrNull()
-                                        ?.let { movie -> LoadedSearchResult.Movie(it, movie) }
+                                    SearchResultType.Movie -> client.getMovie(it.id).body()
+                                        .let { movie -> LoadedSearchResult.Movie(it, movie) }
                                 }
                             }.filterNotNull()
                             .toList()

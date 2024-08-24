@@ -32,9 +32,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -125,7 +125,6 @@ fun PlayerControls(
                     ),
                 totalDuration = runTime,
                 currentTime = currentPlayerTime,
-                bufferedPosition = bufferedPosition,
                 onSeekChange = onSeek,
                 onAudioChange = onAudioChange,
                 onVideoChange = onVideoChange,
@@ -222,7 +221,6 @@ private fun CenterControls(
 private fun BottomControls(
     totalDuration: Duration,
     currentTime: Duration,
-    bufferedPosition: Duration,
     onSeekChange: (desiredTime: Duration) -> Unit,
     onAudioChange: (track: String?) -> Unit,
     onVideoChange: (track: String?) -> Unit,
@@ -236,24 +234,28 @@ private fun BottomControls(
     var subtitleExpanded by remember { mutableStateOf(false) }
     var normalizationExpanded by remember { mutableStateOf(false) }
 
+    var sliderValue by remember { mutableStateOf(currentTime.inWholeMilliseconds.toFloat()) }
+    var sliderIsUp by remember { mutableStateOf(false) }
+    LaunchedEffect(sliderIsUp, currentTime) {
+        if (!sliderIsUp) {
+            sliderValue = currentTime.inWholeMilliseconds.toFloat()
+        }
+    }
+
     Column(modifier = modifier) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            Slider(
-                value = bufferedPosition.inWholeMilliseconds.toFloat(),
-                enabled = false,
-                onValueChange = { /*do nothing*/ },
-                valueRange = 0f..totalDuration.inWholeMilliseconds.toFloat(),
-                colors =
-                SliderDefaults.colors(
-                    disabledThumbColor = Color.Transparent,
-                    disabledActiveTrackColor = Color.Gray,
-                ),
-            )
-
+            // TODO show bufferedPosition on slider
             Slider(
                 modifier = Modifier.fillMaxWidth(),
-                value = currentTime.inWholeMilliseconds.toFloat(),
-                onValueChange = { onSeekChange(it.roundToLong().milliseconds) },
+                value = sliderValue,
+                onValueChange = {
+                    sliderIsUp = true
+                    sliderValue = it
+                },
+                onValueChangeFinished = {
+                    sliderIsUp = false
+                    onSeekChange(sliderValue.roundToLong().milliseconds)
+                },
                 valueRange = 0f..totalDuration.inWholeMilliseconds.toFloat(),
             )
         }

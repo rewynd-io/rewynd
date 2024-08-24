@@ -10,20 +10,19 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserViewModel
-import io.rewynd.android.browser.IBrowserNavigationActions
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchPage(
     viewModel: BrowserViewModel,
-    actions: IBrowserNavigationActions,
+    actions: BrowserNavigationActions,
     modifier: Modifier = Modifier,
     onActiveChange: (Boolean) -> Unit
 ) {

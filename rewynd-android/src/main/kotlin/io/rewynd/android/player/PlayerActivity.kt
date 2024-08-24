@@ -26,9 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -62,7 +59,7 @@ class PlayerActivity : AppCompatActivity() {
         get() = PlayerService.instance.value
 
     private fun updatePictureInPictureParams() {
-        val state = playerService?.playerState?.value
+        val state = playerService?.getState()
         val next =
             if (state?.next != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 RemoteAction(
@@ -221,7 +218,7 @@ class PlayerActivity : AppCompatActivity() {
                     props.let {
                         viewModel =
                             PlayerViewModel(
-                                this,
+                                application,
                                 it.serverUrl,
                             ).apply {
                                 startPlayerService(
@@ -250,16 +247,16 @@ class PlayerActivity : AppCompatActivity() {
                     setContent {
                         val service by PlayerService.instance.collectAsStateWithLifecycle()
                         service?.let { serviceInterface ->
-                            val playerState by serviceInterface.playerState.collectAsStateWithLifecycle()
-                            var currentPlayerTime by remember { mutableStateOf(playerState.currentPlayerTime) }
+                            val playerState by serviceInterface.playerState
+                                .collectAsStateWithLifecycle(PlayerState.DEFAULT)
 
-                            LaunchedEffect(playerState.isPlaying) {
+                            LaunchedEffect(playerState.isPlaying, playerState.media) {
                                 updatePictureInPictureParams()
                                 if (playerState.isPlaying) {
                                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                                     while (true) {
                                         delay(1.seconds)
-                                        currentPlayerTime = serviceInterface.getCurrentPosition()
+                                        serviceInterface.getState()
                                     }
                                 } else {
                                     window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -268,7 +265,7 @@ class PlayerActivity : AppCompatActivity() {
 
                             PlayerWrapper(
                                 viewModel,
-                                playerState.copy(currentPlayerTime = currentPlayerTime),
+                                playerState,
                                 serviceInterface,
                                 {
                                     rect = it
@@ -276,7 +273,7 @@ class PlayerActivity : AppCompatActivity() {
                             ) { updatePictureInPictureParams() }
                         } ?: CircularProgressIndicator(Modifier.fillMaxSize())
                     }
-                    if (playerService?.playerState?.value?.isPlaying == true) {
+                    if (playerService?.getState()?.isPlaying == true) {
                         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     }
                 }

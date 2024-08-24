@@ -17,14 +17,15 @@ private const val DIVISOR = 4
 private const val REMAINDER = DIVISOR - 1
 
 @Composable
-fun <Item : Any> HomeRow(
+fun <Item : Any, Nav> HomeRow(
     title: String,
     libraries: LazyPagingItems<Item>,
     nameAccessor: Item.() -> String,
+    navAccessor: Item.() -> Nav,
     loadImage: ImageLoader,
     modifier: Modifier = Modifier,
     imageIdAccessor: Item.() -> String? = { null },
-    onNavigateToLibrary: (Item) -> Unit = {}
+    onNavigate: (Nav) -> Unit = {}
 ) {
     BoxWithConstraints(modifier) Inner@{
         Column {
@@ -33,7 +34,7 @@ fun <Item : Any> HomeRow(
                 items(libraries) {
                     BoxWithConstraints Item@{
                         Card(onClick = {
-                            onNavigateToLibrary(it)
+                            onNavigate(it.navAccessor())
                         }) {
                             ApiImage(
                                 it.imageIdAccessor(),

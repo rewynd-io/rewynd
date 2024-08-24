@@ -1,5 +1,6 @@
 package io.rewynd.android.player
 
+import android.app.Application
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -23,20 +24,20 @@ import kotlin.math.max
 import kotlin.time.Duration.Companion.seconds
 
 class PlayerViewModel(
-    private val activity: PlayerActivity,
+    private val application: Application,
     private val serverUrl: ServerUrl,
     val client: RewyndClient = mkRewyndClient(serverUrl),
-) : AndroidViewModel(activity.application) {
+) : AndroidViewModel(application) {
     fun startPlayerService(serviceProps: PlayerServiceProps, browserState: Bundle?) {
         val intent =
-            Intent(activity.application, PlayerService::class.java).apply {
+            Intent(application, PlayerService::class.java).apply {
                 putExtra(PLAYER_SERVICE_INTENT_BUNDLE_PROPS_KEY, Json.encodeToString(serviceProps))
                 putExtra(PLAYER_SERVICE_INTENT_BUNDLE_BROWSER_STATE_KEY, browserState)
             }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activity.application.startForegroundService(intent)
+            application.startForegroundService(intent)
         } else {
-            activity.application.startService(intent)
+            application.startService(intent)
         }
     }
 

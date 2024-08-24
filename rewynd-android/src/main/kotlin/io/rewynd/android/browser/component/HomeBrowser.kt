@@ -11,14 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.paging.compose.collectAsLazyPagingItems
 import io.rewynd.android.browser.BrowserViewModel
 import io.rewynd.android.util.details
-import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.Library
 
 @Composable
 @Suppress("MagicNumber") // TODO fix magic numbers
 fun HomeBrowser(
-    onNavigateToLibrary: (Library) -> Unit,
-    onNavigateToEpisode: (EpisodeInfo) -> Unit,
+    onNavigateToLibrary: (String) -> Unit,
+    onNavigateToEpisode: (String) -> Unit,
     viewModel: BrowserViewModel,
     modifier: Modifier = Modifier,
 ) {
@@ -32,6 +31,7 @@ fun HomeBrowser(
                 "Libraries",
                 libraries,
                 Library::name,
+                Library::name,
                 viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { null },
@@ -41,26 +41,32 @@ fun HomeBrowser(
                 "Continue Watching",
                 latestEpisodes,
                 { media.details },
+                { media.id },
                 viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { media.episodeImageId },
-            ) { onNavigateToEpisode(it.media) }
+                onNavigateToEpisode
+            )
             HomeRow(
                 "Next Up",
                 nextEpisodes,
                 { media.details },
+                { media.id },
                 viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { media.episodeImageId },
-            ) { onNavigateToEpisode(it.media) }
+                onNavigateToEpisode
+            )
             HomeRow(
                 "New Additions",
                 newestEpisodes,
                 { details },
+                { id },
                 viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
                 { episodeImageId },
-            ) { onNavigateToEpisode(it) }
+                onNavigateToEpisode
+            )
         }
     }
 }
