@@ -10,6 +10,13 @@ class BrowserNavigationActions(private val navController: NavHostController) {
         launchSingleTop = true
     }
 
+    fun settings() = navController.navigate(BrowserState.SettingsState) {
+        popUpTo(BrowserState.HomeState) {
+            inclusive = true
+        }
+        launchSingleTop = true
+    }
+
     fun search() = navController.navigate(BrowserState.SearchState) {
         popUpTo(BrowserState.SearchState) {
             inclusive = true

@@ -34,6 +34,11 @@ fun BrowserRouter(
                 HomeBrowser(actions::library, actions::episode, viewModel)
             }
         }
+        composable<BrowserState.SettingsState> {
+            BrowserWrapper(actions) {
+                SettingsBrowser()
+            }
+        }
         composable<BrowserState.LibraryState> {
             val state = it.toRoute<BrowserState.LibraryState>()
             BrowserWrapper(actions) {

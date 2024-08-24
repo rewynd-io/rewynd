@@ -35,4 +35,8 @@ sealed interface BrowserState {
     @Serializable
     @Parcelize
     data object SearchState : BrowserState, Parcelable
+
+    @Serializable
+    @Parcelize
+    data object SettingsState : BrowserState, Parcelable
 }

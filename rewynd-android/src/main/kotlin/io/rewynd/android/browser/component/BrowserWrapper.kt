@@ -2,12 +2,14 @@ package io.rewynd.android.browser.component
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,21 +64,38 @@ fun BrowserWrapper(
         ModalNavigationDrawer(
             drawerContent = {
                 ModalDrawerSheet {
-                    NavigationDrawerItem(
-                        label = {
-                            Row {
-                                Icon(
-                                    imageVector = Icons.Default.Home,
-                                    contentDescription = "Home", // TODO Localize
-                                )
-                                Text(
-                                    text = "Home", // TODO Localize
-                                )
-                            }
-                        },
-                        selected = false,
-                        onClick = { actions.home() },
-                    )
+                    Column {
+                        NavigationDrawerItem(
+                            label = {
+                                Row {
+                                    Icon(
+                                        imageVector = Icons.Default.Home,
+                                        contentDescription = "Home", // TODO Localize
+                                    )
+                                    Text(
+                                        text = "Home", // TODO Localize
+                                    )
+                                }
+                            },
+                            selected = false,
+                            onClick = { actions.home() },
+                        )
+                        NavigationDrawerItem(
+                            label = {
+                                Row {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = "Settings", // TODO Localize
+                                    )
+                                    Text(
+                                        text = "Settings", // TODO Localize
+                                    )
+                                }
+                            },
+                            selected = false,
+                            onClick = { actions.settings() },
+                        )
+                    }
                 }
             },
             modifier = Modifier.background(MaterialTheme.colorScheme.background).padding(it),
