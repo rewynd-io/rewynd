@@ -11,8 +11,12 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.exoplayer.util.EventLogger
+import androidx.media3.extractor.DefaultExtractorsFactory
+import androidx.media3.extractor.mp4.FragmentedMp4Extractor
+import androidx.media3.extractor.mp4.Mp4Extractor
 import androidx.media3.ui.PlayerView
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.MILLIS_PER_SECOND
@@ -63,6 +67,7 @@ private fun <T> MutableStateFlow<T>.updateAndGet(block: (T) -> T): T {
     return v
 }
 
+@OptIn(androidx.media3.common.util.UnstableApi::class)
 class PlayerWrapper(
     context: Context,
     httpClient: OkHttpClient,
@@ -86,11 +91,20 @@ class PlayerWrapper(
     }
 
     private val player: ExoPlayer by lazy {
-        ExoPlayer.Builder(context).build().apply {
-            addListener(listener)
-            addAnalyticsListener(EventLogger())
-            playWhenReady = _state.value.isPlaying
-        }
+        ExoPlayer.Builder(context)
+            .setMediaSourceFactory(
+                DefaultMediaSourceFactory(
+                    context,
+                    DefaultExtractorsFactory()
+                        .setMp4ExtractorFlags(Mp4Extractor.FLAG_WORKAROUND_IGNORE_EDIT_LISTS)
+                        .setFragmentedMp4ExtractorFlags(FragmentedMp4Extractor.FLAG_WORKAROUND_IGNORE_EDIT_LISTS)
+                )
+            )
+            .build().apply {
+                addListener(listener)
+                addAnalyticsListener(EventLogger())
+                playWhenReady = _state.value.isPlaying
+            }
     }
 
     fun getState() = _state.updateAndGet {
