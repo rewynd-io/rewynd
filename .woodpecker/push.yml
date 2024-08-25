@@ -5,10 +5,12 @@ when:
 steps:
   build:
     image: codeberg.org/kensand/devenv-kotlin-multiplatform:latest
+    pull: true
     commands:
       - ./gradlew clean build
   publish android:
     image: codeberg.org/kensand/woodpecker-plugins-forgejo-generic-package:latest
+    pull: true
     settings:
       username: ${CI_REPO_OWNER}
       password:
@@ -16,6 +18,7 @@ steps:
       file: "rewynd-android/build/outputs/apk/debug/rewynd-android-debug.apk"
   publish worker:
     image: codeberg.org/woodpecker-plugins/docker-buildx:latest
+    pull: true
     settings:
       repo: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-worker
       cache_from: "${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-worker:latest"
@@ -28,6 +31,7 @@ steps:
       auto_tag: true
   publish api:
     image: codeberg.org/woodpecker-plugins/docker-buildx:latest
+    pull: true
     settings:
       repo: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-api
       cache_from: "${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-api:latest"
@@ -40,6 +44,7 @@ steps:
       auto_tag: true
   publish omni:
     image: codeberg.org/woodpecker-plugins/docker-buildx:latest
+    pull: true
     settings:
       repo: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-omni
       cache_from: "${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-omni:latest"

@@ -5,6 +5,7 @@ when:
 
 steps:
   build:
-    image: codeberg.org/kensand/devenv-kotlin-multiplatform:latest 
+    image: codeberg.org/kensand/devenv-kotlin-multiplatform:latest
+    pull: true
     commands:
       - ./gradlew clean build
