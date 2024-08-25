@@ -280,16 +280,9 @@ val StreamProps.mkAudioTrackProps: List<String>
         } ?: listOf("-an")
 
 val ServerAudioTrack.mkAudioTrackProps
-    get() = when (codecName?.lowercase()) {
-        "aac",
-        "ac3",
-        "vorbis",
-        "mp3",
-        -> mkCopyAudioTrackProps
+    get() = mkDefaultAudioTrackProps
 
-        else -> mkDefaultAudioTrackProps
-    }
-
+// TODO test if player supports the media's audio track and use it if so
 val ServerAudioTrack.mkCopyAudioTrackProps
     get() = listOf(
         "-map",

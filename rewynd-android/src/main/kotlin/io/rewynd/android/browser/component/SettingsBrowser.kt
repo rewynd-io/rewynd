@@ -38,7 +38,7 @@ fun SettingsBrowser(
 fun UserSettings(viewModel: BrowserViewModel, user: User, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Text("User Settings")
-        Row{
+        Row {
             Text("Enable subtitles by default")
             Checkbox(user.preferences.enableSubtitlesByDefault, {
                 viewModel.uploadUserPrefs(user.preferences.copy(enableSubtitlesByDefault = it))
