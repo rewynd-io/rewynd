@@ -9,11 +9,12 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
+import io.rewynd.android.browser.Prefs
 import io.rewynd.android.client.cookie.PersistentCookiesStorage
 import io.rewynd.client.RewyndClient
 
-fun mkRewyndClient(serverUrl: ServerUrl) =
-    RewyndClient(serverUrl.value, httpClientEngine = OkHttpEngine(OkHttpConfig()), httpClientConfig = {
+fun mkRewyndClient(serverUrl: ServerUrl? = null) =
+    RewyndClient((serverUrl ?: Prefs.serverUrl).value, httpClientEngine = OkHttpEngine(OkHttpConfig()), httpClientConfig = {
         it.install(ContentNegotiation) {
             json()
         }
@@ -27,6 +28,6 @@ fun mkRewyndClient(serverUrl: ServerUrl) =
             level = LogLevel.ALL
         }
         it.install(HttpCookies) {
-            this.storage = PersistentCookiesStorage.INSTANCE
+            this.storage = PersistentCookiesStorage
         }
     })

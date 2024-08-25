@@ -20,7 +20,6 @@ import android.util.Log
 import androidx.media3.ui.PlayerView
 import io.rewynd.android.R
 import io.rewynd.android.browser.BrowserActivity
-import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.cookie.CookieStorageCookieJar
 import io.rewynd.android.client.cookie.PersistentCookiesStorage
 import io.rewynd.android.client.mkRewyndClient
@@ -43,7 +42,7 @@ class PlayerService : Service() {
     private var originalPlayerProps: PlayerProps? = null
     private val next: MutableStateFlow<PlayerMedia?> = MutableStateFlow(null)
     private val prev: MutableStateFlow<PlayerMedia?> = MutableStateFlow(null)
-    private val cookies by lazy { PersistentCookiesStorage(this.applicationContext) }
+    private val cookies by lazy { PersistentCookiesStorage }
     private lateinit var notification: Notification
     private val httpClient: OkHttpClient by lazy {
         OkHttpClient
@@ -270,7 +269,6 @@ class PlayerService : Service() {
                     PlayerActivityAction.Start(
                         PlayerActivityProps(
                             PlayerProps(playerMedia),
-                            ServerUrl(client.baseUrl),
                             false,
                         ),
                     ),

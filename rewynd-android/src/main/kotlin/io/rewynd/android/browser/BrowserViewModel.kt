@@ -22,7 +22,6 @@ import io.rewynd.android.browser.paging.RecentlyAddedEpisodesPagingSource
 import io.rewynd.android.browser.paging.RecentlyWatchedEpisodesPagingSource
 import io.rewynd.android.browser.paging.SeasonsPagingSource
 import io.rewynd.android.browser.paging.ShowsPagingSource
-import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.android.image.RewyndClientFetcher
 import io.rewynd.android.model.LoadedSearchResult
@@ -54,8 +53,7 @@ import org.openapitools.client.infrastructure.HttpResponse
 @OptIn(FlowPreview::class)
 class BrowserViewModel(
     application: Application,
-    val serverUrl: ServerUrl,
-    private val client: RewyndClient = mkRewyndClient(serverUrl),
+    private val client: RewyndClient = mkRewyndClient(),
     val imageLoader: ImageLoader =
         ImageLoader
             .Builder(application)

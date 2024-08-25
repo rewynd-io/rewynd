@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         setContent {
-            val loginState by viewModel.loginState.collectAsState()
+            val loginState by viewModel.loginState
             when (loginState) {
                 is LoginState.LoggedIn -> {
                     startActivity(Intent(this, BrowserActivity::class.java))

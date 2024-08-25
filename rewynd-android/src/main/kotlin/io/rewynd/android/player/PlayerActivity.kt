@@ -219,12 +219,10 @@ class PlayerActivity : AppCompatActivity() {
                         viewModel =
                             PlayerViewModel(
                                 application,
-                                it.serverUrl,
                             ).apply {
                                 startPlayerService(
                                     PlayerServiceProps.Start(
                                         it.playerProps,
-                                        it.serverUrl,
                                         it.interruptService,
                                     ),
                                     browserState

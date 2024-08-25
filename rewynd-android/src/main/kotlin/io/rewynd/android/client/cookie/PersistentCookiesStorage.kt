@@ -1,8 +1,5 @@
 package io.rewynd.android.client.cookie
 
-import android.content.Context
-import android.content.SharedPreferences
-import androidx.preference.PreferenceManager
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.CookiesStorage
@@ -10,31 +7,17 @@ import io.ktor.http.Cookie
 import io.ktor.http.CookieEncoding
 import io.ktor.http.Url
 import io.ktor.util.date.GMTDate
-import io.rewynd.android.App
-import io.rewynd.android.client.cookie.PersistentCookiesStorage.SerializableCookie.Companion.COOKIES_STORE_PREF
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import io.rewynd.android.browser.Prefs
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentSkipListSet
-import kotlin.time.Duration.Companion.seconds
 
 // TODO rework this with in-memory caching and periodic flushes to disk
-class PersistentCookiesStorage(
-    private val prefs: SharedPreferences,
-) : CookiesStorage {
-    constructor(context: Context) : this(PreferenceManager.getDefaultSharedPreferences(context))
-
+object PersistentCookiesStorage: CookiesStorage {
     private val store: AcceptAllCookiesStorage = AcceptAllCookiesStorage()
     private val urls: ConcurrentSkipListSet<String>
 
     init {
-        val stored =
-            prefs.getString(COOKIES_STORE_PREF, null)?.let {
-                Json.decodeFromString<HashMap<String, HashSet<SerializableCookie>>>(it)
-            } ?: emptyMap()
+        val stored = Prefs.cookies
 
         urls = ConcurrentSkipListSet(stored.keys.map { it })
         runBlocking {
@@ -64,38 +47,18 @@ class PersistentCookiesStorage(
         return this.store.get(requestUrl)
     }
 
-    fun startFlush() =
-        MainScope().launch {
-            while (true) {
-                flush()
-                delay(10.seconds)
-            }
-        }
-
-    suspend fun flush() {
-        val serialized = serializeCookies()
-
-        log.debug { "Persisted $serialized" }
-        prefs.edit().apply {
-            putString(COOKIES_STORE_PREF, serialized)
-        }.apply()
+    private suspend fun flush() {
+        Prefs.cookies = serializeCookies()
     }
 
     private suspend fun serializeCookies() =
-        Json.encodeToString(
             this.urls.associate {
                 it.toString() to
                     this.store.get(Url(it))
-                        .map { cookie -> SerializableCookie.fromCookie(cookie) }
-            },
-        )
+                        .map { cookie -> SerializableCookie.fromCookie(cookie) }.toSet()
+            }
 
-    companion object {
         val log = KotlinLogging.logger { }
-        val INSTANCE by lazy {
-            PersistentCookiesStorage(PreferenceManager.getDefaultSharedPreferences(App.context)).apply { startFlush() }
-        }
-    }
 
     @kotlinx.serialization.Serializable
     data class SerializableCookie(

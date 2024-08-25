@@ -7,10 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.preference.PreferenceManager
 import io.rewynd.android.browser.component.BrowserRouter
-import io.rewynd.android.client.ServerUrl
-import io.rewynd.android.login.MainViewModel
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.android.player.PlayerActivity
 import io.rewynd.android.player.PlayerActivityAction
@@ -20,20 +17,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class BrowserActivity : AppCompatActivity() {
-    private val prefs by lazy { PreferenceManager.getDefaultSharedPreferences(application) }
-    private val viewModel by lazy {
-        BrowserViewModel(
-            application,
-            ServerUrl(
-                requireNotNull(
-                    prefs.getString(
-                        MainViewModel.SERVER_URL,
-                        null,
-                    ),
-                ) { "Missing Server Url preference!" },
-            ),
-        )
-    }
+    private val viewModel by lazy { BrowserViewModel(application) }
 
     override fun onResume() {
         super.onResume()
@@ -62,7 +46,6 @@ class BrowserActivity : AppCompatActivity() {
                             PlayerActivityAction.Start(
                                 PlayerActivityProps(
                                     PlayerProps(it),
-                                    serverUrl = viewModel.serverUrl,
                                     interruptService = true,
                                 ),
                             ),

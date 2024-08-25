@@ -1,13 +1,10 @@
 package io.rewynd.android.player
 
-import io.rewynd.android.client.ServerUrl
-
 @kotlinx.serialization.Serializable
 sealed interface PlayerServiceProps {
     @kotlinx.serialization.Serializable
     data class Start(
         val playerProps: PlayerProps,
-        val serverUrl: ServerUrl,
         val interruptPlayback: Boolean = true,
     ) : PlayerServiceProps
 

@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import arrow.atomic.Atomic
-import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.android.player.PlayerService.Companion.PLAYER_SERVICE_INTENT_BUNDLE_BROWSER_STATE_KEY
 import io.rewynd.android.player.PlayerService.Companion.PLAYER_SERVICE_INTENT_BUNDLE_PROPS_KEY
@@ -25,8 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class PlayerViewModel(
     private val application: Application,
-    private val serverUrl: ServerUrl,
-    val client: RewyndClient = mkRewyndClient(serverUrl),
+    val client: RewyndClient = mkRewyndClient(),
 ) : AndroidViewModel(application) {
     fun startPlayerService(serviceProps: PlayerServiceProps, browserState: Bundle?) {
         val intent =
