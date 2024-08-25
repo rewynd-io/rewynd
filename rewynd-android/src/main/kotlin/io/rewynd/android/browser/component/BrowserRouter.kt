@@ -36,7 +36,7 @@ fun BrowserRouter(
         }
         composable<BrowserState.SettingsState> {
             BrowserWrapper(actions) {
-                SettingsBrowser()
+                SettingsBrowser(viewModel)
             }
         }
         composable<BrowserState.LibraryState> {

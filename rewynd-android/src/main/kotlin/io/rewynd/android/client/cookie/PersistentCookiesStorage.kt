@@ -12,7 +12,7 @@ import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentSkipListSet
 
 // TODO rework this with in-memory caching and periodic flushes to disk
-object PersistentCookiesStorage: CookiesStorage {
+object PersistentCookiesStorage : CookiesStorage {
     private val store: AcceptAllCookiesStorage = AcceptAllCookiesStorage()
     private val urls: ConcurrentSkipListSet<String>
 
@@ -52,13 +52,13 @@ object PersistentCookiesStorage: CookiesStorage {
     }
 
     private suspend fun serializeCookies() =
-            this.urls.associate {
-                it.toString() to
-                    this.store.get(Url(it))
-                        .map { cookie -> SerializableCookie.fromCookie(cookie) }.toSet()
-            }
+        this.urls.associate {
+            it.toString() to
+                this.store.get(Url(it))
+                    .map { cookie -> SerializableCookie.fromCookie(cookie) }.toSet()
+        }
 
-        val log = KotlinLogging.logger { }
+    val log = KotlinLogging.logger { }
 
     @kotlinx.serialization.Serializable
     data class SerializableCookie(

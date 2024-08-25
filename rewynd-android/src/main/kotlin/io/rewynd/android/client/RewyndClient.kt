@@ -14,20 +14,26 @@ import io.rewynd.android.client.cookie.PersistentCookiesStorage
 import io.rewynd.client.RewyndClient
 
 fun mkRewyndClient(serverUrl: ServerUrl? = null) =
-    RewyndClient((serverUrl ?: Prefs.serverUrl).value, httpClientEngine = OkHttpEngine(OkHttpConfig()), httpClientConfig = {
-        it.install(ContentNegotiation) {
-            json()
-        }
-        it.install(Logging) {
-            logger =
-                object : Logger {
-                    override fun log(message: String) {
-                        Log.v("RewyndClient", message)
+    RewyndClient(
+        (serverUrl ?: Prefs.serverUrl).value,
+        httpClientEngine = OkHttpEngine(
+            OkHttpConfig()
+        ),
+        httpClientConfig = {
+            it.install(ContentNegotiation) {
+                json()
+            }
+            it.install(Logging) {
+                logger =
+                    object : Logger {
+                        override fun log(message: String) {
+                            Log.v("RewyndClient", message)
+                        }
                     }
-                }
-            level = LogLevel.ALL
+                level = LogLevel.ALL
+            }
+            it.install(HttpCookies) {
+                this.storage = PersistentCookiesStorage
+            }
         }
-        it.install(HttpCookies) {
-            this.storage = PersistentCookiesStorage
-        }
-    })
+    )

@@ -4,7 +4,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -18,9 +17,9 @@ fun LoginInput(
     modifier: Modifier = Modifier,
 ) = ConstraintLayout {
     val (usernameRef, passwordRef, buttonRef, serverRef) = createRefs()
-    val serverUrlState by mainViewModel.serverUrl.collectAsState()
-    val username by mainViewModel.username.collectAsState()
-    val password by mainViewModel.password.collectAsState()
+    val serverUrlState by mainViewModel.serverUrl
+    val username by mainViewModel.username
+    val password by mainViewModel.password
     val server = serverUrlState.value
     TextField(
         label = { Text(text = "Server URL") },

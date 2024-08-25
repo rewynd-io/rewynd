@@ -151,7 +151,7 @@ class PlayerService : Service() {
     private fun handleStartIntent(props: PlayerServiceProps.Start) {
         if (props.interruptPlayback || player.state.value.media == null) {
             this.originalPlayerProps = props.playerProps
-            client = mkRewyndClient(props.serverUrl)
+            client = mkRewyndClient()
             runBlocking {
                 val playerMedia = props.playerProps.media
                 this@PlayerService.next.value = PlaybackMethodHandler.next(client, playerMedia)

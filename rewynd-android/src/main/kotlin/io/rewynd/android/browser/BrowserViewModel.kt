@@ -3,6 +3,7 @@ package io.rewynd.android.browser
 import android.app.Application
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,6 +23,7 @@ import io.rewynd.android.browser.paging.RecentlyAddedEpisodesPagingSource
 import io.rewynd.android.browser.paging.RecentlyWatchedEpisodesPagingSource
 import io.rewynd.android.browser.paging.SeasonsPagingSource
 import io.rewynd.android.browser.paging.ShowsPagingSource
+import io.rewynd.android.browser.paging.UserPagingSource
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.android.image.RewyndClientFetcher
 import io.rewynd.android.model.LoadedSearchResult
@@ -36,6 +38,8 @@ import io.rewynd.model.SearchRequest
 import io.rewynd.model.SearchResultType
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.ShowInfo
+import io.rewynd.model.User
+import io.rewynd.model.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,6 +65,31 @@ class BrowserViewModel(
                 add(RewyndClientFetcher.Factory(client))
             }.build(),
 ) : AndroidViewModel(application) {
+
+    private val _user = mutableStateOf<User?>(null)
+    val user: State<User?>
+        get() = _user
+
+    @Composable
+    fun loadUser() = LaunchedEffect(_user) {
+        if (_user.value == null) {
+            _user.value = client.verify().body()
+        }
+    }
+
+    fun uploadUserPrefs(prefs: UserPreferences) {
+        viewModelScope.launch {
+            client.putUserPreferences(prefs)
+            _user.value = null
+        }
+    }
+
+    fun listUsers() =
+        Pager(
+            config = PAGING_CONFIG,
+            pagingSourceFactory = { UserPagingSource(client) },
+        ).flow.cachedIn(viewModelScope)
+
     fun listLibraries() =
         Pager(
             config = PAGING_CONFIG,
