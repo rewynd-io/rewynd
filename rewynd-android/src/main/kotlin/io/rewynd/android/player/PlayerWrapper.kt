@@ -10,13 +10,11 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory
 import androidx.media3.exoplayer.hls.HlsMediaSource
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.exoplayer.util.EventLogger
-import androidx.media3.extractor.DefaultExtractorsFactory
-import androidx.media3.extractor.mp4.FragmentedMp4Extractor
-import androidx.media3.extractor.mp4.Mp4Extractor
+import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
 import androidx.media3.ui.PlayerView
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.MILLIS_PER_SECOND
@@ -93,12 +91,25 @@ class PlayerWrapper(
     private val player: ExoPlayer by lazy {
         ExoPlayer.Builder(context)
             .setMediaSourceFactory(
-                DefaultMediaSourceFactory(
-                    context,
-                    DefaultExtractorsFactory()
-                        .setMp4ExtractorFlags(Mp4Extractor.FLAG_WORKAROUND_IGNORE_EDIT_LISTS)
-                        .setFragmentedMp4ExtractorFlags(FragmentedMp4Extractor.FLAG_WORKAROUND_IGNORE_EDIT_LISTS)
-                )
+                HlsMediaSource.Factory(datasourceFactory)
+                    .setLoadErrorHandlingPolicy(
+                        object : LoadErrorHandlingPolicy {
+                            override fun getFallbackSelectionFor(
+                                p0: LoadErrorHandlingPolicy.FallbackOptions,
+                                p1: LoadErrorHandlingPolicy.LoadErrorInfo,
+                            ): LoadErrorHandlingPolicy.FallbackSelection? = null
+
+                            override fun getRetryDelayMsFor(p0: LoadErrorHandlingPolicy.LoadErrorInfo): Long = 1000L
+
+                            override fun getMinimumLoadableRetryCount(p0: Int): Int = Int.MAX_VALUE
+                        },
+                    )
+                    .setExtractorFactory(
+                        DefaultHlsExtractorFactory(
+                            DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES and DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS,
+                            true
+                        )
+                    )
             )
             .build().apply {
                 addListener(listener)
@@ -156,35 +167,19 @@ class PlayerWrapper(
 
     @OptIn(UnstableApi::class)
     fun loadUri(uri: Uri) {
-        val source =
-            HlsMediaSource.Factory(datasourceFactory)
-                .setLoadErrorHandlingPolicy(
-                    object : LoadErrorHandlingPolicy {
-                        override fun getFallbackSelectionFor(
-                            p0: LoadErrorHandlingPolicy.FallbackOptions,
-                            p1: LoadErrorHandlingPolicy.LoadErrorInfo,
-                        ): LoadErrorHandlingPolicy.FallbackSelection? = null
-
-                        override fun getRetryDelayMsFor(p0: LoadErrorHandlingPolicy.LoadErrorInfo): Long = 1000L
-
-                        override fun getMinimumLoadableRetryCount(p0: Int): Int = Int.MAX_VALUE
-                    },
-                )
-                .createMediaSource(
-                    MediaItem.fromUri(
-                        uri,
-                    ).buildUpon()
-                        .setLiveConfiguration(
-                            MediaItem.LiveConfiguration.Builder()
-                                .setMaxOffsetMs(Long.MAX_VALUE)
-                                .setMinOffsetMs(0)
-                                .setTargetOffsetMs(TIME_UNSET)
-                                .build(),
-                        )
+        player.setMediaItem(
+            MediaItem.fromUri(
+                uri,
+            ).buildUpon()
+                .setLiveConfiguration(
+                    MediaItem.LiveConfiguration.Builder()
+                        .setMaxOffsetMs(Long.MAX_VALUE)
+                        .setMinOffsetMs(0)
+                        .setTargetOffsetMs(TIME_UNSET)
                         .build(),
                 )
-
-        player.setMediaSource(source)
+                .build()
+        )
         player.prepare()
     }
 
