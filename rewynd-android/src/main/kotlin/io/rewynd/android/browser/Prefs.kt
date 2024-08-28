@@ -32,5 +32,5 @@ object Prefs {
         get() = sharedPreferences.getString(COOKIES_STORE_PREF, null)?.let {
             Json.decodeFromString<Map<String, HashSet<PersistentCookiesStorage.SerializableCookie>>>(it)
         } ?: emptyMap()
-        set(value) = sharedPreferences.edit { Json.encodeToString(value) }
+        set(value) = sharedPreferences.edit { putString(COOKIES_STORE_PREF, Json.encodeToString(value)) }
 }

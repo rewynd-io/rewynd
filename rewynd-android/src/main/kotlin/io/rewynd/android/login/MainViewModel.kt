@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.rewynd.android.browser.Prefs
 import io.rewynd.android.client.ServerUrl
+import io.rewynd.android.client.cookie.PersistentCookiesStorage
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.model.LoginRequest
 import kotlinx.coroutines.launch
@@ -43,6 +44,7 @@ class MainViewModel(
 
     private fun setLoggedIn(): LoginState.LoggedIn {
         Prefs.serverUrl = serverUrl.value
+        PersistentCookiesStorage.startFlushing()
         return LoginState.LoggedIn
     }
 }

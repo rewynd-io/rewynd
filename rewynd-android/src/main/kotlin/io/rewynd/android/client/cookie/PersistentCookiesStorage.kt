@@ -1,5 +1,6 @@
 package io.rewynd.android.client.cookie
 
+import arrow.atomic.Atomic
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.CookiesStorage
@@ -8,13 +9,21 @@ import io.ktor.http.CookieEncoding
 import io.ktor.http.Url
 import io.ktor.util.date.GMTDate
 import io.rewynd.android.browser.Prefs
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentSkipListSet
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration.Companion.minutes
 
-// TODO rework this with in-memory caching and periodic flushes to disk
 object PersistentCookiesStorage : CookiesStorage {
     private val store: AcceptAllCookiesStorage = AcceptAllCookiesStorage()
     private val urls: ConcurrentSkipListSet<String>
+
+    private var flushJob: Atomic<Job?> = Atomic(null)
+    private val scope by lazy { CoroutineScope(EmptyCoroutineContext) }
 
     init {
         val stored = Prefs.cookies
@@ -47,6 +56,16 @@ object PersistentCookiesStorage : CookiesStorage {
         return this.store.get(requestUrl)
     }
 
+    fun startFlushing() = flushJob.compareAndSet(
+        null,
+        scope.launch {
+            while (true) {
+                flush()
+                delay(1.minutes)
+            }
+        }
+    )
+
     private suspend fun flush() {
         Prefs.cookies = serializeCookies()
     }
@@ -54,8 +73,8 @@ object PersistentCookiesStorage : CookiesStorage {
     private suspend fun serializeCookies() =
         this.urls.associate {
             it.toString() to
-                this.store.get(Url(it))
-                    .map { cookie -> SerializableCookie.fromCookie(cookie) }.toSet()
+                    this.store.get(Url(it))
+                        .map { cookie -> SerializableCookie.fromCookie(cookie) }.toSet()
         }
 
     val log = KotlinLogging.logger { }
