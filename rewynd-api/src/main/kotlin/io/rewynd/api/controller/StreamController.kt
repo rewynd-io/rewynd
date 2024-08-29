@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
+import java.lang.Double.max
 import java.util.UUID
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.hours
@@ -251,7 +252,7 @@ private fun CoroutineScope.createStream(
                 videoStreamName = req.videoTrack,
                 subtitleStreamName = req.subtitleTrack,
                 normalization = req.normalization,
-                startOffset = req.startOffset?.seconds ?: ZERO,
+                startOffset = max(0.0, req.startOffset ?: 0.0).seconds,
             )
 
         val jobId =

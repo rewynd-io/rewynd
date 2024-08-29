@@ -1558,6 +1558,7 @@ components:
           type: string
         startOffset:
           type: number
+          minimum: 0
         normalization:
           $ref: "#/components/schemas/NormalizationProps"
       required:
