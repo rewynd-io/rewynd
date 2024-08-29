@@ -26,14 +26,51 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import net.kensand.margarita.Mp4Frag
 import okio.source
+import kotlin.math.abs
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
 private val log by lazy { KotlinLogging.logger { } }
 
+@Serializable
+private data class RawFrames(
+    @SerialName(value = "frames")
+    val frames: List<RawFrame>
+)
+
+@Serializable
+private data class RawFrame(
+    @SerialName(value = "key_frame")
+    val keyframe: Int = 0,
+    @SerialName(value = "best_effort_timestamp_time")
+    val bestEffortTimestamp: String? = null,
+    @SerialName(value = "pts_time")
+    val ptsTimestamp: String? = null
+
+) {
+    fun toFrame() = (ptsTimestamp ?: bestEffortTimestamp)?.toDoubleOrNull()?.let {
+        Frame(keyframe != 0, it.seconds)
+    }
+
+    companion object {
+        const val ENTRIES_FORMAT = "frame=pts_time,best_effort_timestamp_time,key_frame"
+    }
+}
+
+private data class Frame(
+    val keyframe: Boolean,
+    val timestamp: Duration
+)
+
+@OptIn(ExperimentalSerializationApi::class)
 fun findPriorKeyframe(streamProps: StreamProps) = streamProps.videoTrack?.let { videoTrack ->
     val startTime = max(streamProps.startOffset - 30.seconds, Duration.ZERO)
     val endTime = startTime + 30.seconds
@@ -41,8 +78,8 @@ fun findPriorKeyframe(streamProps: StreamProps) = streamProps.videoTrack?.let { 
         "ffprobe",
         "-loglevel", "error",
         "-select_streams", "v:${videoTrack.index}",
-        "-show_entries", "packet=pts_time,flags",
-        "-of", "csv=print_section=0",
+        "-show_entries", RawFrame.ENTRIES_FORMAT,
+        "-of", "json",
         "-read_intervals", "${startTime.partialSecondsString}%${endTime.partialSecondsString}",
         streamProps.mediaInfo.fileInfo.location.toFfmpegUri()
     )
@@ -51,13 +88,13 @@ fun findPriorKeyframe(streamProps: StreamProps) = streamProps.videoTrack?.let { 
         *args.toTypedArray()
     )
     val process = pb.start()
-    process.inputReader().useLines { lines ->
-        lines.map { it.split(",") }
-            .filter { it.size == 2 && it[1].startsWith("K") }
-            .mapNotNull { it.firstOrNull()?.toDoubleOrNull()?.seconds }
-            .takeWhile { it <= streamProps.startOffset }
-            .lastOrNull()
+    val frames = process.inputStream.use { stream ->
+        Json.decodeFromStream<RawFrames>(stream).frames.mapNotNull(RawFrame::toFrame)
     }
+
+    (frames.filter(Frame::keyframe).takeIf { it.isNotEmpty() } ?: frames).minByOrNull {
+        abs(streamProps.startOffset.inWholeMilliseconds - it.timestamp.inWholeMilliseconds)
+    }?.timestamp
 } ?: streamProps.startOffset
 
 fun CoroutineScope.launchMediaJob(
@@ -296,7 +333,9 @@ val ServerAudioTrack.mkDefaultAudioTrackProps
         "-map",
         "0:$index",
         "-c:a",
-        "aac"
+        "aac",
+        "-af",
+        "aresample=async=1:first_pts=0"
     )
 
 private fun NormalizationProps.mkNormalizationProps(audioTrack: ServerAudioTrack): List<String> =
