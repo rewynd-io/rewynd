@@ -73,8 +73,8 @@ object PersistentCookiesStorage : CookiesStorage {
     private suspend fun serializeCookies() =
         this.urls.associate {
             it.toString() to
-                    this.store.get(Url(it))
-                        .map { cookie -> SerializableCookie.fromCookie(cookie) }.toSet()
+                this.store.get(Url(it))
+                    .map { cookie -> SerializableCookie.fromCookie(cookie) }.toSet()
         }
 
     val log = KotlinLogging.logger { }
