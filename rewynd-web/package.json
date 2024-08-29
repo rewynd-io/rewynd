@@ -15,9 +15,9 @@
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@karmaniverous/serify-deserify": "^2.0.9",
-    "@mui/icons-material": "^5.15.4",
+    "@mui/icons-material": "^6.0.0",
     "@mui/lab": "^5.0.0-alpha.160",
-    "@mui/material": "^5.15.4",
+    "@mui/material": "^6.0.0",
     "@mui/x-data-grid": "^7.0.0",
     "@reduxjs/toolkit": "^2.0.1",
     "@rewynd.io/rewynd-client-typescript": "file:../rewynd-client-typescript",
@@ -114,17 +114,11 @@
     "./dist/**"
   ],
   "overrides": {
-    "eslint-plugin-react": {
-      "eslint": "^9.0.0"
+    "@mui/x-data-grid": {
+      "@mui/material": "^6.0.0"
     },
-    "typescript-eslint": {
-      "eslint": "^9.0.0"
-    },
-    "@typescript-eslint/utils": {
-      "@eslint-community/eslint-utils": "^4.4.0"
-    },
-    "@eslint-community/eslint-utils": {
-      "eslint": "^9.0.0"
+    "mui-nested-menu": {
+      "@mui/material": "^6.0.0"
     }
   }
 }
