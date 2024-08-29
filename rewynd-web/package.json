@@ -114,17 +114,11 @@
     "./dist/**"
   ],
   "overrides": {
-    "eslint-plugin-react": {
-      "eslint": "^9.0.0"
+    "@mui/x-data-grid": {
+      "@mui/material": "^6.0.0"
     },
-    "typescript-eslint": {
-      "eslint": "^9.0.0"
-    },
-    "@typescript-eslint/utils": {
-      "@eslint-community/eslint-utils": "^4.4.0"
-    },
-    "@eslint-community/eslint-utils": {
-      "eslint": "^9.0.0"
+    "mui-nested-menu": {
+      "@mui/material": "^6.0.0"
     }
   }
 }
