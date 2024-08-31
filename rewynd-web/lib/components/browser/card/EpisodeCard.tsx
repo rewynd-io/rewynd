@@ -47,7 +47,7 @@ export function EpisodeCard(props: EpisodeCardProps) {
   const showRoute = formatShowRoute(props.episode.showId.toString());
   const playerRoute = formatPlayerRoute(props.episode.id.toString());
   return (
-    <Container sx={{ width: "auto", height: "15em" }}>
+    <Container sx={{ width: "auto", height: "15em", margin: "0" }}>
       <ButtonLink
         to={playerRoute}
         style={{ width: "100%" }}
