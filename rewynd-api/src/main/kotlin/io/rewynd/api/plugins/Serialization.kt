@@ -4,15 +4,10 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import kotlinx.serialization.json.Json
+import io.rewynd.common.JSON
 
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
-        json(
-            Json {
-                ignoreUnknownKeys = true
-                allowTrailingComma = true
-            },
-        )
+        json(JSON)
     }
 }

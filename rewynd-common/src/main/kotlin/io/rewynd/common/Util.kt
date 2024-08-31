@@ -10,6 +10,7 @@ import io.rewynd.model.Schedule
 import kotlinx.datetime.Instant
 import kotlinx.datetime.serializers.InstantComponentSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.spec.KeySpec
@@ -74,3 +75,9 @@ val Duration.partialSecondsString: String
 
 val Duration.partialSeconds: Double
     get() = inWholeMicroseconds.toDouble() / MICROS_IN_SECOND
+
+val JSON = Json {
+    ignoreUnknownKeys = true
+    allowTrailingComma = true
+    isLenient = true
+}

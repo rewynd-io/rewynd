@@ -18,6 +18,7 @@ import io.rewynd.api.ADMIN_USER
 import io.rewynd.api.BaseHarness
 import io.rewynd.api.SESSION_ID
 import io.rewynd.api.plugins.configureSession
+import io.rewynd.common.JSON
 import io.rewynd.common.cache.Cache
 import io.rewynd.common.cache.queue.ImageJobQueue
 import io.rewynd.common.cache.queue.JobId
@@ -30,7 +31,6 @@ import io.rewynd.test.InternalGenerators
 import io.rewynd.test.checkAllRun
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import net.kensand.kielbasa.kotest.property.Generators
 
 internal class ImageControllerTest : StringSpec({
@@ -128,7 +128,7 @@ internal class ImageControllerTest : StringSpec({
 
             init {
                 coEvery { queue.submit(any()) } returns jobId
-                coEvery { queue.monitor(jobId) } returns flowOf(WorkerEvent.Success(Json.encodeToString(byteArr)))
+                coEvery { queue.monitor(jobId) } returns flowOf(WorkerEvent.Success(JSON.encodeToString(byteArr)))
                 coEvery { cache.getImage(imageInfo.imageId) } returns byteArr
                 coEvery { db.getImage(imageInfo.imageId) } returns imageInfo
                 coEvery { cache.expireImage(any(), any()) } returns Unit

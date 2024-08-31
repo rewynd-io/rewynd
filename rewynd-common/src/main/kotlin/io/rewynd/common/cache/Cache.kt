@@ -3,6 +3,7 @@ package io.rewynd.common.cache
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
 import io.lettuce.core.cluster.RedisClusterClient
+import io.rewynd.common.JSON
 import io.rewynd.common.cache.queue.JobQueue
 import io.rewynd.common.config.CacheConfig
 import io.rewynd.common.config.fromConfig
@@ -19,7 +20,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.io.Closeable
 import java.util.Base64
 import kotlin.time.Duration
@@ -39,14 +39,14 @@ sealed interface Cache {
     ): JobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>
 
     suspend fun getStreamMetadata(id: String): StreamMetadataWrapper? = get("StreamMetadata:$id")?.let {
-        Json.decodeFromString(it)
+        JSON.decodeFromString(it)
     }
 
     suspend fun putStreamMetadata(
         id: String,
         m3u8: StreamMetadataWrapper,
         expiration: Instant,
-    ): Unit = put("StreamMetadata:$id", Json.encodeToString(m3u8), expiration)
+    ): Unit = put("StreamMetadata:$id", JSON.encodeToString(m3u8), expiration)
 
     suspend fun delStreamMetadata(id: String): Unit = del("StreamMetadata:$id")
 
@@ -103,13 +103,13 @@ sealed interface Cache {
     suspend fun existsInitMp4(streamId: String) = exists("StreamInitMp4:$streamId")
 
     suspend fun getSessionStreamMapping(sessionId: String): StreamMapping? =
-        get("SessionStreamJobId:$sessionId")?.let { Json.decodeFromString(it) }
+        get("SessionStreamJobId:$sessionId")?.let { JSON.decodeFromString(it) }
 
     suspend fun putSessionStreamMapping(
         sessionId: String,
         streamMapping: StreamMapping,
         expiration: Instant,
-    ): Unit = put("SessionStreamJobId:$sessionId", Json.encodeToString(streamMapping), expiration)
+    ): Unit = put("SessionStreamJobId:$sessionId", JSON.encodeToString(streamMapping), expiration)
 
     suspend fun delSessionStreamMapping(sessionId: String): Unit = del("SessionStreamJobId:$sessionId")
 

@@ -14,6 +14,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.rewynd.api.BaseHarness
 import io.rewynd.api.plugins.configureSession
+import io.rewynd.common.JSON
 import io.rewynd.common.cache.queue.JobId
 import io.rewynd.common.cache.queue.SearchJobQueue
 import io.rewynd.common.cache.queue.WorkerEvent
@@ -27,7 +28,6 @@ import io.rewynd.test.InternalGenerators
 import io.rewynd.test.checkAllRun
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 internal class SearchControllerTest : StringSpec({
     "search" {
@@ -62,7 +62,7 @@ internal class SearchControllerTest : StringSpec({
 
             init {
                 coEvery { queue.submit(SearchProps(req.text)) } returns jobId
-                coEvery { queue.monitor(jobId) } returns flowOf(WorkerEvent.Success(Json.encodeToString(res)))
+                coEvery { queue.monitor(jobId) } returns flowOf(WorkerEvent.Success(JSON.encodeToString(res)))
             }
 
             companion object {

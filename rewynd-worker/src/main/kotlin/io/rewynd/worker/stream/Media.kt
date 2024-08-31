@@ -1,6 +1,7 @@
 package io.rewynd.worker.stream
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.rewynd.common.JSON
 import io.rewynd.common.cache.Cache
 import io.rewynd.common.cache.queue.JobContext
 import io.rewynd.common.model.ClientStreamEvents
@@ -29,7 +30,6 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import net.kensand.margarita.Mp4Frag
 import okio.source
@@ -89,7 +89,7 @@ fun findPriorKeyframe(streamProps: StreamProps) = streamProps.videoTrack?.let { 
     )
     val process = pb.start()
     val frames = process.inputStream.use { stream ->
-        Json.decodeFromStream<RawFrames>(stream).frames.mapNotNull(RawFrame::toFrame)
+        JSON.decodeFromStream<RawFrames>(stream).frames.mapNotNull(RawFrame::toFrame)
     }
 
     (frames.filter(Frame::keyframe).takeIf { it.isNotEmpty() } ?: frames).minByOrNull {

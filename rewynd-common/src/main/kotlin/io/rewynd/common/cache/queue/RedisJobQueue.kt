@@ -8,6 +8,7 @@ import io.lettuce.core.RedisClient
 import io.lettuce.core.ScriptOutputType
 import io.lettuce.core.api.coroutines
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
+import io.rewynd.common.JSON
 import io.rewynd.common.redis.blpopFlow
 import io.rewynd.common.redis.xreadFlow
 import kotlinx.coroutines.CancellationException
@@ -29,7 +30,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlin.time.Duration
 
 class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
@@ -52,7 +52,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
 
     override suspend fun submit(req: Request): JobId {
         val id = JobId()
-        conn.lpush(listId, Json.encodeToString(RequestWrapper(serializeRequest(req), id)))
+        conn.lpush(listId, JSON.encodeToString(RequestWrapper(serializeRequest(req), id)))
         return id
     }
 
@@ -66,7 +66,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
                     queueConn.blpopFlow(listId).filterNotNull().collect { job ->
                         try {
                             var clientEventJob: Job? = null
-                            val reqWrapper = Json.decodeFromString<RequestWrapper>(job.value)
+                            val reqWrapper = JSON.decodeFromString<RequestWrapper>(job.value)
                             log.info { "Got job $job" }
                             val clientEventPayloads = MutableSharedFlow<ClientEventPayload>()
                             val res: Deferred<Either<Exception, Response>> =
@@ -147,7 +147,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
         log.info { "Started ClientEvent job" }
         clientEventConn.xreadFlow(clientId(reqWrapper.id)).flatMapConcat {
             it.values.asFlow()
-                .map { event -> Json.decodeFromString<ClientEvent>(event) }
+                .map { event -> JSON.decodeFromString<ClientEvent>(event) }
         }.transformWhile {
             emit(it)
             currentCoroutineContext().isActive && it !is ClientEvent.Cancel
@@ -194,7 +194,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
             ScriptOutputType.INTEGER,
             arrayOf(workerId(reqWrapper.id)),
             "fail",
-            Json.encodeToString<WorkerEvent>(
+            JSON.encodeToString<WorkerEvent>(
                 WorkerEvent.Fail(
                     e.localizedMessage,
                 ),
@@ -215,7 +215,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
             ScriptOutputType.INTEGER,
             arrayOf(workerId(reqWrapper.id)),
             "success",
-            Json.encodeToString<WorkerEvent>(
+            JSON.encodeToString<WorkerEvent>(
                 WorkerEvent.Success(
                     serializeResponse(
                         it,
@@ -238,7 +238,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
             ScriptOutputType.INTEGER,
             arrayOf(workerId(reqWrapper.id)),
             "event",
-            Json.encodeToString<WorkerEvent>(
+            JSON.encodeToString<WorkerEvent>(
                 WorkerEvent.Event(
                     serializeWorkerEventPayload(
                         it,
@@ -253,7 +253,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
         val client = redis.connect()
         val monitorConn = client.coroutines()
         return monitorConn.xreadFlow(workerId(jobId)).flatMapConcat {
-            it.values.asFlow().map { event -> Json.decodeFromString<WorkerEvent>(event) }
+            it.values.asFlow().map { event -> JSON.decodeFromString<WorkerEvent>(event) }
         }.transformWhile {
             emit(it)
             it !is WorkerEvent.Success && it !is WorkerEvent.Fail
@@ -269,7 +269,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
             ScriptOutputType.INTEGER,
             arrayOf(clientId(jobId)),
             "cancel",
-            Json.encodeToString<ClientEvent>(ClientEvent.Cancel),
+            JSON.encodeToString<ClientEvent>(ClientEvent.Cancel),
             itemExpiration.inWholeSeconds.toString(),
         )
     }
@@ -296,7 +296,7 @@ class RedisJobQueue<Request, Response, ClientEventPayload, WorkerEventPayload>(
             ScriptOutputType.INTEGER,
             arrayOf(clientId(jobId)),
             "event",
-            Json.encodeToString<ClientEvent>(ClientEvent.Event(serializeClientEventPayload(event))),
+            JSON.encodeToString<ClientEvent>(ClientEvent.Event(serializeClientEventPayload(event))),
             itemExpiration.inWholeSeconds.toString(),
         )
     }

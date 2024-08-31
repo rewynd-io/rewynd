@@ -1,6 +1,7 @@
 package io.rewynd.common.database
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.rewynd.common.JSON
 import io.rewynd.common.database.Database.Companion.LIST_EPISODES_MAX_SIZE
 import io.rewynd.common.database.SqlDatabase.Episodes.nullable
 import io.rewynd.common.database.SqlDatabase.Episodes.references
@@ -37,7 +38,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -110,8 +110,8 @@ open class SqlDatabase(
                 .upsert(Users.username) {
                     it[username] = user.user.username
                     it[hashedPassword] = user.hashedPass
-                    it[preferences] = Json.encodeToString(user.user.preferences)
-                    it[permissions] = Json.encodeToString(user.user.permissions)
+                    it[preferences] = JSON.encodeToString(user.user.preferences)
+                    it[permissions] = JSON.encodeToString(user.user.permissions)
                     it[salt] = user.salt
                 }.insertedCount == 1
         }
@@ -145,7 +145,7 @@ open class SqlDatabase(
                 Library(
                     name = it[Libraries.libraryId],
                     type = it[Libraries.type],
-                    rootPaths = Json.decodeFromString<List<String>>(it[Libraries.rootPaths]),
+                    rootPaths = JSON.decodeFromString<List<String>>(it[Libraries.rootPaths]),
                 )
             }
         }
@@ -156,7 +156,7 @@ open class SqlDatabase(
                 .upsert(Libraries.libraryId) {
                     it[libraryId] = lib.name
                     it[type] = lib.type
-                    it[rootPaths] = Json.encodeToString(lib.rootPaths)
+                    it[rootPaths] = JSON.encodeToString(lib.rootPaths)
                 }.insertedCount == 1
         }
 
@@ -182,7 +182,7 @@ open class SqlDatabase(
                     Library(
                         name = it[Libraries.libraryId],
                         type = it[Libraries.type],
-                        rootPaths = Json.decodeFromString<List<String>>(it[Libraries.rootPaths]),
+                        rootPaths = JSON.decodeFromString<List<String>>(it[Libraries.rootPaths]),
                     )
                 }
         }
@@ -221,8 +221,8 @@ open class SqlDatabase(
                     it[genre] = show.genre
                     it[studio] = show.studio
                     it[status] = show.status
-                    it[tag] = show.tag?.let(Json.Default::encodeToString)
-                    it[actors] = show.actors?.let(Json.Default::encodeToString)
+                    it[tag] = show.tag?.let(JSON::encodeToString)
+                    it[actors] = show.actors?.let(JSON::encodeToString)
                     it[seriesImageId] = show.seriesImageId
                     it[backdropImageId] = show.backdropImageId
                     it[lastUpdated] = show.lastUpdated.toEpochMilliseconds()
@@ -273,7 +273,7 @@ open class SqlDatabase(
                     it[premiered] = season.seasonInfo.premiered?.toString()
                     it[releaseDate] = season.seasonInfo.releaseDate?.toString()
                     it[folderImageId] = season.seasonInfo.folderImageId
-                    it[actors] = season.seasonInfo.actors?.let(Json.Default::encodeToString)
+                    it[actors] = season.seasonInfo.actors?.let(JSON::encodeToString)
                     it[libraryId] = season.libraryData.libraryId
                     it[lastUpdated] = season.libraryData.lastUpdated.toEpochMilliseconds()
                 }.insertedCount == 1
@@ -318,22 +318,22 @@ open class SqlDatabase(
                     it[showName] = episode.showName
                     it[seasonId] = episode.seasonId
                     it[episodeId] = episode.id
-                    it[location] = episode.fileInfo.location.let(Json.Default::encodeToString)
+                    it[location] = episode.fileInfo.location.let(JSON::encodeToString)
                     it[size] = episode.fileInfo.size
                     it[lastUpdated] = episode.lastUpdated.toEpochMilliseconds()
                     it[lastModified] = episode.lastModified.toEpochMilliseconds()
                     it[libraryId] = episode.libraryId
-                    it[audioTracks] = episode.audioTracks.let(Json.Default::encodeToString)
-                    it[videoTracks] = episode.videoTracks.let(Json.Default::encodeToString)
-                    it[subtitleTracks] = episode.subtitleTracks.let(Json.Default::encodeToString)
-                    it[subtitleFiles] = episode.subtitleFileTracks.let(Json.Default::encodeToString)
+                    it[audioTracks] = episode.audioTracks.let(JSON::encodeToString)
+                    it[videoTracks] = episode.videoTracks.let(JSON::encodeToString)
+                    it[subtitleTracks] = episode.subtitleTracks.let(JSON::encodeToString)
+                    it[subtitleFiles] = episode.subtitleFileTracks.let(JSON::encodeToString)
                     it[title] = episode.title
                     it[runTime] = episode.runTime
                     it[plot] = episode.plot
                     it[outline] = episode.outline
-                    it[directors] = episode.director?.let(Json.Default::encodeToString)
-                    it[writers] = episode.writer?.let(Json.Default::encodeToString)
-                    it[credits] = episode.credits?.let(Json.Default::encodeToString)
+                    it[directors] = episode.director?.let(JSON::encodeToString)
+                    it[writers] = episode.writer?.let(JSON::encodeToString)
+                    it[credits] = episode.credits?.let(JSON::encodeToString)
                     it[rating] = episode.rating
                     it[year] = episode.year
                     it[Episodes.episode] =
@@ -416,11 +416,11 @@ open class SqlDatabase(
                     it[title] = movieInfo.title
                     it[plot] = movieInfo.plot
                     it[outline] = movieInfo.outline
-                    it[directors] = movieInfo.directors.let(Json::encodeToString)
-                    it[writers] = movieInfo.writers.let(Json::encodeToString)
-                    it[credits] = movieInfo.credits.let(Json::encodeToString)
-                    it[studios] = movieInfo.studios.let(Json::encodeToString)
-                    it[directors] = movieInfo.directors.let(Json::encodeToString)
+                    it[directors] = movieInfo.directors.let(JSON::encodeToString)
+                    it[writers] = movieInfo.writers.let(JSON::encodeToString)
+                    it[credits] = movieInfo.credits.let(JSON::encodeToString)
+                    it[studios] = movieInfo.studios.let(JSON::encodeToString)
+                    it[directors] = movieInfo.directors.let(JSON::encodeToString)
                     it[rating] = movieInfo.rating
                     it[criticRating] = movieInfo.criticRating
                     it[mpaa] = movieInfo.mpaa
@@ -432,12 +432,12 @@ open class SqlDatabase(
                     it[year] = movieInfo.year
                     it[lastModified] = movieInfo.lastModified.toEpochMilliseconds()
                     it[lastUpdated] = movieInfo.lastUpdated.toEpochMilliseconds()
-                    it[location] = movieInfo.fileInfo.location.let(Json::encodeToString)
+                    it[location] = movieInfo.fileInfo.location.let(JSON::encodeToString)
                     it[size] = movieInfo.fileInfo.size
-                    it[subtitleFiles] = movieInfo.subtitleFileTracks.let(Json::encodeToString)
-                    it[subtitleTracks] = movieInfo.subtitleTracks.let(Json::encodeToString)
-                    it[videoTracks] = movieInfo.videoTracks.let(Json::encodeToString)
-                    it[audioTracks] = movieInfo.audioTracks.let(Json::encodeToString)
+                    it[subtitleFiles] = movieInfo.subtitleFileTracks.let(JSON::encodeToString)
+                    it[subtitleTracks] = movieInfo.subtitleTracks.let(JSON::encodeToString)
+                    it[videoTracks] = movieInfo.videoTracks.let(JSON::encodeToString)
+                    it[audioTracks] = movieInfo.audioTracks.let(JSON::encodeToString)
                     it[posterImageId] = movieInfo.posterImageId
                     it[backdropImageId] = movieInfo.backdropImageId
                 }.insertedCount == 1
@@ -495,7 +495,7 @@ open class SqlDatabase(
                 .upsert(Schedules.scheduleId) {
                     it[scheduleId] = schedule.id
                     it[cronExpression] = schedule.cronExpression
-                    it[scanTasks] = Json.encodeToString(schedule.scanTasks)
+                    it[scanTasks] = JSON.encodeToString(schedule.scanTasks)
                 }.insertedCount == 1
         }
 
@@ -521,7 +521,7 @@ open class SqlDatabase(
                     ServerScheduleInfo(
                         id = it[Schedules.scheduleId],
                         cronExpression = it[Schedules.cronExpression],
-                        scanTasks = Json.decodeFromString(it[Schedules.scanTasks]),
+                        scanTasks = JSON.decodeFromString(it[Schedules.scanTasks]),
                     )
                 }
         }
@@ -543,7 +543,7 @@ open class SqlDatabase(
                     it[size] = imageInfo.size
                     it[lastUpdated] = imageInfo.lastUpdated.toEpochMilliseconds()
                     it[libraryId] = imageInfo.libraryId
-                    it[location] = imageInfo.location.let(Json.Default::encodeToString)
+                    it[location] = imageInfo.location.let(JSON::encodeToString)
                 }.insertedCount == 1
         }
 
@@ -895,10 +895,10 @@ open class SqlDatabase(
                 title = this[Movies.title],
                 plot = this[Movies.plot],
                 outline = this[Movies.outline],
-                directors = this[Movies.directors]?.let { Json.decodeFromString(it) },
-                writers = this[Movies.writers]?.let { Json.decodeFromString(it) },
-                credits = this[Movies.credits]?.let { Json.decodeFromString(it) },
-                studios = this[Movies.studios]?.let { Json.decodeFromString(it) },
+                directors = this[Movies.directors]?.let { JSON.decodeFromString(it) },
+                writers = this[Movies.writers]?.let { JSON.decodeFromString(it) },
+                credits = this[Movies.credits]?.let { JSON.decodeFromString(it) },
+                studios = this[Movies.studios]?.let { JSON.decodeFromString(it) },
                 rating = this[Movies.rating],
                 criticRating = this[Movies.criticRating],
                 mpaa = this[Movies.mpaa],
@@ -914,21 +914,21 @@ open class SqlDatabase(
                 posterImageId = this[Movies.posterImageId],
                 fileInfo =
                 FileInfo(
-                    location = this[Movies.location].let(Json.Default::decodeFromString),
+                    location = this[Movies.location].let(JSON::decodeFromString),
                     size = this[Movies.size],
                 ),
-                subtitleFileTracks = this[Movies.subtitleFiles].let(Json.Default::decodeFromString),
+                subtitleFileTracks = this[Movies.subtitleFiles].let(JSON::decodeFromString),
                 audioTracks =
                 this[Movies.audioTracks].let {
-                    Json.decodeFromString<Map<String, ServerAudioTrack>>(it)
+                    JSON.decodeFromString<Map<String, ServerAudioTrack>>(it)
                 },
                 videoTracks =
                 this[Movies.videoTracks].let {
-                    Json.decodeFromString<Map<String, ServerVideoTrack>>(it)
+                    JSON.decodeFromString<Map<String, ServerVideoTrack>>(it)
                 },
                 subtitleTracks =
                 this[Movies.subtitleTracks].let {
-                    Json.decodeFromString<Map<String, ServerSubtitleTrack>>(it)
+                    JSON.decodeFromString<Map<String, ServerSubtitleTrack>>(it)
                 },
             )
 
@@ -936,12 +936,12 @@ open class SqlDatabase(
             ServerScheduleInfo(
                 id = this[Schedules.scheduleId],
                 cronExpression = this[Schedules.cronExpression],
-                scanTasks = Json.decodeFromString(this[Schedules.scanTasks]),
+                scanTasks = JSON.decodeFromString(this[Schedules.scanTasks]),
             )
 
         private fun ResultRow.toServerImageInfo() =
             ServerImageInfo(
-                location = this[Images.location].let { Json.decodeFromString(it) },
+                location = this[Images.location].let { JSON.decodeFromString(it) },
                 size = this[Images.size],
                 libraryId = this[Images.libraryId],
                 lastUpdated = Instant.fromEpochMilliseconds(this[Images.lastUpdated]),
@@ -971,8 +971,8 @@ open class SqlDatabase(
                 genre = this[Shows.genre],
                 studio = this[Shows.studio],
                 status = this[Shows.status],
-                tag = this[Shows.tag]?.let { Json.decodeFromString(it) },
-                actors = this[Shows.actors]?.let { Json.decodeFromString(it) },
+                tag = this[Shows.tag]?.let { JSON.decodeFromString(it) },
+                actors = this[Shows.actors]?.let { JSON.decodeFromString(it) },
                 seriesImageId = this[Shows.seriesImageId],
                 backdropImageId = this[Shows.backdropImageId],
                 lastUpdated = Instant.fromEpochMilliseconds(this[Shows.lastUpdated]),
@@ -991,7 +991,7 @@ open class SqlDatabase(
                     premiered = this[Seasons.premiered]?.let(LocalDate.Companion::parse),
                     releaseDate = this[Seasons.releaseDate]?.let(LocalDate.Companion::parse),
                     folderImageId = this[Seasons.folderImageId],
-                    actors = this[Seasons.actors]?.let(Json.Default::decodeFromString),
+                    actors = this[Seasons.actors]?.let(JSON::decodeFromString),
                 ),
                 libraryData =
                 LibraryData(
@@ -1010,9 +1010,9 @@ open class SqlDatabase(
                 runTime = this[Episodes.runTime],
                 plot = this[Episodes.plot],
                 outline = this[Episodes.outline],
-                director = this[Episodes.directors]?.let(Json.Default::decodeFromString),
-                writer = this[Episodes.writers]?.let(Json.Default::decodeFromString),
-                credits = this[Episodes.credits]?.let(Json.Default::decodeFromString),
+                director = this[Episodes.directors]?.let(JSON::decodeFromString),
+                writer = this[Episodes.writers]?.let(JSON::decodeFromString),
+                credits = this[Episodes.credits]?.let(JSON::decodeFromString),
                 rating = this[Episodes.rating],
                 year = this[Episodes.year],
                 episode = this[Episodes.episode],
@@ -1025,21 +1025,21 @@ open class SqlDatabase(
                 lastModified = Instant.fromEpochMilliseconds(this[Episodes.lastModified]),
                 fileInfo =
                 FileInfo(
-                    location = this[Episodes.location].let(Json.Default::decodeFromString),
+                    location = this[Episodes.location].let(JSON::decodeFromString),
                     size = this[Episodes.size],
                 ),
-                subtitleFileTracks = this[Episodes.subtitleFiles].let(Json.Default::decodeFromString),
+                subtitleFileTracks = this[Episodes.subtitleFiles].let(JSON::decodeFromString),
                 audioTracks =
                 this[Episodes.audioTracks].let {
-                    Json.decodeFromString<Map<String, ServerAudioTrack>>(it)
+                    JSON.decodeFromString<Map<String, ServerAudioTrack>>(it)
                 },
                 videoTracks =
                 this[Episodes.videoTracks].let {
-                    Json.decodeFromString<Map<String, ServerVideoTrack>>(it)
+                    JSON.decodeFromString<Map<String, ServerVideoTrack>>(it)
                 },
                 subtitleTracks =
                 this[Episodes.subtitleTracks].let {
-                    Json.decodeFromString<Map<String, ServerSubtitleTrack>>(it)
+                    JSON.decodeFromString<Map<String, ServerSubtitleTrack>>(it)
                 },
             )
 
@@ -1048,8 +1048,8 @@ open class SqlDatabase(
                 user =
                 User(
                     username = this[Users.username],
-                    permissions = Json.decodeFromString(this[Users.permissions]),
-                    preferences = Json.decodeFromString(this[Users.preferences]),
+                    permissions = JSON.decodeFromString(this[Users.permissions]),
+                    preferences = JSON.decodeFromString(this[Users.preferences]),
                 ),
                 hashedPass = this[Users.hashedPassword],
                 salt = this[Users.salt],

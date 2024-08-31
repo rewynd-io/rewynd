@@ -1,12 +1,12 @@
 package io.rewynd.worker.ffprobe
 
+import io.rewynd.common.JSON
 import io.rewynd.common.model.ServerAudioTrack
 import io.rewynd.common.model.ServerSubtitleTrack
 import io.rewynd.common.model.ServerVideoTrack
 import io.rewynd.worker.execToString
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.io.File
 
 @Serializable
@@ -206,11 +206,10 @@ data class FfprobeResult(
         }.maxOrNull() ?: 0.0
 
     companion object {
-        val json = Json { ignoreUnknownKeys = true }
         private val subtitleCodecs = setOf("subrip", "srt", "webvtt", "wvtt")
 
         fun parseFile(file: File) =
-            json.decodeFromString<FfprobeResult>(
+            JSON.decodeFromString<FfprobeResult>(
                 listOf(
                     "ffprobe",
                     "-v",
