@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Library } from "@rewynd.io/rewynd-client-typescript";
 import { HttpClient } from "../../const";
 import { ShowLibraryBrowser } from "./show/ShowLibraryBrowser";
-import { CircularProgress, Grid } from "@mui/material";
+import { CircularProgress, Grid2 as Grid } from "@mui/material";
 import { WebRoutes } from "../../routes";
 import { MovieLibraryBrowser } from "./movie/MovieLibraryBrowser";
 
@@ -35,7 +35,6 @@ export function LibraryBrowser() {
       justifyContent={"center"}
     >
       <Grid
-        item
         container
         direction={"column"}
         alignItems={"center"}

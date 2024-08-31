@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { CircularProgress, Grid } from "@mui/material";
+import { CircularProgress, Grid2 as Grid } from "@mui/material";
 import React from "react";
 
 export interface LoadingProps<T> {
@@ -40,7 +40,6 @@ export function Loading<T>(props: LoadingProps<T>): ReactElement {
         }}
       >
         <Grid
-          item
           container
           direction="column"
           justifyContent="center"
@@ -50,9 +49,7 @@ export function Loading<T>(props: LoadingProps<T>): ReactElement {
             height: "100%",
           }}
         >
-          <Grid item>
-            <CircularProgress />
-          </Grid>
+          <CircularProgress />
         </Grid>
       </Grid>
     );

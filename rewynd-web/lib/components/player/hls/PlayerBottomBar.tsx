@@ -1,5 +1,5 @@
 import React, { PropsWithChildren, useState } from "react";
-import { Box, Button, Grid, Menu, MenuItem } from "@mui/material";
+import { Box, Button, Grid2 as Grid, Menu, MenuItem } from "@mui/material";
 import { PlayerProgessText } from "./PlayerProgessText";
 import screenfull from "screenfull";
 import {
@@ -53,15 +53,14 @@ interface BarButtonProps extends PropsWithChildren {
 function BarButton(props: BarButtonProps) {
   return (
     <Grid
-      item
       container
       onClick={props.onClick}
       direction="column"
       justifyContent="center"
       alignItems="center"
-      xs="auto"
+      size={{ xs: "auto" }}
     >
-      <Grid item xs="auto">
+      <Grid size={{ xs: "auto" }}>
         <Button disabled={!props.onClick}>{props.children}</Button>
       </Grid>
     </Grid>
@@ -329,16 +328,12 @@ export function PlayerBottomBar(props: PlayerBottomBarProps) {
           <></>
         )}
         <Grid
-          item
           container
           direction="column"
           justifyContent="center"
           alignItems="center"
-          xs={true}
         >
-          <Grid item sx={{ width: "100%" }}>
-            {props.slider}
-          </Grid>
+          <Grid sx={{ width: "100%" }}>{props.slider}</Grid>
         </Grid>
         <BarButton>
           <PlayerProgessText played={props.played} duration={props.duration} />

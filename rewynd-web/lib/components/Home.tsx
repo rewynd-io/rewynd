@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import { ButtonLink } from "./ButtonLink";
 import { WebRoutes } from "../routes";
 import { NavBar } from "./NavBar";
-import { Grid, Stack, Typography } from "@mui/material";
+import { Grid2 as Grid, Stack, Typography } from "@mui/material";
 import { List } from "immutable";
 import { cardWidth, HttpClient } from "../const";
 import { EpisodeCard } from "./browser/card/EpisodeCard";
@@ -168,7 +168,6 @@ export function Home() {
         </Grid>
         <Grid
           container
-          item
           direction={"row"}
           justifyContent={"flex-start"}
           wrap={"nowrap"}
@@ -179,7 +178,6 @@ export function Home() {
         </Grid>
         <Grid
           container
-          item
           direction={"row"}
           justifyContent={"flex-start"}
           wrap={"nowrap"}
@@ -193,7 +191,6 @@ export function Home() {
         </Grid>
         <Grid
           container
-          item
           direction={"row"}
           justifyContent={"flex-start"}
           wrap={"nowrap"}
@@ -204,7 +201,6 @@ export function Home() {
         </Grid>
         <Grid
           container
-          item
           direction={"row"}
           justifyContent={"flex-start"}
           wrap={"nowrap"}
@@ -218,7 +214,6 @@ export function Home() {
         </Grid>
         <Grid
           container
-          item
           direction={"row"}
           justifyContent={"flex-start"}
           wrap={"nowrap"}
@@ -229,7 +224,6 @@ export function Home() {
         </Grid>
         <Grid
           container
-          item
           direction={"row"}
           justifyContent={"flex-start"}
           wrap={"nowrap"}

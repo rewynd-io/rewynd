@@ -1,4 +1,10 @@
-import { Button, FormGroup, Grid, TextField, Typography } from "@mui/material";
+import {
+  Button,
+  FormGroup,
+  Grid2 as Grid,
+  TextField,
+  Typography,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { HttpClient } from "../const";
@@ -43,7 +49,6 @@ export function Login() {
       }}
     >
       <Grid
-        item
         container
         direction="column"
         justifyContent="center"
@@ -53,44 +58,42 @@ export function Login() {
           height: "100%",
         }}
       >
-        <Grid item>
-          {error ? <Typography color="red">{error}</Typography> : <></>}
-          <form
-            action="lib/components/Login"
-            method="post"
-            onSubmit={(e) => {
-              submit().then((result) => {
-                if (result) {
-                  nav("/", { replace: true });
-                }
-              });
-              e.preventDefault();
-              return false;
-            }}
-          >
-            <FormGroup>
-              <TextField
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                helperText="Username"
-                required
-                onChange={(it) => setUsername(it.target.value)}
-              />
-              <TextField
-                id="password"
-                name="password"
-                type="password"
-                helperText="Password"
-                autoComplete="password"
-                required
-                onChange={(it) => setPassword(it.target.value)}
-              />
-              <Button type="submit">Sign in</Button>
-            </FormGroup>
-          </form>
-        </Grid>
+        {error ? <Typography color="red">{error}</Typography> : <></>}
+        <form
+          action="lib/components/Login"
+          method="post"
+          onSubmit={(e) => {
+            submit().then((result) => {
+              if (result) {
+                nav("/", { replace: true });
+              }
+            });
+            e.preventDefault();
+            return false;
+          }}
+        >
+          <FormGroup>
+            <TextField
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              helperText="Username"
+              required
+              onChange={(it) => setUsername(it.target.value)}
+            />
+            <TextField
+              id="password"
+              name="password"
+              type="password"
+              helperText="Password"
+              autoComplete="password"
+              required
+              onChange={(it) => setPassword(it.target.value)}
+            />
+            <Button type="submit">Sign in</Button>
+          </FormGroup>
+        </form>
       </Grid>
     </Grid>
   );

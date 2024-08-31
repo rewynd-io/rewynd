@@ -1,7 +1,7 @@
 import React from "react";
 import { ButtonLink } from "../../ButtonLink";
 import { useParams } from "react-router";
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Grid2 as Grid, Typography } from "@mui/material";
 import { WebRoutes } from "../../../routes";
 import { NavBar } from "../../NavBar";
 import { MoviesLoader } from "../../loader/movie/MoviesLoader";
@@ -27,13 +27,8 @@ export function MovieLibraryBrowser() {
               .map((movieInfo) => {
                 return (
                   <Grid
-                    item
                     key={movieInfo.id}
-                    xs={12}
-                    sm={6}
-                    md={4}
-                    lg={3}
-                    xl={2}
+                    size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }}
                   >
                     <ButtonLink
                       key={movieInfo.id}

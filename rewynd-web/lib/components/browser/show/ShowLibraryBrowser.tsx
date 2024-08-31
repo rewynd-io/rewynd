@@ -2,7 +2,7 @@ import React from "react";
 import { ButtonLink } from "../../ButtonLink";
 import { useParams } from "react-router";
 import { ShowsLoader } from "../../loader/show/ShowsLoader";
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Grid2 as Grid, Typography } from "@mui/material";
 import { WebRoutes } from "../../../routes";
 import { NavBar } from "../../NavBar";
 import { ApiImage } from "../../Image";
@@ -27,13 +27,8 @@ export function ShowLibraryBrowser() {
               .map((showEpisodeInfo) => {
                 return (
                   <Grid
-                    item
+                    size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }}
                     key={`SeriesContainer-${showEpisodeInfo.id}`}
-                    xs={12}
-                    sm={6}
-                    md={4}
-                    lg={3}
-                    xl={2}
                   >
                     <ButtonLink
                       key={showEpisodeInfo.id}

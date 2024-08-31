@@ -2,7 +2,7 @@ import React from "react";
 
 import { useParams } from "react-router";
 import { EpisodesLoader } from "../../loader/show/EpisodesLoader";
-import { Grid, Stack, Typography } from "@mui/material";
+import { Grid2 as Grid, Stack, Typography } from "@mui/material";
 import { NavBar } from "../../NavBar";
 import { List } from "immutable";
 import { EpisodeCard } from "../card/EpisodeCard";
