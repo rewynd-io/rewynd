@@ -22,6 +22,7 @@ import { useAppDispatch, useAppSelector } from "../../../store/store";
 import screenfull from "screenfull";
 import { WebLog } from "../../../log";
 import { PlayerMediaTitle } from "../PlayerMediaTitle";
+import { stripMediaInfo } from "../../../util";
 
 export interface MediaSelection {
   request: CreateStreamRequest;
@@ -98,7 +99,7 @@ export function HlsPlayer(props: HlsPlayerProps) {
     await manager.load(selection);
     dispatch(
       setMediaState({
-        info: selection.info,
+        info: stripMediaInfo(selection.info),
         audioTrack: selection.request.audioTrack,
         videoTrack: selection.request.videoTrack,
         subtitleTrack: selection.request.subtitleTrack,
@@ -255,7 +256,7 @@ export function HlsPlayer(props: HlsPlayerProps) {
             dispatch(setAvailable(manager.available));
           }
           if (ref.current) {
-            dispatch(setPlayed(ref.current?.currentTime));
+            dispatch(setPlayed(ref.current.currentTime));
           }
         }}
         autoPlay={true}

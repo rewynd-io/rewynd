@@ -149,8 +149,13 @@ export class HlsPlayerManager extends EventEmitter {
       this.hls.stopLoad();
     }
     if (this.streamProps) {
-      await HttpClient.deleteStream({ streamId: this.streamProps.id });
-      this.streamProps = undefined;
+      try {
+        await HttpClient.deleteStream({ streamId: this.streamProps.id });
+      } catch (e) {
+        log.warn(`Failed to delete stream ${this.streamProps?.id}`, e);
+      } finally {
+        this.streamProps = undefined;
+      }
     }
     this.streamStatus = undefined;
     if (this.heartbeatTimer) {

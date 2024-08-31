@@ -13,7 +13,7 @@ export function Login() {
   useEffect(() => {
     HttpClient.verify()
       .then(() => nav("/", { replace: true }))
-      .catch();
+      .catch(() => {});
   }, []);
 
   async function submit() {

@@ -63,8 +63,8 @@ export function EpisodeHlsPlayer() {
           episodeId: last.id,
           order: NextEpisodeOrder.Next,
         },
-      })
-    ).episodeInfo;
+      }).catch(() => undefined)
+    )?.episodeInfo;
     if (next) {
       const [perc, nextNext]: [number | undefined, string | undefined] =
         await Promise.all([
@@ -76,7 +76,9 @@ export function EpisodeHlsPlayer() {
               episodeId: next.id,
               order: NextEpisodeOrder.Next,
             },
-          }).then((it) => it.episodeInfo?.id),
+          })
+            .then((it) => it.episodeInfo?.id)
+            .catch(() => undefined),
         ]);
       saveEpisodeMapping(episodeId, next.id);
 
@@ -86,7 +88,6 @@ export function EpisodeHlsPlayer() {
           percent: perc,
           nextId: nextNext,
           previousId: last.id,
-          currentEpisode: next,
         }),
       );
 
@@ -138,7 +139,6 @@ export function EpisodeHlsPlayer() {
           percent: prog,
           nextId: next,
           previousId: prev,
-          currentEpisode: ep,
         };
         console.log("Setting episode :" + JSON.stringify(epState));
         dispatch(setEpisodeState(epState));
@@ -166,22 +166,24 @@ export function EpisodeHlsPlayer() {
                     episodeId: last.id,
                     order: NextEpisodeOrder.Previous,
                   },
-                })
-              ).episodeInfo;
+                }).catch(() => undefined)
+              )?.episodeInfo;
               if (prev) {
                 const [perc, prevPrev]: [
                   number | undefined,
                   string | undefined,
                 ] = await Promise.all([
-                  HttpClient.getUserProgress({ id: prev.id }).then(
-                    (it: Progress) => resetCompletedProgress(it)?.percent,
-                  ),
+                  HttpClient.getUserProgress({ id: prev.id })
+                    .then((it: Progress) => resetCompletedProgress(it)?.percent)
+                    .catch(() => undefined),
                   HttpClient.getNextEpisode({
                     getNextEpisodeRequest: {
                       episodeId: prev.id,
                       order: NextEpisodeOrder.Next,
                     },
-                  }).then((it) => it.episodeInfo?.id),
+                  })
+                    .then((it) => it.episodeInfo?.id)
+                    .catch(() => undefined),
                 ]);
                 saveEpisodeMapping(episodeId, prev.id);
 
@@ -191,7 +193,6 @@ export function EpisodeHlsPlayer() {
                     percent: perc,
                     nextId: last.id,
                     previousId: prevPrev,
-                    currentEpisode: prev,
                   }),
                 );
 

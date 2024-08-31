@@ -10,13 +10,13 @@ export interface MediaState {
 }
 
 export interface HlsPlayerState {
-  readonly media: MediaState;
-  readonly duration: number;
-  readonly startOffset: number;
-  readonly played: number;
-  readonly available: number;
-  readonly controlsVisibleLast: number;
-  readonly loading: boolean;
+  media: MediaState;
+  duration: number;
+  startOffset: number;
+  played: number;
+  available: number;
+  controlsVisibleLast: number;
+  loading: boolean;
 }
 
 const initialState: HlsPlayerState = {

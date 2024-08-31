@@ -184,3 +184,14 @@ export async function loadAllUsers() {
   } while (cursor);
   return users;
 }
+
+export function stripMediaInfo(mediaInfo: MediaInfo): MediaInfo {
+  return {
+    runTime: mediaInfo.runTime,
+    subtitleTracks: mediaInfo.subtitleTracks,
+    audioTracks: mediaInfo.audioTracks,
+    videoTracks: mediaInfo.videoTracks,
+    libraryId: mediaInfo.libraryId,
+    id: mediaInfo.id,
+  };
+}
