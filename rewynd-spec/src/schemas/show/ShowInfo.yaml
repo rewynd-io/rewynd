@@ -1,0 +1,64 @@
+type: object
+properties:
+  id:
+    type: string
+  libraryId:
+    type: string
+  plot:
+    type: string
+  outline:
+    type: string
+  title:
+    type: string
+  originalTitle:
+    type: string
+  premiered:
+    type: string
+    format: date
+  releaseDate:
+    type: string
+    format: date
+  endDate:
+    type: string
+    format: date
+  mpaa:
+    type: string
+  imdbId:
+    type: string
+  tmdbId:
+    type: string
+  tvdbId:
+    type: string
+  tvRageId:
+    type: string
+  rating:
+    type: number
+  year:
+    type: integer
+  runTime:
+    type: number
+  aired:
+    type: string
+    format: date
+  genre:
+    type: string
+  studio:
+    type: string
+  status:
+    type: string
+  tag:
+    type: array
+    items:
+      type: string
+  actors:
+    type: array
+    items:
+      $ref: "../media/Actor.yaml"
+  seriesImageId:
+    $ref: "../image/ImageId.yaml"
+  backdropImageId:
+    $ref: "../image/ImageId.yaml"
+required:
+  - id
+  - libraryId
+  - title

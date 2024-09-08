@@ -1,0 +1,8 @@
+type: object
+properties:
+  showId:
+    $ref: "./ShowId.yaml"
+  cursor:
+    $ref: "./ListSeasonsCursor.yaml"
+required:
+  - showId

@@ -1,0 +1,18 @@
+get:
+  operationId: getMovie
+  parameters:
+    - name: movieId
+      in: path
+      required: true
+      description: "The id for the desired MovieInfo."
+      schema:
+        $ref: "../../schemas/movie/MovieId.yaml"
+  security:
+    - CookieAuth: []
+  responses:
+    200:
+      description: "Successfully got MovieInfo"
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/movie/MovieInfo.yaml"

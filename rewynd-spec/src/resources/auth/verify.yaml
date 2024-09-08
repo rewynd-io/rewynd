@@ -1,0 +1,13 @@
+get:
+  operationId: verify
+  security:
+    - CookieAuth: []
+  responses:
+    200:
+      description: "User is valid"
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/user/User.yaml"
+    401:
+      description: "User is not valid"

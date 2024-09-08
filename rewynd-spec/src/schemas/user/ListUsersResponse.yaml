@@ -1,0 +1,10 @@
+type: object
+properties:
+  page:
+    type: array
+    items:
+      $ref: "./User.yaml"
+  cursor:
+    type: string
+required:
+  - page

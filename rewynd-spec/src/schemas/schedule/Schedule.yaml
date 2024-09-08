@@ -1,0 +1,14 @@
+type: object
+properties:
+  id:
+    $ref: "./ScheduleId.yaml"
+  cronExpression:
+    $ref: "./CronExpression.yaml"
+  scanTasks:
+    type: array
+    items:
+      $ref: "./ScanTask.yaml"
+required:
+  - id
+  - cronExpression
+  - scanTasks

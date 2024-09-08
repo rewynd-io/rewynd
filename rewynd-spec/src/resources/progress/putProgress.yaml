@@ -1,0 +1,12 @@
+post:
+  operationId: putUserProgress
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/progress/Progress.yaml"
+  responses:
+    200:
+      description: "Successfully put media progress."

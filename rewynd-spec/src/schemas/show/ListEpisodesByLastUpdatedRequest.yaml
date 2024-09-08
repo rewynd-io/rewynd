@@ -1,0 +1,14 @@
+type: object
+properties:
+  libraryIds:
+    type: array
+    items:
+      $ref: "../library/LibraryId.yaml"
+  order:
+    $ref: "./ListEpisodesByLastUpdatedOrder.yaml"
+  cursor:
+    $ref: "./ListEpisodesByLastUpdatedCursor.yaml"
+  limit:
+    type: integer
+required:
+  - order

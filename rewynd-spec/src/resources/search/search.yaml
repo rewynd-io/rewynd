@@ -1,0 +1,16 @@
+post:
+  operationId: search
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/search/SearchRequest.yaml"
+  responses:
+    200:
+      description: "Successfully searched"
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/search/SearchResponse.yaml"

@@ -1,0 +1,8 @@
+type: object
+properties:
+  libraryId:
+    $ref: "../library/LibraryId.yaml"
+  cursor:
+    $ref: "./ListShowsCursor.yaml"
+required:
+  - libraryId

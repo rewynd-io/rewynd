@@ -1,0 +1,19 @@
+type: object
+properties:
+  id:
+    type: string
+  index:
+    type: integer
+  name:
+    type: string
+  duration:
+    type: number
+  codecName:
+    type: string
+  codecLongName:
+    type: string
+  profile:
+    type: string
+required:
+  - name
+  - index

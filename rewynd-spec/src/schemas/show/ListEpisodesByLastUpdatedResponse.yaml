@@ -1,0 +1,10 @@
+type: object
+properties:
+  episodes:
+    type: array
+    items:
+      $ref: "./EpisodeInfo.yaml"
+  cursor:
+    $ref: "./ListEpisodesByLastUpdatedCursor.yaml"
+required:
+  - episodes

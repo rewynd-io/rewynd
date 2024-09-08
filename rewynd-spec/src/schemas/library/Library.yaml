@@ -1,0 +1,14 @@
+type: object
+properties:
+  name:
+    $ref: "./LibraryId.yaml"
+  rootPaths:
+    type: array
+    items:
+      type: string
+  type:
+    $ref: "./LibraryType.yaml"
+required:
+  - name
+  - rootPaths
+  - type

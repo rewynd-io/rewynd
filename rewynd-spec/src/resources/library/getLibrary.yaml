@@ -1,0 +1,18 @@
+get:
+  operationId: getLibrary
+  parameters:
+    - name: libraryId
+      in: path
+      required: true
+      description: "The id for the desired LibraryInfo."
+      schema:
+        $ref: "../../schemas/library/LibraryId.yaml"
+  security:
+    - CookieAuth: []
+  responses:
+    200:
+      description: "Successfully got LibraryInfo"
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/library/Library.yaml"

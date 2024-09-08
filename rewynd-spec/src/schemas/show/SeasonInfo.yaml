@@ -1,0 +1,32 @@
+type: object
+properties:
+  id:
+    type: string
+  libraryId:
+    type: string
+  showId:
+    type: string
+  showName:
+    type: string
+  year:
+    type: integer
+  premiered:
+    type: string
+    format: date
+  releaseDate:
+    type: string
+    format: date
+  seasonNumber:
+    type: integer
+  folderImageId:
+    $ref: "../image/ImageId.yaml"
+  actors:
+    type: array
+    items:
+      $ref: "../media/Actor.yaml"
+required:
+  - id
+  - showId
+  - seasonNumber
+  - libraryId
+  - showName

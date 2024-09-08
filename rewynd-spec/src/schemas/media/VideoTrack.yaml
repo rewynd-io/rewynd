@@ -1,0 +1,38 @@
+type: object
+allOf:
+  - $ref: "./Track.yaml"
+properties:
+  width:
+    type: number
+  height:
+    type: number
+  codedWidth:
+    type: number
+  codedHeight:
+    type: number
+  closedCaptions:
+    type: boolean
+  hasBFrames:
+    type: number
+  sampleAspectRatio:
+    type: string
+  displayAspectRatio:
+    type: string
+  pixFmt:
+    type: string
+  level:
+    type: number
+  colorRange:
+    type: string
+  colorSpace:
+    type: string
+  colorTransfer:
+    type: string
+  colorPrimaries:
+    type: string
+  chromaLocation:
+    type: string
+  fieldOrder:
+    type: string
+  timeCode:
+    type: string

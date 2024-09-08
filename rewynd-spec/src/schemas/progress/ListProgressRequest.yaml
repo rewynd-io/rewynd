@@ -1,0 +1,10 @@
+type: object
+properties:
+  minPercent:
+    type: number
+  maxPercent:
+    type: number
+  limit:
+    type: number
+  cursor:
+    $ref: "./ListProgressCursor.yaml"

@@ -1,0 +1,18 @@
+get:
+  operationId: getSchedule
+  security:
+    - CookieAuth: []
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: "The id for the desired Schedule"
+      schema:
+        $ref: "../../schemas/schedule/ScheduleId.yaml"
+  responses:
+    200:
+      description: "Successfully got schedule"
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/schedule/Schedule.yaml"

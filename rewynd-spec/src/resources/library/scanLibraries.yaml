@@ -1,0 +1,12 @@
+post:
+  operationId: scanLibraries
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/library/ScanLibrariesRequest.yaml"
+  responses:
+    200:
+      description: "Successfully began scanning the libraries."

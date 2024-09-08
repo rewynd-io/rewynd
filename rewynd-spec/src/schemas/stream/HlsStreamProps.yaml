@@ -1,0 +1,13 @@
+type: object
+properties:
+  id:
+    $ref: "./StreamId.yaml"
+  url:
+    type: string
+  duration:
+    type: number
+    description: "Duration of the stream in seconds with fractions"
+required:
+  - id
+  - url
+  - duration

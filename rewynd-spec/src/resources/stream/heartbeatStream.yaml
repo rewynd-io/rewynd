@@ -1,0 +1,18 @@
+post:
+  operationId: heartbeatStream
+  parameters:
+    - name: streamId
+      in: path
+      required: true
+      description: "The StreamId to heartbeat."
+      schema:
+        $ref: "../../schemas/stream/StreamId.yaml"
+  security:
+    - CookieAuth: []
+  responses:
+    200:
+      description: "Successfully heartbeated the stream."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/stream/StreamHeartbeatResponse.yaml"

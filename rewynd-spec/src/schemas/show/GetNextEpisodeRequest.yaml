@@ -1,0 +1,9 @@
+type: object
+properties:
+  episodeId:
+    $ref: "./EpisodeId.yaml"
+  order:
+    $ref: "./NextEpisodeOrder.yaml"
+required:
+  - episodeId
+  - order

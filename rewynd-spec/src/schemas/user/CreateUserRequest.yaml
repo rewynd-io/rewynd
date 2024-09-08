@@ -1,0 +1,12 @@
+type: object
+properties:
+  username:
+    $ref: "./Username.yaml"
+  permissions:
+    $ref: "./UserPermissions.yaml"
+  password:
+    $ref: "./Password.yaml"
+required:
+  - username
+  - password
+  - permissions

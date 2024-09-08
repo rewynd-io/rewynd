@@ -1,0 +1,8 @@
+type: object
+properties:
+  results:
+    type: array
+    items:
+      $ref: "./SearchResult.yaml"
+required:
+  - results

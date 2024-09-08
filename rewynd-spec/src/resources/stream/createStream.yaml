@@ -1,0 +1,16 @@
+post:
+  operationId: createStream
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/stream/CreateStreamRequest.yaml"
+  responses:
+    200:
+      description: "Successfully created the stream."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/stream/HlsStreamProps.yaml"

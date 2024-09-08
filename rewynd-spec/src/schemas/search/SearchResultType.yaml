@@ -1,0 +1,6 @@
+type: string
+enum:
+  - "Episode"
+  - "Season"
+  - "Show"
+  - "Movie"

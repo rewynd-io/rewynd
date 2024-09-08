@@ -1,0 +1,20 @@
+type: object
+properties:
+  resultType:
+    $ref: "./SearchResultType.yaml"
+  id:
+    type: string
+  title:
+    type: string
+  description:
+    type: string
+  score:
+    type: number
+    maximum: 1.0
+    minimum: 0.0
+required:
+  - resultType
+  - id
+  - title
+  - description
+  - score

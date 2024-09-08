@@ -1,0 +1,78 @@
+type: object
+properties:
+  id:
+    type: string
+  libraryId:
+    type: string
+  audioTracks:
+    type: object
+    additionalProperties:
+      $ref: "../media/AudioTrack.yaml"
+  videoTracks:
+    type: object
+    additionalProperties:
+      $ref: "../media/VideoTrack.yaml"
+  subtitleTracks:
+    type: object
+    additionalProperties:
+      $ref: "../media/SubtitleTrack.yaml"
+  showId:
+    type: string
+  seasonId:
+    type: string
+  plot:
+    type: string
+  outline:
+    type: string
+  title:
+    type: string
+  director:
+    type: array
+    items:
+      type: string
+  writer:
+    type: array
+    items:
+      type: string
+  credits:
+    type: array
+    items:
+      type: string
+  rating:
+    type: number
+  year:
+    type: integer
+  runTime:
+    type: number
+  episode:
+    type: integer
+  episodeNumberEnd:
+    type: integer
+  season:
+    type: integer
+  showName:
+    type: string
+  aired:
+    type: string
+    format: date
+  episodeImageId:
+    $ref: "../image/ImageId.yaml"
+  lastUpdated:
+    $ref: "../util/Timestamp.yaml"
+  lastModified:
+    $ref: "../util/Timestamp.yaml"
+required:
+  - id
+  - seasonId
+  - season
+  - showId
+  - showName
+  - episode
+  - libraryId
+  - title
+  - runTime
+  - audioTracks
+  - videoTracks
+  - subtitleTracks
+  - lastUpdated
+  - lastModified

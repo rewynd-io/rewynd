@@ -12,8 +12,10 @@ repositories {
 group = "io.rewynd"
 version = "0.0.1"
 
-val apiSpec = configurations.create("apiSpec")
+val generatedPath = "${layout.buildDirectory.asFile.get().path}/open-api-generated"
+val rewyndSpecProject = project(":rewynd-spec")
 
+val apiSpec = configurations.create("apiSpec")
 dependencies {
     apiSpec(project(":rewynd-spec"))
     implementation(libs.kotlin.stdlib.jdk7)
@@ -28,10 +30,9 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
 }
 
-var generatedPath = "${layout.buildDirectory.asFile.get().path}/open-api-generated"
 openApiGenerate {
     generatorName = "kotlin"
-    inputSpec = "${project(":rewynd-spec").projectDir}/src/openapi.yaml"
+    inputSpec = "${rewyndSpecProject.projectDir}/dist/openapi.json"
     outputDir = generatedPath
     apiPackage = "io.rewynd.client"
     modelPackage = "io.rewynd.model"
@@ -44,8 +45,8 @@ val copySources =
     tasks.register<Copy>("copySources") {
         from(generatedPath)
         into("${layout.buildDirectory.asFile.get().path}/generated-src")
-        // Don"t ask me why - jsonBlock is just randomly added there.
         filter { line ->
+            // Don't ask me why - jsonBlock is just randomly added there.
             line.replace(
                 "ApiClient\\(baseUrl, httpClientEngine, httpClientConfig, jsonBlock\\) \\{",
                 "ApiClient(baseUrl, httpClientEngine, httpClientConfig) {",
@@ -115,6 +116,7 @@ kotlin {
 
 tasks.openApiGenerate {
     dependsOn.add(tasks.clean)
+    dependsOn.add(rewyndSpecProject.tasks.build)
 }
 copySources {
     dependsOn.add(tasks.openApiGenerate)

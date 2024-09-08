@@ -1,0 +1,18 @@
+get:
+  operationId: getSeasons
+  security:
+    - CookieAuth: []
+  parameters:
+    - name: seasonId
+      in: path
+      required: true
+      description: "The season to retrieve"
+      schema:
+        $ref: "../../schemas/show/SeasonId.yaml"
+  responses:
+    "200":
+      description: "Successful query. "
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/show/SeasonInfo.yaml"

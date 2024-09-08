@@ -1,0 +1,18 @@
+get:
+  operationId: getShow
+  parameters:
+    - name: showId
+      in: path
+      required: true
+      description: "The ShowId for which to fetch the desired ShowInfo."
+      schema:
+        $ref: "../../schemas/show/ShowId.yaml"
+  security:
+    - CookieAuth: []
+  responses:
+    200:
+      description: "Successfully returned ShowInfo."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/show/ShowInfo.yaml"

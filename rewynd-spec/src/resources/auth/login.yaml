@@ -1,0 +1,10 @@
+post:
+  operationId: login
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/user/LoginRequest.yaml"
+  responses:
+    "200":
+      description: "Successful login"

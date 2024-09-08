@@ -1,0 +1,16 @@
+post:
+  operationId: listMovies
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/movie/ListMoviesRequest.yaml"
+  security:
+    - CookieAuth: []
+  responses:
+    200:
+      description: "Successfully listed libraries."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/movie/ListMoviesResponse.yaml"

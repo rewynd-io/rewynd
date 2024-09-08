@@ -1,0 +1,4 @@
+type: object
+properties:
+  episodeInfo:
+    $ref: "./EpisodeInfo.yaml"

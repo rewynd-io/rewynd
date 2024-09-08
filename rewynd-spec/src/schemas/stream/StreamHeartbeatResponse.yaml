@@ -1,0 +1,9 @@
+type: object
+properties:
+  status:
+    $ref: "./StreamStatus.yaml"
+  actualStartOffset:
+    type: number
+required:
+  - status
+  - actualStartOffset

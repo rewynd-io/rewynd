@@ -1,0 +1,18 @@
+get:
+  operationId: getHlsSubsM3u8
+  security:
+    - CookieAuth: []
+  parameters:
+    - name: streamId
+      in: path
+      required: true
+      description: "The StreamId to get the HLS subtitles stream of."
+      schema:
+        $ref: "../../schemas/stream/StreamId.yaml"
+  responses:
+    200:
+      description: "Successfully got the HLS subtitles stream"
+      content:
+        application/vnd.apple.mpegurl:
+          schema:
+            type: string

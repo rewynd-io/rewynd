@@ -1,0 +1,18 @@
+get:
+  operationId: getUserProgress
+  security:
+    - CookieAuth: []
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: "The id for the desired progress info."
+      schema:
+        $ref: "../../schemas/progress/ProgressId.yaml"
+  responses:
+    200:
+      description: "Successfully returned media progress."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/progress/Progress.yaml"

@@ -1,0 +1,18 @@
+post:
+  operationId: deleteSchedule
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          properties:
+            ids:
+              type: array
+              items:
+                $ref: "../../schemas/schedule/ScheduleId.yaml"
+          required:
+            - ids
+  responses:
+    200:
+      description: "Successfully deleted cron schedule"

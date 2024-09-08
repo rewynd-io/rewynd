@@ -1,0 +1,25 @@
+get:
+  operationId: getHlsSegment
+  security:
+    - CookieAuth: []
+  parameters:
+    - name: streamId
+      in: path
+      required: true
+      description: "The StreamId to get the segment of."
+      schema:
+        $ref: "../../schemas/stream/StreamId.yaml"
+    - name: segmentId
+      in: path
+      required: true
+      description: "The SegmentId to get."
+      schema:
+        $ref: "../../schemas/stream/SegmentId.yaml"
+  responses:
+    200:
+      description: "Successfully got a stream segment."
+      content:
+        video/mp4:
+          schema:
+            type: string
+            format: binary

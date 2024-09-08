@@ -1,0 +1,16 @@
+post:
+  operationId: listEpisodes
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/show/ListEpisodesRequest.yaml"
+  responses:
+    "200":
+      description: "Successful query."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/show/ListEpisodesResponse.yaml"

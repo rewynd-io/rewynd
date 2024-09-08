@@ -1,0 +1,27 @@
+type: object
+properties:
+  id:
+    type: string
+  libraryId:
+    type: string
+  audioTracks:
+    type: object
+    additionalProperties:
+      $ref: "./AudioTrack.yaml"
+  videoTracks:
+    type: object
+    additionalProperties:
+      $ref: "./VideoTrack.yaml"
+  subtitleTracks:
+    type: object
+    additionalProperties:
+      $ref: "./SubtitleTrack.yaml"
+  runTime:
+    type: number
+required:
+  - id
+  - libraryId
+  - audioTracks
+  - videoTracks
+  - subtitleTracks
+  - runTime

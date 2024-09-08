@@ -1,0 +1,8 @@
+type: object
+properties:
+  cursor:
+    $ref: "./ListProgressCursor.yaml"
+  results:
+    type: array
+    items:
+      $ref: "./Progress.yaml"

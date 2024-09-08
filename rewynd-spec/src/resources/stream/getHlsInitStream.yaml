@@ -1,0 +1,19 @@
+get:
+  operationId: getHlsInitStream
+  security:
+    - CookieAuth: []
+  parameters:
+    - name: streamId
+      in: path
+      required: true
+      description: "The StreamId to get the stream initial mp4 of."
+      schema:
+        $ref: "../../schemas/stream/StreamId.yaml"
+  responses:
+    200:
+      description: "Successfully got the stream initial mp4."
+      content:
+        video/mp4:
+          schema:
+            type: string
+            format: binary

@@ -1,0 +1,18 @@
+get:
+  operationId: getEpisode
+  security:
+    - CookieAuth: []
+  parameters:
+    - name: episodeId
+      in: path
+      required: true
+      description: "The id for the desired episode info."
+      schema:
+        $ref: "../../schemas/show/EpisodeId.yaml"
+  responses:
+    "200":
+      description: "Successful query. "
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/show/EpisodeInfo.yaml"

@@ -1,0 +1,14 @@
+type: object
+allOf:
+  - $ref: "./Track.yaml"
+properties:
+  sampleFormat:
+    type: string
+  sampleRate:
+    type: number
+  channels:
+    type: number
+  channelLayout:
+    type: string
+  bitsPerSample:
+    type: number

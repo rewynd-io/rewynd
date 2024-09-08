@@ -1,0 +1,6 @@
+type: object
+properties:
+  enableSubtitlesByDefault:
+    type: boolean
+required:
+  - enableSubtitlesByDefault

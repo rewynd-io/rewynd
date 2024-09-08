@@ -1,0 +1,16 @@
+post:
+  operationId: listShows
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/show/ListShowsRequest.yaml"
+  responses:
+    200:
+      description: "Successfully listed shows."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/show/ListShowsResponse.yaml"

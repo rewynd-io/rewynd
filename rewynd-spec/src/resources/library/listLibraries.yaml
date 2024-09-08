@@ -1,0 +1,16 @@
+post:
+  operationId: listLibraries
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/library/ListLibrariesRequest.yaml"
+  responses:
+    200:
+      description: "Successfully listed libraries."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/library/ListLibrariesResponse.yaml"

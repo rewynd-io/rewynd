@@ -1,0 +1,16 @@
+post:
+  operationId: getNextEpisode
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/show/GetNextEpisodeRequest.yaml"
+  responses:
+    "200":
+      description: "Successful query."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/show/GetNextEpisodeResponse.yaml"

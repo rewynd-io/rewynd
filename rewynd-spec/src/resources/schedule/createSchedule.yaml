@@ -1,0 +1,12 @@
+post:
+  operationId: createSchedule
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/schedule/Schedule.yaml"
+  responses:
+    200:
+      description: "Successfully scheduled."

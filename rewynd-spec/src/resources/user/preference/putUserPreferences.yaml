@@ -1,0 +1,12 @@
+post:
+  operationId: putUserPreferences
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../../schemas/user/UserPreferences.yaml"
+  responses:
+    200:
+      description: "Successfully put media preference."

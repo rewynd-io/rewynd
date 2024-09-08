@@ -1,0 +1,19 @@
+get:
+  operationId: getImage
+  security:
+    - CookieAuth: []
+  parameters:
+    - name: imageId
+      in: path
+      required: true
+      description: "The ImageId to retrieve."
+      schema:
+        $ref: "../../schemas/image/ImageId.yaml"
+  responses:
+    200:
+      description: "Successfully retrieved an image."
+      content:
+        image/*:
+          schema:
+            type: string
+            format: binary

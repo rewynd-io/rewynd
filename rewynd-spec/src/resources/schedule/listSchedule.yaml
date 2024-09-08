@@ -1,0 +1,16 @@
+post:
+  operationId: listSchedules
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/schedule/ListSchedulesRequest.yaml"
+  responses:
+    200:
+      description: "Successfully listed schedules."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/schedule/ListSchedulesResponse.yaml"

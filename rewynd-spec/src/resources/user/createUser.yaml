@@ -1,0 +1,12 @@
+post:
+  operationId: createUser
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/user/CreateUserRequest.yaml"
+  responses:
+    200:
+      description: "Successfully created user"

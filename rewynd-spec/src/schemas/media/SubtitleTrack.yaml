@@ -1,0 +1,7 @@
+type: object
+allOf:
+  - $ref: "./Track.yaml"
+properties:
+  fileName:
+    description: "Set if subtitles exist as a separate file."
+    type: string

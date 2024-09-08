@@ -1,0 +1,10 @@
+type: object
+properties:
+  page:
+    type: array
+    items:
+      $ref: "./Library.yaml"
+  cursor:
+    $ref: "./ListLibrariesCursor.yaml"
+required:
+  - page

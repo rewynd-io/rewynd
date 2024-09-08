@@ -1,0 +1,16 @@
+post:
+  operationId: listProgress
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/progress/ListProgressRequest.yaml"
+  responses:
+    200:
+      description: "Successfully returned latest media."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/progress/ListProgressResponse.yaml"

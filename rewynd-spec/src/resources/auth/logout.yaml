@@ -1,0 +1,7 @@
+post:
+  operationId: logout
+  security:
+    - CookieAuth: []
+  responses:
+    200:
+      description: "Successful logout"

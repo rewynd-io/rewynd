@@ -1,0 +1,14 @@
+delete:
+  operationId: deleteStream
+  parameters:
+    - name: streamId
+      in: path
+      required: true
+      description: "The StreamId to delete."
+      schema:
+        $ref: "../../schemas/stream/StreamId.yaml"
+  security:
+    - CookieAuth: []
+  responses:
+    200:
+      description: "Successfully deleted the stream."

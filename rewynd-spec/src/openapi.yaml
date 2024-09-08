@@ -1,1784 +1,252 @@
 openapi: 3.0.3
 info:
-  title: Rewynd.io API Specification
+  title: Rewynd API Specification
   version: "0.1.0"
-  description: Specification for the Rewynd.io HTTP API
+  description: Specification for the Rewynd HTTP API
+  license:
+    name: AGPLv3
+
 paths:
   /api/auth/login:
-    post:
-      operationId: login
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginRequest"
-      responses:
-        "200":
-          description: "Successful login"
-
+    $ref: "./resources/auth/login.yaml"
   /api/auth/logout:
-    post:
-      operationId: logout
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: "Successful logout"
-
+    $ref: "./resources/auth/logout.yaml"
   /api/auth/verify:
-    get:
-      operationId: verify
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: "User is valid"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        401:
-          description: "User is not valid"
-
+    $ref: "./resources/auth/verify.yaml"
   /api/user/list:
-    post:
-      operationId: listUsers
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListUsersRequest"
-      responses:
-        200:
-          description: "Successfully listed and returned a list of users."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListUsersResponse"
-
+    $ref: "./resources/user/listUsers.yaml"
   /api/user/create:
-    post:
-      operationId: createUser
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateUserRequest"
-      responses:
-        200:
-          description: "Successfully created user"
-
+    $ref: "./resources/user/createUser.yaml"
   /api/user/delete:
-    post:
-      operationId: deleteUsers
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeleteUsersRequest"
-      responses:
-        200:
-          description: "Successfully deleted all users in request."
-
+    $ref: "./resources/user/deleteUsers.yaml"
   /api/user/changePassword:
-    post:
-      operationId: changePassword
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: "Successfully changed user password."
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ChangePasswordRequest"
-
+    $ref: "./resources/user/changePassword.yaml"
   /api/user/progress/list:
-    post:
-      operationId: listProgress
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListProgressRequest"
-      responses:
-        200:
-          description: "Successfully returned latest media."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListProgressResponse"
-
+    $ref: "./resources/progress/listProgress.yaml"
   /api/user/progress/get/{id}:
-    get:
-      operationId: getUserProgress
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: "The id for the desired progress info."
-          schema:
-            $ref: "#/components/schemas/ProgressId"
-      responses:
-        200:
-          description: "Successfully returned media progress."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Progress"
-
+    $ref: "./resources/progress/getProgress.yaml"
   /api/user/progress/put:
-    post:
-      operationId: putUserProgress
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Progress"
-      responses:
-        200:
-          description: "Successfully put media progress."
-
+    $ref: "./resources/progress/putProgress.yaml"
   /api/preference/user/put:
-    post:
-      operationId: putUserPreferences
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserPreferences"
-      responses:
-        200:
-          description: "Successfully put media preference."
-
-  /api/preference/device/get:
-    get:
-      operationId: getUserDevicePreferences
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                deviceId:
-                  type: string
-              required:
-                - deviceId
-      responses:
-        200:
-          description: "Successfully returned preference."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DevicePreferences"
-
-  /api/preference/device/put:
-    post:
-      operationId: putUserDevicePreferences
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DevicePreferences"
-      responses:
-        200:
-          description: "Successfully put device preference."
-
-  /api/preference/device/delete:
-    post:
-      operationId: deleteUserDevicePreferences
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeleteUserDevicePreferencesRequest"
-      responses:
-        200:
-          description: "Successfully deleted all users in request."
-
+    $ref: "./resources/user/preference/putUserPreferences.yaml"
   /api/lib/create:
-    post:
-      operationId: createLibrary
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Library"
-      responses:
-        200:
-          description: "Successfully created the library."
-
+    $ref: "./resources/library/createLibrary.yaml"
   /api/schedule/create:
-    post:
-      operationId: createSchedule
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Schedule"
-      responses:
-        200:
-          description: "Successfully scheduled."
-
+    $ref: "./resources/schedule/createSchedule.yaml"
   /api/schedule/delete:
-    post:
-      operationId: deleteSchedule
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                ids:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/ScheduleId"
-              required:
-                - ids
-      responses:
-        200:
-          description: "Successfully deleted cron schedule"
-
+    $ref: "./resources/schedule/deleteSchedule.yaml"
   /api/schedule/get/{id}:
-    get:
-      operationId: getSchedule
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: "The id for the desired Schedule"
-          schema:
-            $ref: "#/components/schemas/ScheduleId"
-      responses:
-        200:
-          description: "Successfully got schedule"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Schedule"
-
+    $ref: "./resources/schedule/getSchedule.yaml"
   /api/schedule/list:
-    post:
-      operationId: listSchedules
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListSchedulesRequest"
-      responses:
-        200:
-          description: "Successfully listed schedules."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListSchedulesResponse"
-
+    $ref: "./resources/schedule/listSchedule.yaml"
   /api/lib/delete:
-    post:
-      operationId: deleteLibraries
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeleteLibrariesRequest"
-      responses:
-        200:
-          description: "Successfully deleted the library."
-
+    $ref: "./resources/library/deleteLibrary.yaml"
   /api/lib/scan:
-    post:
-      operationId: scanLibraries
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ScanLibrariesRequest"
-      responses:
-        200:
-          description: "Successfully began scanning the libraries."
-
+    $ref: "./resources/library/scanLibraries.yaml"
   /api/lib/list:
-    post:
-      operationId: listLibraries
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListLibrariesRequest"
-      responses:
-        200:
-          description: "Successfully listed libraries."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListLibrariesResponse"
-
+    $ref: "./resources/library/listLibraries.yaml"
   /api/lib/get/{libraryId}:
-    get:
-      operationId: getLibrary
-      parameters:
-        - name: libraryId
-          in: path
-          required: true
-          description: "The id for the desired LibraryInfo."
-          schema:
-            $ref: "#/components/schemas/LibraryId"
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: "Successfully got LibraryInfo"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Library"
-
+    $ref: "./resources/library/getLibrary.yaml"
   /api/movie/list:
-    post:
-      operationId: listMovies
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListMoviesRequest"
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: "Successfully listed libraries."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListMoviesResponse"
-
+    $ref: "./resources/movie/listMovies.yaml"
   /api/movie/get/{movieId}:
-    get:
-      operationId: getMovie
-      parameters:
-        - name: movieId
-          in: path
-          required: true
-          description: "The id for the desired MovieInfo."
-          schema:
-            $ref: "#/components/schemas/MovieId"
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: "Successfully got MovieInfo"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MovieInfo"
-
+    $ref: "./resources/movie/getMovie.yaml"
   /api/show/list:
-    post:
-      operationId: listShows
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListShowsRequest"
-      responses:
-        200:
-          description: "Successfully listed shows."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListShowsResponse"
-
+    $ref: "./resources/show/listShows.yaml"
   /api/show/get/{showId}:
-    get:
-      operationId: getShow
-      parameters:
-        - name: showId
-          in: path
-          required: true
-          description: "The ShowId for which to fetch the desired ShowInfo."
-          schema:
-            $ref: "#/components/schemas/ShowId"
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: "Successfully returned ShowInfo."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ShowInfo"
-
+    $ref: "./resources/show/getShow.yaml"
   /api/season/list:
-    post:
-      operationId: listSeasons
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListSeasonsRequest"
-      responses:
-        200:
-          description: "Successful query"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListSeasonsResponse"
-
+    $ref: "./resources/show/listSeasons.yaml"
   /api/season/get/{seasonId}:
-    get:
-      operationId: getSeasons
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: seasonId
-          in: path
-          required: true
-          description: "The season to retrieve"
-          schema:
-            $ref: "#/components/schemas/SeasonId"
-      responses:
-        "200":
-          description: "Successful query. "
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SeasonInfo"
-
+    $ref: "./resources/show/getSeason.yaml"
   /api/episode/list:
-    post:
-      operationId: listEpisodes
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListEpisodesRequest"
-      responses:
-        "200":
-          description: "Successful query."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListEpisodesResponse"
-
+    $ref: "./resources/show/listEpisodes.yaml"
   /api/episode/listByLastUpdated:
-    post:
-      operationId: listEpisodesByLastUpdated
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ListEpisodesByLastUpdatedRequest"
-      responses:
-        "200":
-          description: "Successful query."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListEpisodesByLastUpdatedResponse"
-
+    $ref: "./resources/show/listEpisodesByLastUpdated.yaml"
   /api/episode/get/{episodeId}:
-    get:
-      operationId: getEpisode
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: episodeId
-          in: path
-          required: true
-          description: "The id for the desired episode info."
-          schema:
-            $ref: "#/components/schemas/MediaId"
-      responses:
-        "200":
-          description: "Successful query. "
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EpisodeInfo"
-
+    $ref: "./resources/show/getEpisode.yaml"
   /api/episode/next:
-    post:
-      operationId: getNextEpisode
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GetNextEpisodeRequest"
-      responses:
-        "200":
-          description: "Successful query."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GetNextEpisodeResponse"
-
+    $ref: "./resources/show/getNextEpisode.yaml"
   /api/search/get:
-    post:
-      operationId: search
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SearchRequest"
-      responses:
-        200:
-          description: "Successfully searched"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SearchResponse"
-
+    $ref: "./resources/search/search.yaml"
   /api/stream/create:
-    post:
-      operationId: createStream
-      security:
-        - CookieAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateStreamRequest"
-      responses:
-        200:
-          description: "Successfully created the stream."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HlsStreamProps"
-
+    $ref: "./resources/stream/createStream.yaml"
   /api/stream/delete/{streamId}:
-    delete:
-      operationId: deleteStream
-      parameters:
-        - name: streamId
-          in: path
-          required: true
-          description: "The StreamId to delete."
-          schema:
-            $ref: "#/components/schemas/StreamId"
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: "Successfully deleted the stream."
-
+    $ref: "./resources/stream/deleteStream.yaml"
   /api/stream/heartbeat/{streamId}:
-    post:
-      operationId: heartbeatStream
-      parameters:
-        - name: streamId
-          in: path
-          required: true
-          description: "The StreamId to heartbeat."
-          schema:
-            $ref: "#/components/schemas/StreamId"
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: "Successfully heartbeated the stream."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StreamHeartbeatResponse"
-
+    $ref: "./resources/stream/heartbeatStream.yaml"
   /api/stream/{streamId}/index.m3u8:
-    get:
-      operationId: getHlsIndexM3u8
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: streamId
-          in: path
-          required: true
-          description: "The StreamId to get the HLS stream index of."
-          schema:
-            $ref: "#/components/schemas/StreamId"
-      responses:
-        200:
-          description: "Successfully got the HLS stream index."
-          content:
-            application/vnd.apple.mpegurl:
-              schema:
-                type: string
-
+    $ref: "./resources/stream/getHlsIndexM3u8.yaml"
   /api/stream/{streamId}/stream.m3u8:
-    get:
-      operationId: getHlsStreamM3u8
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: streamId
-          in: path
-          required: true
-          description: "The StreamId to get the HLS video stream of."
-          schema:
-            $ref: "#/components/schemas/StreamId"
-      responses:
-        200:
-          description: "Successfully got the HLS video stream."
-          content:
-            application/vnd.apple.mpegurl:
-              schema:
-                type: string
-
+    $ref: "./resources/stream/getHlsStreamM3u8.yaml"
   /api/stream/{streamId}/subs.m3u8:
-    get:
-      operationId: getHlsSubsM3u8
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: streamId
-          in: path
-          required: true
-          description: "The StreamId to get the HLS subtitles stream of."
-          schema:
-            $ref: "#/components/schemas/StreamId"
-      responses:
-        200:
-          description: "Successfully got the HLS subtitles stream"
-          content:
-            application/vnd.apple.mpegurl:
-              schema:
-                type: string
-
+    $ref: "./resources/stream/getHlsSubsM3u8.yaml"
   /api/stream/{streamId}/{segmentId}.vtt:
-    get:
-      operationId: getHlsSubs
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: streamId
-          in: path
-          required: true
-          description: "The StreamId to get the stream subtitles of."
-          schema:
-            $ref: "#/components/schemas/StreamId"
-        - name: segmentId
-          in: path
-          required: true
-          description: "The SegmentId to get."
-          schema:
-            $ref: "#/components/schemas/SegmentId"
-      responses:
-        200:
-          description: "Successfully got the stream subtitles."
-          content:
-            text/vtt:
-              schema:
-                type: string
-
+    $ref: "./resources/stream/getHlsSubs.yaml"
   /api/stream/{streamId}/init-stream.mp4:
-    get:
-      operationId: getHlsInitStream
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: streamId
-          in: path
-          required: true
-          description: "The StreamId to get the stream initial mp4 of."
-          schema:
-            $ref: "#/components/schemas/StreamId"
-      responses:
-        200:
-          description: "Successfully got the stream initial mp4."
-          content:
-            video/mp4:
-              schema:
-                type: string
-                format: binary
-
+    $ref: "./resources/stream/getHlsInitStream.yaml"
   /api/stream/{streamId}/{segmentId}.m4s:
-    get:
-      operationId: getHlsSegment
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: streamId
-          in: path
-          required: true
-          description: "The StreamId to get the segment of."
-          schema:
-            $ref: "#/components/schemas/StreamId"
-        - name: segmentId
-          in: path
-          required: true
-          description: "The SegmentId to get."
-          schema:
-            $ref: "#/components/schemas/SegmentId"
-      responses:
-        200:
-          description: "Successfully got a stream segment."
-          content:
-            video/mp4:
-              schema:
-                type: string
-                format: binary
-
+    $ref: "./resources/stream/getHlsSegment.yaml"
   /api/image/{imageId}:
-    get:
-      operationId: getImage
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: imageId
-          in: path
-          required: true
-          description: "The ImageId to retrieve."
-          schema:
-            $ref: "#/components/schemas/ImageId"
-      responses:
-        200:
-          description: "Successfully retrieved an image."
-          content:
-            image/*:
-              schema:
-                type: string
-                format: binary
-
-  /api/icon/{iconId}:
-    get:
-      operationId: getIcon
-      security:
-        - CookieAuth: []
-      parameters:
-        - name: iconId
-          in: path
-          required: true
-          description: "The IconId to retrieve."
-          schema:
-            $ref: "#/components/schemas/IconId"
-      responses:
-        200:
-          description: "Successfully retrieved an icon."
-          content:
-            image/*:
-              schema:
-                type: string
-                format: binary
+    $ref: "./resources/image/getImage.yaml"
 
 components:
   schemas:
-    ListEpisodesByLastUpdatedCursor:
-      type: integer
-      format: int64
-
-    ListEpisodesByLastUpdatedOrder:
-      type: string
-      enum:
-        - "Newest"
-        - "Oldest"
-    ListEpisodesByLastUpdatedResponse:
-      type: object
-      properties:
-        episodes:
-          type: array
-          items:
-            $ref: "#/components/schemas/EpisodeInfo"
-        cursor:
-          $ref: "#/components/schemas/ListEpisodesByLastUpdatedCursor"
-      required:
-        - episodes
-
-    ListEpisodesByLastUpdatedRequest:
-      type: object
-      properties:
-        libraryIds:
-          type: array
-          items:
-            $ref: "#/components/schemas/LibraryId"
-        order:
-          $ref: "#/components/schemas/ListEpisodesByLastUpdatedOrder"
-        cursor:
-          $ref: "#/components/schemas/ListEpisodesByLastUpdatedCursor"
-        limit:
-          type: integer
-      required:
-        - order
-
-    ListShowsCursor:
-      type: string
-
-    ListShowsRequest:
-      type: object
-      properties:
-        libraryId:
-          $ref: "#/components/schemas/LibraryId"
-        cursor:
-          $ref: "#/components/schemas/ListShowsCursor"
-      required:
-        - libraryId
-
-    ListMoviesCursor:
-      type: string
-
-    ListMoviesRequest:
-      type: object
-      properties:
-        libraryId:
-          $ref: "#/components/schemas/LibraryId"
-        cursor:
-          $ref: "#/components/schemas/ListMoviesCursor"
-      required:
-        - libraryId
-
-    ListMoviesResponse:
-      type: object
-      properties:
-        page:
-          type: array
-          items:
-            $ref: "#/components/schemas/MovieInfo"
-        cursor:
-          $ref: "#/components/schemas/ListMoviesCursor"
-      required:
-        - page
-
-    NextEpisodeOrder:
-      type: string
-      enum:
-        - "next"
-        - "previous"
-
-    GetNextEpisodeRequest:
-      type: object
-      properties:
-        episodeId:
-          $ref: "#/components/schemas/EpisodeId"
-        order:
-          $ref: "#/components/schemas/NextEpisodeOrder"
-      required:
-        - episodeId
-        - order
-
-    GetNextEpisodeResponse:
-      type: object
-      properties:
-        episodeInfo:
-          $ref: "#/components/schemas/EpisodeInfo"
-
-    ListShowsResponse:
-      type: object
-      properties:
-        page:
-          type: array
-          items:
-            $ref: "#/components/schemas/ShowInfo"
-        cursor:
-          $ref: "#/components/schemas/ListShowsCursor"
-      required:
-        - page
-
-    ListSeasonsCursor:
-      type: string
-
-    ListSeasonsRequest:
-      type: object
-      properties:
-        showId:
-          $ref: "#/components/schemas/ShowId"
-        cursor:
-          $ref: "#/components/schemas/ListSeasonsCursor"
-      required:
-        - showId
-
-    ListSeasonsResponse:
-      type: object
-      properties:
-        page:
-          type: array
-          items:
-            $ref: "#/components/schemas/SeasonInfo"
-        cursor:
-          $ref: "#/components/schemas/ListShowsCursor"
-      required:
-        - page
-
-    Actor:
-      type: object
-      properties:
-        name:
-          type: string
-        role:
-          type: string
-
-    UserPermissions:
-      type: object
-      properties:
-        isAdmin:
-          type: boolean
-
-    ShowInfo:
-      type: object
-      properties:
-        id:
-          type: string
-        libraryId:
-          type: string
-        plot:
-          type: string
-        outline:
-          type: string
-        title:
-          type: string
-        originalTitle:
-          type: string
-        premiered:
-          type: string
-          format: date
-        releaseDate:
-          type: string
-          format: date
-        endDate:
-          type: string
-          format: date
-        mpaa:
-          type: string
-        imdbId:
-          type: string
-        tmdbId:
-          type: string
-        tvdbId:
-          type: string
-        tvRageId:
-          type: string
-        rating:
-          type: number
-        year:
-          type: integer
-        runTime:
-          type: number
-        aired:
-          type: string
-          format: date
-        genre:
-          type: string
-        studio:
-          type: string
-        status:
-          type: string
-        tag:
-          type: array
-          items:
-            type: string
-        actors:
-          type: array
-          items:
-            $ref: "#/components/schemas/Actor"
-        seriesImageId:
-          $ref: "#/components/schemas/ImageId"
-        backdropImageId:
-          $ref: "#/components/schemas/ImageId"
-      required:
-        - id
-        - libraryId
-        - title
-
-    SeasonInfo:
-      type: object
-      properties:
-        id:
-          type: string
-        libraryId:
-          type: string
-        showId:
-          type: string
-        showName:
-          type: string
-        year:
-          type: integer
-        premiered:
-          type: string
-          format: date
-        releaseDate:
-          type: string
-          format: date
-        seasonNumber:
-          type: integer
-        folderImageId:
-          $ref: "#/components/schemas/ImageId"
-        actors:
-          type: array
-          items:
-            $ref: "#/components/schemas/Actor"
-      required:
-        - id
-        - showId
-        - seasonNumber
-        - libraryId
-        - showName
-
-    EpisodeInfo:
-      type: object
-      properties:
-        id:
-          type: string
-        libraryId:
-          type: string
-        audioTracks:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/AudioTrack"
-        videoTracks:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/VideoTrack"
-        subtitleTracks:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/SubtitleTrack"
-        showId:
-          type: string
-        seasonId:
-          type: string
-        plot:
-          type: string
-        outline:
-          type: string
-        title:
-          type: string
-        director:
-          type: array
-          items:
-            type: string
-        writer:
-          type: array
-          items:
-            type: string
-        credits:
-          type: array
-          items:
-            type: string
-        rating:
-          type: number
-        year:
-          type: integer
-        runTime:
-          type: number
-        episode:
-          type: integer
-        episodeNumberEnd:
-          type: integer
-        season:
-          type: integer
-        showName:
-          type: string
-        aired:
-          type: string
-          format: date
-        episodeImageId:
-          $ref: "#/components/schemas/ImageId"
-        lastUpdated:
-          $ref: "#/components/schemas/Timestamp"
-        lastModified:
-          $ref: "#/components/schemas/Timestamp"
-      required:
-        - id
-        - seasonId
-        - season
-        - showId
-        - showName
-        - episode
-        - libraryId
-        - title
-        - runTime
-        - audioTracks
-        - videoTracks
-        - subtitleTracks
-        - lastUpdated
-        - lastModified
-
-    MovieInfo:
-      type: object
-      properties:
-        id:
-          type: string
-        libraryId:
-          type: string
-        audioTracks:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/AudioTrack"
-        videoTracks:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/VideoTrack"
-        subtitleTracks:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/SubtitleTrack"
-        plot:
-          type: string
-        outline:
-          type: string
-        title:
-          type: string
-        directors:
-          type: array
-          items:
-            type: string
-        writers:
-          type: array
-          items:
-            type: string
-        credits:
-          type: array
-          items:
-            type: string
-        studios:
-          type: array
-          items:
-            type: string
-        rating:
-          type: number
-        criticRating:
-          type: integer
-        mpaa:
-          type: string
-        premiered:
-          type: string
-          format: date
-        tagLine:
-          type: string
-        country:
-          type: string
-        genre:
-          type: string
-        releaseDate:
-          type: string
-          format: date
-        year:
-          type: integer
-        runTime:
-          type: number
-        backdropImageId:
-          $ref: "#/components/schemas/ImageId"
-        posterImageId:
-          $ref: "#/components/schemas/ImageId"
-      required:
-        - id
-        - libraryId
-        - title
-        - runTime
-        - audioTracks
-        - videoTracks
-        - subtitleTracks
-
-    SubtitleInfo:
-      type: object
-      properties:
-        name:
-          type: string
-      required:
-        - name
-
-    User:
-      type: object
-      properties:
-        username:
-          type: string
-        permissions:
-          $ref: "#/components/schemas/UserPermissions"
-        preferences:
-          $ref: "#/components/schemas/UserPreferences"
-      required:
-        - username
-        - permissions
-        - preferences
-
-    LoginRequest:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-
-    ListUsersRequest:
-      type: object
-      properties:
-        cursor:
-          type: string
-
-    ListUsersResponse:
-      type: object
-      properties:
-        page:
-          type: array
-          items:
-            $ref: "#/components/schemas/User"
-        cursor:
-          type: string
-      required:
-        - page
-
-    CreateUserRequest:
-      type: object
-      properties:
-        username:
-          $ref: "#/components/schemas/Username"
-        permissions:
-          $ref: "#/components/schemas/UserPermissions"
-        password:
-          $ref: "#/components/schemas/Password"
-      required:
-        - username
-        - password
-        - permissions
-
-    DeleteUsersRequest:
-      type: object
-      properties:
-        users:
-          type: array
-          items:
-            $ref: "#/components/schemas/Username"
-      required:
-        - users
-
-    DeleteUserDevicePreferencesRequest:
-      type: object
-      properties:
-        deviceId:
-          $ref: "#/components/schemas/DeviceId"
-      required:
-        - deviceId
-
-    DeleteLibrariesRequest:
-      type: object
-      properties:
-        libraries:
-          type: array
-          items:
-            $ref: "#/components/schemas/LibraryId"
-      required:
-        - libraries
-
-    SearchRequest:
-      type: object
-      properties:
-        text:
-          type: string
-      required:
-        - text
-
-    ListEpisodesRequest:
-      type: object
-      properties:
-        seasonId:
-          $ref: "#/components/schemas/SeasonId"
-        cursor:
-          $ref: "#/components/schemas/ListEpisodesCursor"
-      required:
-        - seasonId
-
-    ListEpisodesResponse:
-      type: object
-      properties:
-        page:
-          type: array
-          items:
-            $ref: "#/components/schemas/EpisodeInfo"
-        cursor:
-          $ref: "#/components/schemas/ListEpisodesCursor"
-      required:
-        - page
-
-    SearchResponse:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/SearchResult"
-      required:
-        - results
-
-    SearchResult:
-      type: object
-      properties:
-        resultType:
-          $ref: "#/components/schemas/SearchResultType"
-        id:
-          type: string
-        title:
-          type: string
-        description:
-          type: string
-        score:
-          type: number
-          maximum: 1.0
-          minimum: 0.0
-      required:
-        - resultType
-        - id
-        - title
-        - description
-        - score
-
-    SearchResultType:
-      type: string
-      enum:
-        - "Episode"
-        - "Season"
-        - "Show"
-        - "Movie"
-
-    ListProgressRequest:
-      type: object
-      properties:
-        minPercent:
-          type: number
-        maxPercent:
-          type: number
-        limit:
-          type: number
-        cursor:
-          $ref: "#/components/schemas/ListProgressCursor"
-
-    ListProgressResponse:
-      type: object
-      properties:
-        cursor:
-          $ref: "#/components/schemas/ListProgressCursor"
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/Progress"
-
-    ChangePasswordRequest:
-      type: object
-      properties:
-        oldPassword:
-          type: string
-        newPassword:
-          type: string
-      required:
-        - oldPassword
-        - newPassword
-    ScheduleId:
-      type: string
-    ProgressId:
-      type: string
-    DeviceId:
-      type: string
-    MediaId:
-      type: string
-    SeasonId:
-      type: string
-    ListEpisodesCursor:
-      type: string
-    ShowId:
-      type: string
-    LibraryId:
-      type: string
-    EpisodeId:
-      type: string
-    MovieId:
-      type: string
-    StreamId:
-      type: string
-    SearchIndexId:
-      type: string
-    SegmentId:
-      type: string
     ImageId:
-      type: string
-    IconId:
-      type: string
-    Username:
-      type: string
-    Password:
-      type: string
-    ScheduleType:
-      type: string
-      enum:
-        - "Scan"
-
-    LibraryType:
-      type: string
-      enum:
-        - "Movie"
-        - "Show"
-        - "Image"
-
-    StreamHeartbeatResponse:
-      type: object
-      properties:
-        status:
-          $ref: "#/components/schemas/StreamStatus"
-        actualStartOffset:
-          type: number
-      required:
-        - status
-        - actualStartOffset
-
-    StreamStatus:
-      type: string
-      enum:
-        - "Canceled"
-        - "Available"
-        - "Pending"
-
-    SearchIndexStatus:
-      type: string
-      enum:
-        - "Canceled"
-        - "Available"
-        - "Pending"
-
+      $ref: "./schemas/image/ImageId.yaml"
+    DeleteLibrariesRequest:
+      $ref: "./schemas/library/DeleteLibrariesRequest.yaml"
     Library:
-      type: object
-      properties:
-        name:
-          $ref: "#/components/schemas/LibraryId"
-        rootPaths:
-          type: array
-          items:
-            type: string
-        type:
-          $ref: "#/components/schemas/LibraryType"
-      required:
-        - name
-        - rootPaths
-        - type
-
-    DevicePreferences:
-      type: object
-      properties:
-        deviceId:
-          $ref: "#/components/schemas/DeviceId"
-      required:
-        - deviceId
-
-    UserPreferences:
-      type: object
-      properties:
-        enableSubtitlesByDefault:
-          type: boolean
-      required:
-        - enableSubtitlesByDefault
-
-    HlsStreamProps:
-      type: object
-      properties:
-        id:
-          $ref: "#/components/schemas/StreamId"
-        url:
-          type: string
-        duration:
-          type: number
-          description: "Duration of the stream in seconds with fractions"
-      required:
-        - id
-        - url
-        - duration
-
-    Timestamp:
-      type: string
-      format: date-time
-
-    ListProgressCursor:
-      $ref: "#/components/schemas/Timestamp"
-
-    Progress:
-      type: object
-      properties:
-        id:
-          $ref: "#/components/schemas/MediaId"
-        percent:
-          type: number
-          description: "Progress through the media as a percentage (0 to 1)."
-        timestamp:
-          $ref: "#/components/schemas/Timestamp"
-      required:
-        - id
-        - percent
-        - timestamp
-
-    CreateStreamRequest:
-      type: object
-      properties:
-        library:
-          type: string
-        id:
-          $ref: "#/components/schemas/MediaId"
-        audioTrack:
-          type: string
-        videoTrack:
-          type: string
-        subtitleTrack:
-          type: string
-        startOffset:
-          type: number
-          minimum: 0
-        normalization:
-          $ref: "#/components/schemas/NormalizationProps"
-      required:
-        - library
-        - id
-
-    NormalizationMethod:
-      type: string
-      enum:
-        - "loudnorm"
-
-    NormalizationProps:
-      type: object
-      properties:
-        method:
-          $ref: "#/components/schemas/NormalizationMethod"
-      required:
-        - method
-
-    ScanLibrariesRequest:
-      type: object
-      properties:
-        libraryIds:
-          type: array
-          items:
-            type: string
-      required:
-        - libraryIds
-
+      $ref: "./schemas/library/Library.yaml"
+    LibraryId:
+      $ref: "./schemas/library/LibraryId.yaml"
+    LibraryType:
+      $ref: "./schemas/library/LibraryType.yaml"
     ListLibrariesCursor:
-      type: string
-
+      $ref: "./schemas/library/ListLibrariesCursor.yaml"
     ListLibrariesRequest:
-      type: object
-      properties:
-        cursor:
-          $ref: "#/components/schemas/ListLibrariesCursor"
-
+      $ref: "./schemas/library/ListLibrariesRequest.yaml"
     ListLibrariesResponse:
-      type: object
-      properties:
-        page:
-          type: array
-          items:
-            $ref: "#/components/schemas/Library"
-        cursor:
-          $ref: "#/components/schemas/ListLibrariesCursor"
-      required:
-        - page
-
-    Track:
-      type: object
-      properties:
-        id:
-          type: string
-        index:
-          type: integer
-        name:
-          type: string
-        duration:
-          type: number
-        codecName:
-          type: string
-        codecLongName:
-          type: string
-        profile:
-          type: string
-      required:
-        - name
-        - index
-
-    SubtitleTrack:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/Track"
-      properties:
-        fileName:
-          description: "Set if subtitles exist as a separate file."
-          type: string
-
-    VideoTrack:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/Track"
-      properties:
-        width:
-          type: number
-        height:
-          type: number
-        codedWidth:
-          type: number
-        codedHeight:
-          type: number
-        closedCaptions:
-          type: boolean
-        hasBFrames:
-          type: number
-        sampleAspectRatio:
-          type: string
-        displayAspectRatio:
-          type: string
-        pixFmt:
-          type: string
-        level:
-          type: number
-        colorRange:
-          type: string
-        colorSpace:
-          type: string
-        colorTransfer:
-          type: string
-        colorPrimaries:
-          type: string
-        chromaLocation:
-          type: string
-        fieldOrder:
-          type: string
-        timeCode:
-          type: string
-
+      $ref: "./schemas/library/ListLibrariesResponse.yaml"
+    ScanLibrariesRequest:
+      $ref: "./schemas/library/ScanLibrariesRequest.yaml"
+    Actor:
+      $ref: "./schemas/media/Actor.yaml"
     AudioTrack:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/Track"
-      properties:
-        sampleFormat:
-          type: string
-        sampleRate:
-          type: number
-        channels:
-          type: number
-        channelLayout:
-          type: string
-        bitsPerSample:
-          type: number
-
+      $ref: "./schemas/media/AudioTrack.yaml"
+    MediaId:
+      $ref: "./schemas/media/MediaId.yaml"
     MediaInfo:
-      type: object
-      properties:
-        id:
-          type: string
-        libraryId:
-          type: string
-        audioTracks:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/AudioTrack"
-        videoTracks:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/VideoTrack"
-        subtitleTracks:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/SubtitleTrack"
-        runTime:
-          type: number
-      required:
-        - id
-        - libraryId
-        - audioTracks
-        - videoTracks
-        - subtitleTracks
-        - runTime
-
-    Schedule:
-      type: object
-      properties:
-        id:
-          $ref: "#/components/schemas/ScheduleId"
-        cronExpression:
-          $ref: "#/components/schemas/CronExpression"
-        scanTasks:
-          type: array
-          items:
-            $ref: "#/components/schemas/ScanTask"
-      required:
-        - id
-        - cronExpression
-        - scanTasks
-
-    ListSchedulesRequest:
-      type: object
-      properties:
-        cursor:
-          $ref: "#/components/schemas/ScheduleId"
-
-    ListSchedulesResponse:
-      type: object
-      properties:
-        page:
-          type: array
-          items:
-            $ref: "#/components/schemas/Schedule"
-        cursor:
-          $ref: "#/components/schemas/ScheduleId"
-      required:
-        - page
-
+      $ref: "./schemas/media/MediaInfo.yaml"
+    SubtitleTrack:
+      $ref: "./schemas/media/SubtitleTrack.yaml"
+    Track:
+      $ref: "./schemas/media/Track.yaml"
+    VideoTrack:
+      $ref: "./schemas/media/VideoTrack.yaml"
+    ListMoviesCursor:
+      $ref: "./schemas/movie/ListMoviesCursor.yaml"
+    ListMoviesRequest:
+      $ref: "./schemas/movie/ListMoviesRequest.yaml"
+    ListMoviesResponse:
+      $ref: "./schemas/movie/ListMoviesResponse.yaml"
+    MovieId:
+      $ref: "./schemas/movie/MovieId.yaml"
+    MovieInfo:
+      $ref: "./schemas/movie/MovieInfo.yaml"
+    ListProgressCursor:
+      $ref: "./schemas/progress/ListProgressCursor.yaml"
+    ListProgressRequest:
+      $ref: "./schemas/progress/ListProgressRequest.yaml"
+    ListProgressResponse:
+      $ref: "./schemas/progress/ListProgressResponse.yaml"
+    Progress:
+      $ref: "./schemas/progress/Progress.yaml"
+    ProgressId:
+      $ref: "./schemas/progress/ProgressId.yaml"
     CronExpression:
-      type: string
-
+      $ref: "./schemas/schedule/CronExpression.yaml"
+    ListSchedulesRequest:
+      $ref: "./schemas/schedule/ListSchedulesRequest.yaml"
+    ListSchedulesResponse:
+      $ref: "./schemas/schedule/ListSchedulesResponse.yaml"
     ScanTask:
-      type: object
-      properties:
-        libraryId:
-          type: string
-      required:
-        - libraryId
-
-    IndexTask:
-      type: object
-      properties:
-        username:
-          type: string
-      required:
-        - username
-
-  securitySchemes:
-    CookieAuth:
-      type: apiKey
-      in: cookie
-      name: RewyndIoSession
+      $ref: "./schemas/schedule/ScanTask.yaml"
+    Schedule:
+      $ref: "./schemas/schedule/Schedule.yaml"
+    ScheduleId:
+      $ref: "./schemas/schedule/ScheduleId.yaml"
+    ScheduleType:
+      $ref: "./schemas/schedule/ScheduleType.yaml"
+    SearchRequest:
+      $ref: "./schemas/search/SearchRequest.yaml"
+    SearchResponse:
+      $ref: "./schemas/search/SearchResponse.yaml"
+    SearchResult:
+      $ref: "./schemas/search/SearchResult.yaml"
+    SearchResultType:
+      $ref: "./schemas/search/SearchResultType.yaml"
+    EpisodeId:
+      $ref: "./schemas/show/EpisodeId.yaml"
+    EpisodeInfo:
+      $ref: "./schemas/show/EpisodeInfo.yaml"
+    GetNextEpisodeRequest:
+      $ref: "./schemas/show/GetNextEpisodeRequest.yaml"
+    GetNextEpisodeResponse:
+      $ref: "./schemas/show/GetNextEpisodeResponse.yaml"
+    ListEpisodesByLastUpdatedCursor:
+      $ref: "./schemas/show/ListEpisodesByLastUpdatedCursor.yaml"
+    ListEpisodesByLastUpdatedOrder:
+      $ref: "./schemas/show/ListEpisodesByLastUpdatedOrder.yaml"
+    ListEpisodesByLastUpdatedRequest:
+      $ref: "./schemas/show/ListEpisodesByLastUpdatedRequest.yaml"
+    ListEpisodesByLastUpdatedResponse:
+      $ref: "./schemas/show/ListEpisodesByLastUpdatedResponse.yaml"
+    ListEpisodesCursor:
+      $ref: "./schemas/show/ListEpisodesCursor.yaml"
+    ListEpisodesRequest:
+      $ref: "./schemas/show/ListEpisodesRequest.yaml"
+    ListEpisodesResponse:
+      $ref: "./schemas/show/ListEpisodesResponse.yaml"
+    ListSeasonsCursor:
+      $ref: "./schemas/show/ListSeasonsCursor.yaml"
+    ListSeasonsRequest:
+      $ref: "./schemas/show/ListSeasonsRequest.yaml"
+    ListSeasonsResponse:
+      $ref: "./schemas/show/ListSeasonsResponse.yaml"
+    ListShowsCursor:
+      $ref: "./schemas/show/ListShowsCursor.yaml"
+    ListShowsRequest:
+      $ref: "./schemas/show/ListShowsRequest.yaml"
+    ListShowsResponse:
+      $ref: "./schemas/show/ListShowsResponse.yaml"
+    NextEpisodeOrder:
+      $ref: "./schemas/show/NextEpisodeOrder.yaml"
+    SeasonId:
+      $ref: "./schemas/show/SeasonId.yaml"
+    SeasonInfo:
+      $ref: "./schemas/show/SeasonInfo.yaml"
+    ShowId:
+      $ref: "./schemas/show/ShowId.yaml"
+    ShowInfo:
+      $ref: "./schemas/show/ShowInfo.yaml"
+    CreateStreamRequest:
+      $ref: "./schemas/stream/CreateStreamRequest.yaml"
+    HlsStreamProps:
+      $ref: "./schemas/stream/HlsStreamProps.yaml"
+    NormalizationMethod:
+      $ref: "./schemas/stream/NormalizationMethod.yaml"
+    NormalizationProps:
+      $ref: "./schemas/stream/NormalizationProps.yaml"
+    SegmentId:
+      $ref: "./schemas/stream/SegmentId.yaml"
+    StreamHeartbeatResponse:
+      $ref: "./schemas/stream/StreamHeartbeatResponse.yaml"
+    StreamId:
+      $ref: "./schemas/stream/StreamId.yaml"
+    StreamStatus:
+      $ref: "./schemas/stream/StreamStatus.yaml"
+    ChangePasswordRequest:
+      $ref: "./schemas/user/ChangePasswordRequest.yaml"
+    CreateUserRequest:
+      $ref: "./schemas/user/CreateUserRequest.yaml"
+    DeleteUsersRequest:
+      $ref: "./schemas/user/DeleteUsersRequest.yaml"
+    ListUsersRequest:
+      $ref: "./schemas/user/ListUsersRequest.yaml"
+    ListUsersResponse:
+      $ref: "./schemas/user/ListUsersResponse.yaml"
+    LoginRequest:
+      $ref: "./schemas/user/LoginRequest.yaml"
+    Password:
+      $ref: "./schemas/user/Password.yaml"
+    User:
+      $ref: "./schemas/user/User.yaml"
+    Username:
+      $ref: "./schemas/user/Username.yaml"
+    UserPermissions:
+      $ref: "./schemas/user/UserPermissions.yaml"
+    UserPreferences:
+      $ref: "./schemas/user/UserPreferences.yaml"
+    Timestamp:
+      $ref: "./schemas/util/Timestamp.yaml"

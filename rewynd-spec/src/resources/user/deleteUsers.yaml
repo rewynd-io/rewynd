@@ -1,0 +1,12 @@
+post:
+  operationId: deleteUsers
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/user/DeleteUsersRequest.yaml"
+  responses:
+    200:
+      description: "Successfully deleted all users in request."

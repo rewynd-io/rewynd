@@ -1,0 +1,16 @@
+post:
+  operationId: listUsers
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/user/ListUsersRequest.yaml"
+  responses:
+    200:
+      description: "Successfully listed and returned a list of users."
+      content:
+        application/json:
+          schema:
+            $ref: "../../schemas/user/ListUsersResponse.yaml"

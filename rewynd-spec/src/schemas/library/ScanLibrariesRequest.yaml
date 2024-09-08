@@ -1,0 +1,8 @@
+type: object
+properties:
+  libraryIds:
+    type: array
+    items:
+      type: string
+required:
+  - libraryIds

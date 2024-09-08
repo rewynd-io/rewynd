@@ -1,0 +1,74 @@
+type: object
+properties:
+  id:
+    type: string
+  libraryId:
+    type: string
+  audioTracks:
+    type: object
+    additionalProperties:
+      $ref: "../media/AudioTrack.yaml"
+  videoTracks:
+    type: object
+    additionalProperties:
+      $ref: "../media/VideoTrack.yaml"
+  subtitleTracks:
+    type: object
+    additionalProperties:
+      $ref: "../media/SubtitleTrack.yaml"
+  plot:
+    type: string
+  outline:
+    type: string
+  title:
+    type: string
+  directors:
+    type: array
+    items:
+      type: string
+  writers:
+    type: array
+    items:
+      type: string
+  credits:
+    type: array
+    items:
+      type: string
+  studios:
+    type: array
+    items:
+      type: string
+  rating:
+    type: number
+  criticRating:
+    type: integer
+  mpaa:
+    type: string
+  premiered:
+    type: string
+    format: date
+  tagLine:
+    type: string
+  country:
+    type: string
+  genre:
+    type: string
+  releaseDate:
+    type: string
+    format: date
+  year:
+    type: integer
+  runTime:
+    type: number
+  backdropImageId:
+    $ref: "../image/ImageId.yaml"
+  posterImageId:
+    $ref: "../image/ImageId.yaml"
+required:
+  - id
+  - libraryId
+  - title
+  - runTime
+  - audioTracks
+  - videoTracks
+  - subtitleTracks

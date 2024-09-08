@@ -1,0 +1,12 @@
+post:
+  operationId: createLibrary
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/library/Library.yaml"
+  responses:
+    200:
+      description: "Successfully created the library."

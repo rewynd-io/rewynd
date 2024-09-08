@@ -1,0 +1,20 @@
+type: object
+properties:
+  library:
+    type: string
+  id:
+    $ref: "../media/MediaId.yaml"
+  audioTrack:
+    type: string
+  videoTrack:
+    type: string
+  subtitleTrack:
+    type: string
+  startOffset:
+    type: number
+    minimum: 0
+  normalization:
+    $ref: "./NormalizationProps.yaml"
+required:
+  - library
+  - id

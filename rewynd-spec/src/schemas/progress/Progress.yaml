@@ -1,0 +1,13 @@
+type: object
+properties:
+  id:
+    $ref: "./ProgressId.yaml"
+  percent:
+    type: number
+    description: "Progress through the media as a percentage (0 to 1)."
+  timestamp:
+    $ref: "../util/Timestamp.yaml"
+required:
+  - id
+  - percent
+  - timestamp

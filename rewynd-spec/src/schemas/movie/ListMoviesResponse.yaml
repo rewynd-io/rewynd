@@ -1,0 +1,10 @@
+type: object
+properties:
+  page:
+    type: array
+    items:
+      $ref: "./MovieInfo.yaml"
+  cursor:
+    $ref: "./ListMoviesCursor.yaml"
+required:
+  - page

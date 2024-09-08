@@ -1,0 +1,12 @@
+post:
+  operationId: deleteLibraries
+  security:
+    - CookieAuth: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "../../schemas/library/DeleteLibrariesRequest.yaml"
+  responses:
+    200:
+      description: "Successfully deleted the library."
