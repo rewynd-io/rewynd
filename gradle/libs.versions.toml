@@ -52,7 +52,7 @@ openapi = "7.8.0"
 nodeGradle = "7.0.2"
 lettuce = "6.4.0.RELEASE"
 margarita = "0.1.0"
-okio = "3.9.0"
+okio = "3.9.1"
 kotlinx-kover = "0.8.3"
 
 # Used for versions outside libraries/plugins
