@@ -14,7 +14,7 @@ class EpisodesPagingSource(
     override fun getRefreshKey(state: PagingState<String, EpisodeInfo>): String? = null
 
     override suspend fun load(params: LoadParams<String>): LoadResult<String, EpisodeInfo> = client.listEpisodes(
-        ListEpisodesRequest(seasonId, params.key),
+        ListEpisodesRequest(seasonId, cursor = params.key),
     ).result().fold({
         LoadResult.Page(it.page.sortedBy(EpisodeInfo::episode), null, it.cursor)
     }) {

@@ -4,5 +4,17 @@ properties:
     $ref: "./SeasonId.yaml"
   cursor:
     $ref: "./ListEpisodesCursor.yaml"
+  minProgress:
+    type: integer
+    minimum: 0
+    maximum: 100
+    default: 0
+  maxProgress:
+    type: integer
+    minimum: 0
+    maximum: 100
+    default: 100
 required:
   - seasonId
+  - minProgress
+  - maxProgress

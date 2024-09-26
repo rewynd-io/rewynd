@@ -151,7 +151,12 @@ export async function loadAllEpisodes(seasonId: string) {
   const libs = [];
   do {
     const res = await HttpClient.listEpisodes({
-      listEpisodesRequest: { cursor: cursor, seasonId: seasonId },
+      listEpisodesRequest: {
+        cursor: cursor,
+        seasonId: seasonId,
+        minProgress: 0,
+        maxProgress: 100,
+      },
     });
     cursor = res.cursor;
     libs.push(...res.page);
