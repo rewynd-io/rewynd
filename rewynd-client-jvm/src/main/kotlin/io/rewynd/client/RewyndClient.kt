@@ -1,5 +1,7 @@
 package io.rewynd.client
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.statement.bodyAsText
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
 import io.rewynd.model.ListLibrariesRequest
@@ -14,8 +16,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
+import net.kensand.kielbasa.coroutines.coRunCatching
 import org.openapitools.client.infrastructure.HttpResponse
+
+private val log = KotlinLogging.logger { }
 
 typealias RewyndClient = DefaultApi
 
@@ -24,14 +28,18 @@ private fun <Req, Res : Any, Item> mkFlowMethod(
     operation: suspend (Req) -> HttpResponse<Res>,
     itemGetter: (Res) -> List<Item>,
     repeat: (Res) -> Req?
-): Flow<Item> = flow {
+): Flow<Result<Item>> = flow {
     var req: Req? = request
     while (req != null) {
         val res = operation(req)
-        check(res.success) { "Operation failed within flow: ${res.status}" }
-        val body = res.body()
-        emitAll(itemGetter(body).asFlow())
-        req = repeat(body)
+        req = res.result().fold({
+            emitAll(itemGetter(it).map(Result.Companion::success).asFlow())
+            repeat(it)
+        }) {
+            log.warn(it) { "Failed to retrieve page" }
+            emit(Result.failure(it))
+            null
+        }
     }
 }
 
@@ -59,3 +67,14 @@ fun RewyndClient.listSeasonsFlow(listSeasonsRequest: ListSeasonsRequest) =
     mkFlowMethod(listSeasonsRequest, this::listSeasons, ListSeasonsResponse::page) {
         it.cursor?.let { cursor -> listSeasonsRequest.copy(cursor = cursor) }
     }
+
+suspend fun <T : Any> HttpResponse<T>.result() = coRunCatching {
+    if (success) {
+        body()
+    } else {
+        throw RewyndStatusCodeException(
+            this.response.status,
+            this.response.bodyAsText()
+        ).also { log.warn(it) { "Error calling RewyndApi" } }
+    }
+}

@@ -10,21 +10,18 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory
-import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.extractor.mp4.Mp4Extractor
-import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
 import androidx.media3.ui.PlayerView
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.MILLIS_PER_SECOND
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import io.rewynd.client.RewyndClient
+import io.rewynd.client.result
 import io.rewynd.model.Progress
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -289,27 +286,23 @@ class PlayerWrapper(
             when (val m = s.media) {
                 null -> {}
                 is PlayerMedia.Episode -> {
-                    kotlin.runCatching {
-                        client.putUserProgress(
-                            Progress(
-                                m.info.id,
-                                (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
-                                Clock.System.now(),
-                            ),
-                        )
-                    }.onFailure { log.error(it) { "Failed to putUserProgress" } }
+                    client.putUserProgress(
+                        Progress(
+                            m.info.id,
+                            (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
+                            Clock.System.now(),
+                        ),
+                    ).result().onFailure { log.error(it) { "Failed to putUserProgress" } }
                 }
 
                 is PlayerMedia.Movie -> {
-                    kotlin.runCatching {
-                        client.putUserProgress(
-                            Progress(
-                                m.info.id,
-                                (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
-                                Clock.System.now(),
-                            ),
-                        )
-                    }.onFailure { log.error(it) { "Failed to putUserProgress" } }
+                    client.putUserProgress(
+                        Progress(
+                            m.info.id,
+                            (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
+                            Clock.System.now(),
+                        ),
+                    ).result().onFailure { log.error(it) { "Failed to putUserProgress" } }
                 }
             }
         }

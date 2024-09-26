@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.MEDIA_COMPLETED_PERCENT
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
+import io.rewynd.client.result
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.NextEpisodeOrder
 import kotlin.time.Duration.Companion.seconds
@@ -38,7 +39,7 @@ object EpisodePlaybackMethodHandler {
         playerMedia: PlayerMedia.Episode,
         order: NextEpisodeOrder,
     ) = client.getNextEpisode(GetNextEpisodeRequest(playerMedia.info.id, order))
-        .body().episodeInfo?.let { episodeInfo ->
+        .result().getOrNull()?.episodeInfo?.let { episodeInfo ->
             val progress =
                 client.getUserProgress(episodeInfo.id)
                     .body()

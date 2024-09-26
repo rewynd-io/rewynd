@@ -4,6 +4,7 @@ import android.util.Log
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
+import io.rewynd.client.result
 import io.rewynd.model.CreateStreamRequest
 import io.rewynd.model.HlsStreamProps
 import io.rewynd.model.NormalizationMethod
@@ -40,11 +41,12 @@ class StreamHeartbeat(
             job?.cancel()
         }
 
+    // TODO handle a failure to create a stream better instead of just dying
     private fun startJob(createStreamRequest: CreateStreamRequest) =
         MainScope().launch {
-            val props = client.createStream(createStreamRequest).body()
+            val props = client.createStream(createStreamRequest).result().getOrNull()
             var lastStatus: StreamStatus? = StreamStatus.Pending
-            while (true) {
+            while (props != null) {
                 try {
                     lastStatus = beat(props, createStreamRequest, lastStatus)
                 } catch (e: CancellationException) {
@@ -66,7 +68,7 @@ class StreamHeartbeat(
         priorStatus: StreamStatus?,
     ): StreamStatus? {
         val heartbeatResponse =
-            kotlin.runCatching { client.heartbeatStream(props.id).body() }
+            client.heartbeatStream(props.id).result()
                 .onFailure {
                     log.error(it) { "Failed to heartbeat stream" }
                 }

@@ -14,7 +14,6 @@ import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import arrow.fx.coroutines.parMap
 import coil3.ImageLoader
-import io.ktor.http.HttpStatusCode
 import io.rewynd.android.browser.paging.EpisodesPagingSource
 import io.rewynd.android.browser.paging.LibraryPagingSource
 import io.rewynd.android.browser.paging.MoviesPagingSource
@@ -28,6 +27,7 @@ import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.android.image.RewyndClientFetcher
 import io.rewynd.android.model.LoadedSearchResult
 import io.rewynd.client.RewyndClient
+import io.rewynd.client.result
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.Library
@@ -51,7 +51,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import net.kensand.kielbasa.coroutines.coRunCatching
 import org.openapitools.client.infrastructure.HttpResponse
 
 @OptIn(FlowPreview::class)
@@ -270,12 +269,5 @@ fun <Id, Response : Any> getState(
     id: Id,
     func: suspend (Id) -> HttpResponse<Response>,
 ) = flow {
-    val res = coRunCatching { func(id) }.getOrNull()
-    when (res?.status) {
-        HttpStatusCode.OK.value -> {
-            emit(res.body())
-        }
-
-        else -> emit(null)
-    }
+    emit(func(id).result().getOrNull())
 }.flowOn(Dispatchers.IO)

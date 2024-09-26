@@ -24,10 +24,14 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.datetime)
 
+    implementation(libs.kielbasa.coroutines)
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.serialization)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+
+    implementation(libs.kotlin.logging)
 }
 
 openApiGenerate {
