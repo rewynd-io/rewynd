@@ -32,12 +32,12 @@ import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.Library
 import io.rewynd.model.MovieInfo
-import io.rewynd.model.NextEpisodeOrder
 import io.rewynd.model.Progress
 import io.rewynd.model.SearchRequest
 import io.rewynd.model.SearchResultType
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.ShowInfo
+import io.rewynd.model.SortOrder
 import io.rewynd.model.User
 import io.rewynd.model.UserPreferences
 import kotlinx.coroutines.Dispatchers
@@ -162,7 +162,7 @@ class BrowserViewModel(
     @Composable
     fun loadNextEpisode(id: String) = LaunchedEffect(id) {
         nextEpisode = null
-        nextEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, NextEpisodeOrder.next)).body().episodeInfo
+        nextEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Ascending)).body().episodeInfo
     }
 
     var prevEpisode by mutableStateOf<EpisodeInfo?>(null)
@@ -171,7 +171,7 @@ class BrowserViewModel(
     @Composable
     fun loadPrevEpisode(id: String) = LaunchedEffect(id) {
         prevEpisode = null
-        prevEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, NextEpisodeOrder.previous)).body().episodeInfo
+        prevEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Descending)).body().episodeInfo
     }
 
     var season by mutableStateOf<SeasonInfo?>(null)

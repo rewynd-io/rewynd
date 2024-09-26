@@ -4,11 +4,12 @@ properties:
     type: array
     items:
       $ref: "../library/LibraryId.yaml"
-  order:
-    $ref: "./ListEpisodesByLastUpdatedOrder.yaml"
+    default: []
   cursor:
     $ref: "./ListEpisodesByLastUpdatedCursor.yaml"
   limit:
     type: integer
+    default: 100
 required:
-  - order
+  - libraryIds
+  - limit

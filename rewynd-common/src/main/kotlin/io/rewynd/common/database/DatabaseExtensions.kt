@@ -18,8 +18,19 @@ private suspend fun <Item, Cursor> iterateWithCursor(
     } while (cursor != null)
 }
 
+private suspend fun <Item, Cursor> iterateWithCursor(
+    call: suspend (Cursor?) -> Paged<Item, Cursor>,
+) = flow {
+    var cursor: Cursor? = null
+    do {
+        val res = call.invoke(cursor)
+        emitAll(res.data.asFlow())
+        cursor = res.cursor
+    } while (cursor != null)
+}
+
 suspend fun Database.listAllEpisodes(seasonId: String) =
-    iterateWithCursor<ServerEpisodeInfo, String>({ listEpisodes(seasonId, it) }) { lastOrNull()?.id }
+    iterateWithCursor<ServerEpisodeInfo, String> { listEpisodes(seasonId, it) }
 
 suspend fun Database.listAllSeasons(showId: String) =
     iterateWithCursor<ServerSeasonInfo, String>({ listSeasons(showId, it) }) { lastOrNull()?.seasonInfo?.id }

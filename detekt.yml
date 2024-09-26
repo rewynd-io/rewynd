@@ -11,6 +11,8 @@ complexity:
     active: false
   NestedBlockDepth:
     active: false
+  LargeClass:
+    active: false
 exceptions:
   TooGenericExceptionCaught:
     active: false

@@ -11,8 +11,8 @@ import io.rewynd.client.result
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.ListProgressRequest
-import io.rewynd.model.NextEpisodeOrder
 import io.rewynd.model.Progress
+import io.rewynd.model.SortOrder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.asFlow
@@ -43,7 +43,7 @@ class NextEpisodesPagingSource(val client: RewyndClient) : PagingSource<Instant,
     }
 
     private suspend fun getNextEpisode(progress: Progress) =
-        client.getNextEpisode(GetNextEpisodeRequest(progress.id, NextEpisodeOrder.next)).result().getOrNull()?.let {
+        client.getNextEpisode(GetNextEpisodeRequest(progress.id, SortOrder.Ascending)).result().getOrNull()?.let {
             it.episodeInfo?.let { episodeInfo ->
                 getNextEpisodeProgress(episodeInfo)
             }

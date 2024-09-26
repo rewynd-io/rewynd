@@ -13,7 +13,6 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.SessionStorage
 import io.rewynd.common.model.UserProgress
 import io.rewynd.model.Library
-import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -131,19 +130,18 @@ class SqliteDatabase(
     override suspend fun listEpisodes(
         seasonId: String,
         cursor: String?,
-    ): List<ServerEpisodeInfo> =
+    ): Paged<ServerEpisodeInfo, String> =
         mutex.withLock {
             super.listEpisodes(seasonId, cursor)
         }
 
     override suspend fun listEpisodesByLastUpdated(
-        cursor: Long?,
+        cursor: String?,
         limit: Int,
-        libraryIds: List<String>?,
-        order: ListEpisodesByLastUpdatedOrder,
-    ): Paged<ServerEpisodeInfo> =
+        libraryIds: List<String>,
+    ): Paged<ServerEpisodeInfo, String> =
         mutex.withLock {
-            super.listEpisodesByLastUpdated(cursor, limit, libraryIds, order)
+            super.listEpisodesByLastUpdated(cursor, limit, libraryIds)
         }
 
     override suspend fun getMovie(movieId: String): ServerMovieInfo? =

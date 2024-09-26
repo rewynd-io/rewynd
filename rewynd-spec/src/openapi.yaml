@@ -176,8 +176,6 @@ components:
       $ref: "./schemas/show/GetNextEpisodeResponse.yaml"
     ListEpisodesByLastUpdatedCursor:
       $ref: "./schemas/show/ListEpisodesByLastUpdatedCursor.yaml"
-    ListEpisodesByLastUpdatedOrder:
-      $ref: "./schemas/show/ListEpisodesByLastUpdatedOrder.yaml"
     ListEpisodesByLastUpdatedRequest:
       $ref: "./schemas/show/ListEpisodesByLastUpdatedRequest.yaml"
     ListEpisodesByLastUpdatedResponse:
@@ -200,8 +198,8 @@ components:
       $ref: "./schemas/show/ListShowsRequest.yaml"
     ListShowsResponse:
       $ref: "./schemas/show/ListShowsResponse.yaml"
-    NextEpisodeOrder:
-      $ref: "./schemas/show/NextEpisodeOrder.yaml"
+    SortOrder:
+      $ref: "./schemas/util/SortOrder.yaml"
     SeasonId:
       $ref: "./schemas/show/SeasonId.yaml"
     SeasonInfo:

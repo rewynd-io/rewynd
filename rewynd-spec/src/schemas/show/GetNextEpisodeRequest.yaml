@@ -1,9 +1,10 @@
 type: object
+description: "Ascending for the next episode, Descending for the previous episode."
 properties:
   episodeId:
     $ref: "./EpisodeId.yaml"
-  order:
-    $ref: "./NextEpisodeOrder.yaml"
+  sortOrder:
+    $ref: "../util/SortOrder.yaml"
 required:
   - episodeId
-  - order
+  - sortOrder

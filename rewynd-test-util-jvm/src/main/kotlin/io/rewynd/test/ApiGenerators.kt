@@ -10,6 +10,7 @@ import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.double
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.string
+import io.kotest.property.exhaustive.cartesian
 import io.kotest.property.exhaustive.enum
 import io.kotest.property.kotlinx.datetime.date
 import io.rewynd.model.Actor
@@ -33,6 +34,7 @@ import io.rewynd.model.SearchResponse
 import io.rewynd.model.SearchResult
 import io.rewynd.model.SearchResultType
 import io.rewynd.model.SeasonInfo
+import io.rewynd.model.SortOrder
 import io.rewynd.model.SubtitleTrack
 import io.rewynd.model.User
 import io.rewynd.model.UserPermissions
@@ -69,10 +71,14 @@ object ApiGenerators {
                 role = string.nullable().bind(),
             )
         }
+
+    val showId = Codepoint.alphanumeric().map { it.asString() } // TODO switch back to string.bind()
+    val seasonId = Codepoint.alphanumeric().map { it.asString() } // TODO switch back to string.bind()
+
     val seasonInfo =
         arbitrary {
             SeasonInfo(
-                id = Codepoint.alphanumeric().bind().asString(), // TODO switch back to string.bind()
+                id = seasonId.bind(),
                 showId = string.bind(),
                 seasonNumber = int.bind(),
                 libraryId = string.bind(),

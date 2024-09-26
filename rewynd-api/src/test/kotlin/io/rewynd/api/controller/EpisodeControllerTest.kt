@@ -11,24 +11,20 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.mockkStatic
 import io.rewynd.api.BaseHarness
 import io.rewynd.api.plugins.configureSession
-import io.rewynd.api.util.getNextEpisodeInSeason
 import io.rewynd.common.database.Database
-import io.rewynd.common.database.Database.Companion.LIST_EPISODES_MAX_SIZE
 import io.rewynd.common.database.Paged
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerUser
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.GetNextEpisodeResponse
-import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesByLastUpdatedResponse
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
-import io.rewynd.model.NextEpisodeOrder
+import io.rewynd.model.SortOrder
 import io.rewynd.test.ApiGenerators
 import io.rewynd.test.InternalGenerators
 import io.rewynd.test.checkAllRun
@@ -58,11 +54,10 @@ internal class EpisodeControllerTest : StringSpec({
 
     "nextEpisode" {
         Harness.arb.checkAllRun {
-            mockkStatic(::getNextEpisodeInSeason)
-            coEvery { getNextEpisodeInSeason(db, episode, false) } returns otherEpisode
+            coEvery { db.getNextEpisode(episode.id, SortOrder.Ascending) } returns otherEpisode
 
             testCall(
-                { getNextEpisode(GetNextEpisodeRequest(episode.id, NextEpisodeOrder.next)) },
+                { getNextEpisode(GetNextEpisodeRequest(episode.id, SortOrder.Ascending)) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
@@ -73,11 +68,10 @@ internal class EpisodeControllerTest : StringSpec({
 
     "previousEpisode" {
         Harness.arb.checkAllRun {
-            mockkStatic(::getNextEpisodeInSeason)
-            coEvery { getNextEpisodeInSeason(db, episode, true) } returns otherEpisode
+            coEvery { db.getNextEpisode(episode.id, SortOrder.Descending) } returns otherEpisode
 
             testCall(
-                { getNextEpisode(GetNextEpisodeRequest(episode.id, NextEpisodeOrder.previous)) },
+                { getNextEpisode(GetNextEpisodeRequest(episode.id, SortOrder.Descending)) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
@@ -88,7 +82,7 @@ internal class EpisodeControllerTest : StringSpec({
 
     "listEpisodes" {
         Harness.arb.checkAllRun {
-            coEvery { db.listEpisodes(season.seasonInfo.id) } returns episodes
+            coEvery { db.listEpisodes(season.seasonInfo.id) } returns Paged(episodes, episodes.lastOrNull()?.id)
 
             testCall(
                 { listEpisodes(ListEpisodesRequest(season.seasonInfo.id)) },
@@ -98,7 +92,7 @@ internal class EpisodeControllerTest : StringSpec({
                 body() shouldBe
                     ListEpisodesResponse(
                         episodes.map(ServerEpisodeInfo::toEpisodeInfo),
-                        episodes.lastOrNull()?.id,
+                        episodes.lastOrNull()?.id
                     )
             }
         }
@@ -108,21 +102,16 @@ internal class EpisodeControllerTest : StringSpec({
         Harness.arb.checkAllRun {
             coEvery {
                 db.listEpisodesByLastUpdated(
-                    episodes.size.toLong(),
-                    LIST_EPISODES_MAX_SIZE,
-                    libraryIds,
-                    ListEpisodesByLastUpdatedOrder.Oldest,
+                    any(),
+                    any(),
+                    any()
                 )
-            } returns Paged(episodes, episodes.size.toLong())
+            } returns Paged(episodes, null)
 
             testCall(
                 {
                     listEpisodesByLastUpdated(
-                        ListEpisodesByLastUpdatedRequest(
-                            ListEpisodesByLastUpdatedOrder.Oldest,
-                            libraryIds,
-                            cursor = episodes.size.toLong(),
-                        ),
+                        ListEpisodesByLastUpdatedRequest(),
                     )
                 },
                 setup = { setupApp(db) },
@@ -131,7 +120,6 @@ internal class EpisodeControllerTest : StringSpec({
                 body() shouldBe
                     ListEpisodesByLastUpdatedResponse(
                         episodes.map(ServerEpisodeInfo::toEpisodeInfo),
-                        episodes.size.toLong()
                     )
             }
         }

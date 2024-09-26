@@ -7,8 +7,10 @@ import io.rewynd.common.model.ServerSubtitleTrack
 import io.rewynd.common.model.ServerVideoTrack
 import io.rewynd.model.ScanTask
 import io.rewynd.model.Schedule
+import io.rewynd.model.SortOrder
 import kotlinx.datetime.Instant
 import kotlinx.datetime.serializers.InstantComponentSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.security.MessageDigest
@@ -76,8 +78,14 @@ val Duration.partialSecondsString: String
 val Duration.partialSeconds: Double
     get() = inWholeMicroseconds.toDouble() / MICROS_IN_SECOND
 
+@OptIn(ExperimentalSerializationApi::class)
 val JSON = Json {
     ignoreUnknownKeys = true
     allowTrailingComma = true
     isLenient = true
+}
+
+fun SortOrder.toSql() = when (this) {
+    SortOrder.Descending -> org.jetbrains.exposed.sql.SortOrder.DESC
+    SortOrder.Ascending -> org.jetbrains.exposed.sql.SortOrder.ASC
 }

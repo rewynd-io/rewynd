@@ -6,7 +6,7 @@ import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
 import io.rewynd.client.result
 import io.rewynd.model.GetNextEpisodeRequest
-import io.rewynd.model.NextEpisodeOrder
+import io.rewynd.model.SortOrder
 import kotlin.time.Duration.Companion.seconds
 
 object EpisodePlaybackMethodHandler {
@@ -17,7 +17,7 @@ object EpisodePlaybackMethodHandler {
         playerMedia: PlayerMedia.Episode,
     ): PlayerMedia.Episode? =
         try {
-            callGetNextEpisode(client, playerMedia, NextEpisodeOrder.next)
+            callGetNextEpisode(client, playerMedia, SortOrder.Ascending)
         } catch (e: Exception) {
             log.error(e) { "Failed to find next episode for $playerMedia" }
             null
@@ -28,7 +28,7 @@ object EpisodePlaybackMethodHandler {
         playerMedia: PlayerMedia.Episode,
     ): PlayerMedia.Episode? =
         try {
-            callGetNextEpisode(client, playerMedia, NextEpisodeOrder.previous)
+            callGetNextEpisode(client, playerMedia, SortOrder.Descending)
         } catch (e: Exception) {
             log.error(e) { "Failed to find previous episode for $playerMedia" }
             null
@@ -37,7 +37,7 @@ object EpisodePlaybackMethodHandler {
     private suspend fun callGetNextEpisode(
         client: RewyndClient,
         playerMedia: PlayerMedia.Episode,
-        order: NextEpisodeOrder,
+        order: SortOrder,
     ) = client.getNextEpisode(GetNextEpisodeRequest(playerMedia.info.id, order))
         .result().getOrNull()?.episodeInfo?.let { episodeInfo ->
             val progress =

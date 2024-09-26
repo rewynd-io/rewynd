@@ -13,10 +13,10 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.SessionStorage
 import io.rewynd.common.model.UserProgress
 import io.rewynd.model.Library
-import io.rewynd.model.ListEpisodesByLastUpdatedOrder
+import io.rewynd.model.SortOrder
 import kotlinx.datetime.Instant
 
-data class Paged<T>(val data: List<T>, val cursor: Long? = null)
+data class Paged<T, C>(val data: List<T>, val cursor: C? = null)
 
 sealed interface Database {
     suspend fun init()
@@ -69,6 +69,8 @@ sealed interface Database {
 
     suspend fun getEpisode(episodeId: String): ServerEpisodeInfo?
 
+    suspend fun getNextEpisode(episodeId: String, order: SortOrder): ServerEpisodeInfo?
+
     suspend fun upsertEpisode(episode: ServerEpisodeInfo): Boolean
 
     suspend fun deleteEpisode(episodeId: String): Boolean
@@ -76,14 +78,13 @@ sealed interface Database {
     suspend fun listEpisodes(
         seasonId: String,
         cursor: String? = null,
-    ): List<ServerEpisodeInfo>
+    ): Paged<ServerEpisodeInfo, String>
 
     suspend fun listEpisodesByLastUpdated(
-        cursor: Long?,
+        cursor: String?,
         limit: Int = LIST_EPISODES_MAX_SIZE,
-        libraryIds: List<String>? = null,
-        order: ListEpisodesByLastUpdatedOrder = ListEpisodesByLastUpdatedOrder.Newest,
-    ): Paged<ServerEpisodeInfo>
+        libraryIds: List<String> = emptyList(),
+    ): Paged<ServerEpisodeInfo, String>
 
     suspend fun getMovie(movieId: String): ServerMovieInfo?
 

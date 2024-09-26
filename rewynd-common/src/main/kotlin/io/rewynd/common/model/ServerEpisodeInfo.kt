@@ -95,6 +95,12 @@ data class ServerEpisodeInfo(
             subtitleFiles = subtitleFileTracks.mapValues { it.value.location },
         )
 
-    override fun compareTo(other: ServerEpisodeInfo): Int =
-        this.episode.compareTo(other.episode)
+    override fun compareTo(other: ServerEpisodeInfo): Int {
+        val seasonComp = this.season.compareTo(other.season)
+        return if (seasonComp == 0) {
+            this.episode.compareTo(other.episode)
+        } else {
+            seasonComp
+        }
+    }
 }

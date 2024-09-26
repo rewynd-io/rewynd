@@ -1,7 +1,6 @@
 import {
   CreateStreamRequest,
   EpisodeInfo,
-  NextEpisodeOrder,
   Progress,
 } from "@rewynd.io/rewynd-client-typescript";
 import { Navigate, useNavigate, useParams } from "react-router";
@@ -61,7 +60,7 @@ export function EpisodeHlsPlayer() {
       await HttpClient.getNextEpisode({
         getNextEpisodeRequest: {
           episodeId: last.id,
-          order: NextEpisodeOrder.Next,
+          sortOrder: "Ascending",
         },
       }).catch(() => undefined)
     )?.episodeInfo;
@@ -74,7 +73,7 @@ export function EpisodeHlsPlayer() {
           HttpClient.getNextEpisode({
             getNextEpisodeRequest: {
               episodeId: next.id,
-              order: NextEpisodeOrder.Next,
+              sortOrder: "Ascending",
             },
           })
             .then((it) => it.episodeInfo?.id)
@@ -121,7 +120,7 @@ export function EpisodeHlsPlayer() {
           HttpClient.getNextEpisode({
             getNextEpisodeRequest: {
               episodeId: episodeId,
-              order: NextEpisodeOrder.Next,
+              sortOrder: "Ascending",
             },
           })
             .then((it) => it.episodeInfo?.id)
@@ -129,7 +128,7 @@ export function EpisodeHlsPlayer() {
           HttpClient.getNextEpisode({
             getNextEpisodeRequest: {
               episodeId: episodeId,
-              order: NextEpisodeOrder.Previous,
+              sortOrder: "Descending",
             },
           })
             .then((it) => it.episodeInfo?.id)
@@ -164,7 +163,7 @@ export function EpisodeHlsPlayer() {
                 await HttpClient.getNextEpisode({
                   getNextEpisodeRequest: {
                     episodeId: last.id,
-                    order: NextEpisodeOrder.Previous,
+                    sortOrder: "Descending",
                   },
                 }).catch(() => undefined)
               )?.episodeInfo;
@@ -179,7 +178,7 @@ export function EpisodeHlsPlayer() {
                   HttpClient.getNextEpisode({
                     getNextEpisodeRequest: {
                       episodeId: prev.id,
-                      order: NextEpisodeOrder.Next,
+                      sortOrder: "Ascending",
                     },
                   })
                     .then((it) => it.episodeInfo?.id)

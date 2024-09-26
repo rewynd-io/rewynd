@@ -1,8 +1,8 @@
 import {
   EpisodeInfo,
   Library,
-  NextEpisodeOrder,
   Progress,
+  SortOrder,
 } from "@rewynd.io/rewynd-client-typescript";
 import React, { useEffect, useState } from "react";
 import { ButtonLink } from "./ButtonLink";
@@ -30,10 +30,14 @@ export function Home() {
   const [libraries, setLibraries] = useState<Library[]>([]);
   const [episodes, setEpisodes] = useState<ProgressedEpisodeInfo[]>([]);
   const [nextEpisodes, setNextEpisodes] = useState<ProgressedEpisodeInfo[]>([]);
-  const [newestEpisodes] = usePages<EpisodeInfo, number>(
+  const [newestEpisodes] = usePages<EpisodeInfo, string>(
     async (cursor) => {
       const res = await HttpClient.listEpisodesByLastUpdated({
-        listEpisodesByLastUpdatedRequest: { cursor: cursor, order: "Newest" },
+        listEpisodesByLastUpdatedRequest: {
+          cursor: cursor,
+          libraryIds: [],
+          limit: 100,
+        },
       });
       return [res.episodes, res.cursor];
     },
@@ -89,7 +93,7 @@ export function Home() {
                 const res = await HttpClient.getNextEpisode({
                   getNextEpisodeRequest: {
                     episodeId: prog.id,
-                    order: NextEpisodeOrder.Next,
+                    sortOrder: SortOrder.Ascending,
                   },
                 });
                 if (res.episodeInfo) {

@@ -22,9 +22,9 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.ServerVideoTrack
 import io.rewynd.common.model.SessionStorage
 import io.rewynd.common.model.UserProgress
+import io.rewynd.common.toSql
 import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
-import io.rewynd.model.ListEpisodesByLastUpdatedOrder
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.User
 import io.rewynd.model.UserPermissions
@@ -44,8 +44,12 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.innerJoin
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -310,6 +314,44 @@ open class SqlDatabase(
                 ?.toServerEpisodeInfo()
         }
 
+    override suspend fun getNextEpisode(episodeId: String, order: io.rewynd.model.SortOrder): ServerEpisodeInfo? =
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            val current =
+                Episodes.select(
+                    Episodes.showId,
+                    Episodes.season,
+                    Episodes.episode,
+                    Episodes.episodeId
+                ).where { Episodes.episodeId eq episodeId }
+                    .alias("current")
+            Episodes.innerJoin(
+                current,
+                onColumn = { showId },
+                otherColumn = { this[Episodes.showId] }
+            ).select(Episodes.columns)
+                .where {
+                    Episodes.episodeId neq current[Episodes.episodeId] and when (order) {
+                        io.rewynd.model.SortOrder.Ascending -> {
+                            (
+                                (Episodes.episode greaterEq current[Episodes.episode]) and
+                                    (Episodes.season greaterEq current[Episodes.season])
+                                )
+                            (Episodes.season greater current[Episodes.season])
+                        }
+
+                        io.rewynd.model.SortOrder.Descending -> {
+                            (
+                                (Episodes.episode lessEq current[Episodes.episode]) and
+                                    (Episodes.season lessEq current[Episodes.season])
+                                ) or
+                                (Episodes.season less current[Episodes.season])
+                        }
+                    }
+                }
+                .orderBy(Episodes.season to order.toSql(), Episodes.episode to order.toSql()).limit(1)
+                .map { it.toServerEpisodeInfo() }.firstOrNull()
+        }
+
     override suspend fun upsertEpisode(episode: ServerEpisodeInfo): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Episodes
@@ -355,7 +397,7 @@ open class SqlDatabase(
     override suspend fun listEpisodes(
         seasonId: String,
         cursor: String?,
-    ): List<ServerEpisodeInfo> =
+    ): Paged<ServerEpisodeInfo, String> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Episodes
                 .selectAll()
@@ -365,36 +407,32 @@ open class SqlDatabase(
                     } ?: (Episodes.seasonId eq seasonId)
                 }.orderBy(Episodes.episodeId, SortOrder.ASC)
                 .limit(LIST_EPISODES_MAX_SIZE)
-                .map { it.toServerEpisodeInfo() }
+                .map { it.toServerEpisodeInfo() }.let { Paged(it, it.lastOrNull()?.id) }
         }
 
     override suspend fun listEpisodesByLastUpdated(
-        cursor: Long?,
+        cursor: String?,
         limit: Int,
-        libraryIds: List<String>?,
-        order: ListEpisodesByLastUpdatedOrder,
-    ): Paged<ServerEpisodeInfo> =
+        libraryIds: List<String>,
+    ): Paged<ServerEpisodeInfo, String> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            val offset = cursor ?: 0
+            val deserCursor = cursor?.toLongOrNull()
             Episodes
                 .selectAll()
-                .let { query ->
-                    if (libraryIds != null) {
-                        query.where { Episodes.libraryId.inList(libraryIds) }
-                    } else {
-                        query
+                .apply {
+                    if (libraryIds.isNotEmpty()) {
+                        andWhere { Episodes.libraryId.inList(libraryIds) }
+                    }
+                    if (deserCursor != null) {
+                        andWhere { Episodes.lastModified less deserCursor }
                     }
                 }.orderBy(
                     Episodes.lastModified,
-                    when (order) {
-                        ListEpisodesByLastUpdatedOrder.Newest -> SortOrder.DESC
-                        ListEpisodesByLastUpdatedOrder.Oldest -> SortOrder.ASC
-                    },
-                ).limit(limit, offset)
-                .take(LIST_EPISODES_MAX_SIZE)
+                    SortOrder.DESC
+                ).limit(limit)
                 .map { it.toServerEpisodeInfo() }
                 .let {
-                    Paged(it, cursor = offset + it.size)
+                    Paged(it, it.lastOrNull()?.lastUpdated?.toEpochMilliseconds()?.toString())
                 }
         }
 
