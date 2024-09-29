@@ -3,6 +3,7 @@ package io.rewynd.common.database
 import io.rewynd.common.config.DatabaseConfig
 import io.rewynd.common.config.datasource
 import io.rewynd.common.model.LibraryIndex
+import io.rewynd.common.model.Progressed
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerImageInfo
 import io.rewynd.common.model.ServerMovieInfo
@@ -117,6 +118,14 @@ class SqliteDatabase(
             super.getEpisode(episodeId)
         }
 
+    override suspend fun getProgressedEpisode(
+        episodeId: String,
+        username: String
+    ): Progressed<ServerEpisodeInfo>? =
+        mutex.withLock {
+            super.getProgressedEpisode(episodeId, username)
+        }
+
     override suspend fun upsertEpisode(episode: ServerEpisodeInfo): Boolean =
         mutex.withLock {
             super.upsertEpisode(episode)
@@ -127,21 +136,31 @@ class SqliteDatabase(
             super.deleteEpisode(episodeId)
         }
 
-    override suspend fun listEpisodes(
+    override suspend fun listProgressedEpisodes(
         seasonId: String,
         cursor: String?,
-    ): Paged<ServerEpisodeInfo, String> =
+        username: String
+    ): Paged<Progressed<ServerEpisodeInfo>, String> =
         mutex.withLock {
-            super.listEpisodes(seasonId, cursor)
+            super.listProgressedEpisodes(seasonId, cursor, username)
         }
 
-    override suspend fun listEpisodesByLastUpdated(
+    override suspend fun listProgressedEpisodesByLastUpdated(
         cursor: String?,
         limit: Int,
         libraryIds: List<String>,
-    ): Paged<ServerEpisodeInfo, String> =
+        username: String
+    ): Paged<Progressed<ServerEpisodeInfo>, String> =
         mutex.withLock {
-            super.listEpisodesByLastUpdated(cursor, limit, libraryIds)
+            super.listProgressedEpisodesByLastUpdated(cursor, limit, libraryIds, username)
+        }
+
+    override suspend fun getProgressedMovie(
+        movieId: String,
+        username: String
+    ): Progressed<ServerMovieInfo>? =
+        mutex.withLock {
+            super.getProgressedMovie(movieId, username)
         }
 
     override suspend fun getMovie(movieId: String): ServerMovieInfo? =
@@ -159,12 +178,13 @@ class SqliteDatabase(
             super.deleteMovie(movieId)
         }
 
-    override suspend fun listMovies(
+    override suspend fun listProgressedMovies(
         libraryId: String,
         cursor: String?,
-    ): List<ServerMovieInfo> =
+        username: String
+    ): Paged<Progressed<ServerMovieInfo>, String> =
         mutex.withLock {
-            super.listMovies(libraryId, cursor)
+            super.listProgressedMovies(libraryId, cursor, username)
         }
 
     override suspend fun getSchedule(scheduleId: String): ServerScheduleInfo? =

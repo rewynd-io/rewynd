@@ -6,7 +6,9 @@ import io.rewynd.common.toSubtitleTracks
 import io.rewynd.common.toVideoTracks
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.MovieInfo
+import io.rewynd.model.Progress
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
@@ -41,36 +43,6 @@ data class ServerMovieInfo(
     val subtitleTracks: Map<String, ServerSubtitleTrack>,
     val subtitleFileTracks: Map<String, SubtitleFileTrack>,
 ) {
-    fun toMovieInfo() =
-        MovieInfo(
-            id = id,
-            libraryId = libraryId,
-            audioTracks = audioTracks.toAudioTracks(),
-            videoTracks = videoTracks.toVideoTracks(),
-            subtitleTracks =
-            subtitleTracks.toSubtitleTracks() +
-                subtitleFileTracks.mapValues { it.value.track }
-                    .toSubtitleTracks(),
-            title = title,
-            runTime = runTime,
-            plot = plot,
-            outline = outline,
-            directors = directors,
-            writers = writers,
-            credits = credits,
-            rating = rating,
-            year = year,
-            backdropImageId = backdropImageId,
-            posterImageId = posterImageId,
-            studios = studios,
-            criticRating = criticRating,
-            mpaa = mpaa,
-            premiered = premiered,
-            tagLine = tagLine,
-            country = country,
-            genre = genre,
-            releaseDate = releaseDate,
-        )
 
     fun toServerMediaInfo(): ServerMediaInfo =
         ServerMediaInfo(
@@ -98,3 +70,35 @@ data class ServerMovieInfo(
             subtitleFiles = subtitleFileTracks.mapValues { it.value.location },
         )
 }
+
+fun Progressed<ServerMovieInfo>.toMovieInfo() =
+    MovieInfo(
+        id = data.id,
+        libraryId = data.libraryId,
+        audioTracks = data.audioTracks.toAudioTracks(),
+        videoTracks = data.videoTracks.toVideoTracks(),
+        subtitleTracks =
+        data.subtitleTracks.toSubtitleTracks() +
+            data.subtitleFileTracks.mapValues { it.value.track }
+                .toSubtitleTracks(),
+        title = data.title,
+        runTime = data.runTime,
+        plot = data.plot,
+        outline = data.outline,
+        directors = data.directors,
+        writers = data.writers,
+        credits = data.credits,
+        rating = data.rating,
+        year = data.year,
+        backdropImageId = data.backdropImageId,
+        posterImageId = data.posterImageId,
+        studios = data.studios,
+        criticRating = data.criticRating,
+        mpaa = data.mpaa,
+        premiered = data.premiered,
+        tagLine = data.tagLine,
+        country = data.country,
+        genre = data.genre,
+        releaseDate = data.releaseDate,
+        progress = progress?.toProgress() ?: Progress(data.id, 0.0, Instant.DISTANT_PAST)
+    )

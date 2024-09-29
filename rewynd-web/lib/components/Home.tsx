@@ -1,7 +1,6 @@
 import {
   EpisodeInfo,
   Library,
-  Progress,
   SortOrder,
 } from "@rewynd.io/rewynd-client-typescript";
 import React, { useEffect, useState } from "react";
@@ -19,17 +18,12 @@ import { ApiImage } from "./Image";
 import { Link } from "./Link";
 import { usePages } from "../Pagination";
 
-interface ProgressedEpisodeInfo {
-  readonly episode: EpisodeInfo;
-  readonly progress: Progress;
-}
-
 const log = WebLog.getChildCategory("Home");
 
 export function Home() {
   const [libraries, setLibraries] = useState<Library[]>([]);
-  const [episodes, setEpisodes] = useState<ProgressedEpisodeInfo[]>([]);
-  const [nextEpisodes, setNextEpisodes] = useState<ProgressedEpisodeInfo[]>([]);
+  const [episodes, setEpisodes] = useState<EpisodeInfo[]>([]);
+  const [nextEpisodes, setNextEpisodes] = useState<EpisodeInfo[]>([]);
   const [newestEpisodes] = usePages<EpisodeInfo, string>(
     async (cursor) => {
       const res = await HttpClient.listEpisodesByLastUpdated({
@@ -49,8 +43,8 @@ export function Home() {
     loadAllLibraries().then(setLibraries);
     HttpClient.listProgress({
       listProgressRequest: {
-        minPercent: 0.05,
-        maxPercent: 0.95,
+        minProgress: 0.05,
+        maxProgress: 0.95,
         limit: 20,
       },
     })
@@ -59,8 +53,7 @@ export function Home() {
         return Promise.all(
           results?.map(async (prog) => {
             try {
-              const res = await HttpClient.getEpisode({ episodeId: prog.id });
-              return { progress: prog, episode: res };
+              return await HttpClient.getEpisode({ episodeId: prog.id });
             } catch (e) {
               log.error("Failed to load episode", e);
               return undefined;
@@ -80,7 +73,8 @@ export function Home() {
 
     HttpClient.listProgress({
       listProgressRequest: {
-        minPercent: 0.95,
+        minProgress: 0.95,
+        maxProgress: 1,
         limit: 10,
       },
     })
@@ -97,11 +91,8 @@ export function Home() {
                   },
                 });
                 if (res.episodeInfo) {
-                  const resProgress = await HttpClient.getUserProgress({
-                    id: res.episodeInfo.id,
-                  });
-                  if (resProgress.percent <= 0.05) {
-                    return { progress: resProgress, episode: res.episodeInfo };
+                  if (res.episodeInfo.progress.percent <= 0.05) {
+                    return res.episodeInfo;
                   } else {
                     return undefined;
                   }
@@ -190,7 +181,7 @@ export function Home() {
           width={"100%"}
         >
           {episodes.map((episode) => (
-            <EpisodeCard {...episode} key={episode.episode.id} />
+            <EpisodeCard episode={episode} key={episode.id} />
           ))}
         </Grid>
         <Grid
@@ -213,7 +204,7 @@ export function Home() {
           width={"100%"}
         >
           {nextEpisodes.map((episode) => (
-            <EpisodeCard {...episode} key={episode.episode.id} />
+            <EpisodeCard episode={episode} key={episode.id} />
           ))}
         </Grid>
         <Grid

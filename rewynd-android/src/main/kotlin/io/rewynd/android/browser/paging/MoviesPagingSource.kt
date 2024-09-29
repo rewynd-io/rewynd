@@ -11,7 +11,7 @@ class MoviesPagingSource(private val libraryId: String, val client: RewyndClient
     override fun getRefreshKey(state: PagingState<String, MovieInfo>): String? = null
 
     override suspend fun load(params: LoadParams<String>): LoadResult<String, MovieInfo> = client.listMovies(
-        ListMoviesRequest(libraryId, params.key),
+        ListMoviesRequest(libraryId, cursor = params.key),
     ).result().fold({
         LoadResult.Page(it.page.sortedBy(MovieInfo::title), null, it.cursor)
     }) {

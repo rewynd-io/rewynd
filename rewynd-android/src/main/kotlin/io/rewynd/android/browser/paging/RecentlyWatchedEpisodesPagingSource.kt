@@ -24,8 +24,8 @@ class RecentlyWatchedEpisodesPagingSource(val client: RewyndClient) : PagingSour
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     override suspend fun load(params: LoadParams<Instant>) = client.listProgress(
         ListProgressRequest(
-            minPercent = MEDIA_STARTED_PERCENT,
-            maxPercent = MEDIA_COMPLETED_PERCENT,
+            minProgress = MEDIA_STARTED_PERCENT,
+            maxProgress = MEDIA_COMPLETED_PERCENT,
             cursor = params.key,
             limit = params.loadSize.toDouble(),
         ),

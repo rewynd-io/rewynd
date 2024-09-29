@@ -5,15 +5,15 @@ properties:
   cursor:
     $ref: "./ListEpisodesCursor.yaml"
   minProgress:
-    type: integer
+    type: number
     minimum: 0
-    maximum: 100
+    maximum: 1
     default: 0
   maxProgress:
-    type: integer
+    type: number
     minimum: 0
-    maximum: 100
-    default: 100
+    maximum: 1
+    default: 1
 required:
   - seasonId
   - minProgress

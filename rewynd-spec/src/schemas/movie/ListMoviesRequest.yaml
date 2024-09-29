@@ -4,5 +4,20 @@ properties:
     $ref: "../library/LibraryId.yaml"
   cursor:
     $ref: "./ListMoviesCursor.yaml"
+  minProgress:
+    type: number
+    minimum: 0
+    maximum: 1
+    default: 0
+  maxProgress:
+    type: number
+    minimum: 0
+    maximum: 1
+    default: 1
+  limit:
+    type: integer
+    default: 100
 required:
   - libraryId
+  - minProgress
+  - maxProgress

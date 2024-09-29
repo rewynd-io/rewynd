@@ -28,7 +28,6 @@ fun EpisodeBrowser(
     actions: BrowserNavigationActions,
     modifier: Modifier = Modifier
 ) = with(viewModel) {
-    loadProgress(episodeId)
     loadEpisode(episodeId)
     loadNextEpisode(episodeId)
     loadPrevEpisode(episodeId)
@@ -37,84 +36,82 @@ fun EpisodeBrowser(
         loadSeason(episodeInfo.seasonId)
         loadShow(episodeInfo.showId)
 
-        progress?.let { progress ->
-            Column(modifier.verticalScroll(rememberScrollState())) {
-                Row {
-                    Button({
-                        actions.library(episodeInfo.libraryId)
-                    }) {
-                        Text(episodeInfo.libraryId, color = Color.White)
-                    }
-                    Button({
-                        show?.let {
-                            actions.show(it.id)
-                        }
-                    }) {
-                        episodeInfo.showName.let { Text(it, color = Color.White) }
-                    }
-                    Button({
-                        season?.let {
-                            actions.season(it.id)
-                        }
-                    }) {
-                        Text("Season ${episodeInfo.season}", color = Color.White)
-                    }
-                    Text("Episode: ${episodeInfo.episode}", color = Color.White)
-                }
-                Text(episodeInfo.title, color = Color.White)
-
-                Card(onClick = {
-                    startPlayer(
-                        PlayerMedia.Episode(
-                            PlayerMedia.Episode.EpisodePlaybackMethod.Sequential,
-                            episodeInfo,
-                            runTime = episodeInfo.runTime.seconds,
-                            startOffset =
-                            episodeInfo.runTime.seconds.times(
-                                (progress.percent),
-                            ),
-                            videoTrackName = episodeInfo.videoTracks.keys.firstOrNull(),
-                            audioTrackName = episodeInfo.audioTracks.keys.firstOrNull(),
-                            subtitleTrackName = episodeInfo.subtitleTracks.keys.firstOrNull(),
-                            // TODO load normalization method from user prefs
-                            normalizationMethod = null,
-                        ),
-                    )
+        Column(modifier.verticalScroll(rememberScrollState())) {
+            Row {
+                Button({
+                    actions.library(episodeInfo.libraryId)
                 }) {
-                    ApiImage(episodeInfo.episodeImageId, loadImage = viewModel.imageLoader)
+                    Text(episodeInfo.libraryId, color = Color.White)
                 }
-                (episodeInfo.plot ?: episodeInfo.outline)?.let { Text(it, color = Color.White) }
-                Text("Rating: ${episodeInfo.rating}", color = Color.White)
-                BoxWithConstraints {
-                    val size = listOfNotNull(prevEpisode, nextEpisode).size
-                    Row {
-                        prevEpisode?.let {
-                            Card(
-                                modifier = Modifier.width(this@BoxWithConstraints.maxWidth / size),
-                                onClick = {
-                                    actions.episode(it.id)
-                                }
-                            ) {
-                                Text("Previous Episode")
-                                ApiImage(it.episodeImageId, loadImage = viewModel.imageLoader)
-                                Text(it.details)
+                Button({
+                    show?.let {
+                        actions.show(it.id)
+                    }
+                }) {
+                    episodeInfo.showName.let { Text(it, color = Color.White) }
+                }
+                Button({
+                    season?.let {
+                        actions.season(it.id)
+                    }
+                }) {
+                    Text("Season ${episodeInfo.season}", color = Color.White)
+                }
+                Text("Episode: ${episodeInfo.episode}", color = Color.White)
+            }
+            Text(episodeInfo.title, color = Color.White)
+
+            Card(onClick = {
+                startPlayer(
+                    PlayerMedia.Episode(
+                        PlayerMedia.Episode.EpisodePlaybackMethod.Sequential,
+                        episodeInfo,
+                        runTime = episodeInfo.runTime.seconds,
+                        startOffset =
+                        episodeInfo.runTime.seconds.times(
+                            (episodeInfo.progress.percent),
+                        ),
+                        videoTrackName = episodeInfo.videoTracks.keys.firstOrNull(),
+                        audioTrackName = episodeInfo.audioTracks.keys.firstOrNull(),
+                        subtitleTrackName = episodeInfo.subtitleTracks.keys.firstOrNull(),
+                        // TODO load normalization method from user prefs
+                        normalizationMethod = null,
+                    ),
+                )
+            }) {
+                ApiImage(episodeInfo.episodeImageId, loadImage = viewModel.imageLoader)
+            }
+            (episodeInfo.plot ?: episodeInfo.outline)?.let { Text(it, color = Color.White) }
+            Text("Rating: ${episodeInfo.rating}", color = Color.White)
+            BoxWithConstraints {
+                val size = listOfNotNull(prevEpisode, nextEpisode).size
+                Row {
+                    prevEpisode?.let {
+                        Card(
+                            modifier = Modifier.width(this@BoxWithConstraints.maxWidth / size),
+                            onClick = {
+                                actions.episode(it.id)
                             }
+                        ) {
+                            Text("Previous Episode")
+                            ApiImage(it.episodeImageId, loadImage = viewModel.imageLoader)
+                            Text(it.details)
                         }
-                        nextEpisode?.let {
-                            Card(
-                                modifier = Modifier.width(this@BoxWithConstraints.maxWidth / size),
-                                onClick = {
-                                    actions.episode(it.id)
-                                }
-                            ) {
-                                Text("Next Episode")
-                                ApiImage(it.episodeImageId, loadImage = viewModel.imageLoader)
-                                Text(it.details)
+                    }
+                    nextEpisode?.let {
+                        Card(
+                            modifier = Modifier.width(this@BoxWithConstraints.maxWidth / size),
+                            onClick = {
+                                actions.episode(it.id)
                             }
+                        ) {
+                            Text("Next Episode")
+                            ApiImage(it.episodeImageId, loadImage = viewModel.imageLoader)
+                            Text(it.details)
                         }
                     }
                 }
             }
         }
-    } ?: CircularProgressIndicator()
-}
+    }
+} ?: CircularProgressIndicator()

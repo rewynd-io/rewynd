@@ -2,9 +2,11 @@ type: object
 properties:
   id:
     $ref: "./ProgressId.yaml"
-  percent:
+  percent: # TODO should be renamed to "ratio".
     type: number
     description: "Progress through the media as a percentage (0 to 1)."
+    minimum: 0
+    maximum: 1
   timestamp:
     $ref: "../util/Timestamp.yaml"
 required:

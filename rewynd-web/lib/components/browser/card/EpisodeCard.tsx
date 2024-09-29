@@ -3,7 +3,7 @@ import { ButtonLink } from "../../ButtonLink";
 import { WebRoutes } from "../../../routes";
 import { ApiImage } from "../../Image";
 import React, { PropsWithChildren } from "react";
-import { EpisodeInfo, Progress } from "@rewynd.io/rewynd-client-typescript";
+import { EpisodeInfo } from "@rewynd.io/rewynd-client-typescript";
 import { cardWidth } from "../../../const";
 import { formatEpisode, formatSeason } from "../../../util";
 import { UnpaddedButtonLink } from "../../styled/UnpaddedButtonLink";
@@ -38,7 +38,6 @@ const Row = (props: RowProps) => (
 
 export interface EpisodeCardProps {
   readonly episode: EpisodeInfo;
-  readonly progress?: Progress;
 }
 
 export function EpisodeCard(props: EpisodeCardProps) {

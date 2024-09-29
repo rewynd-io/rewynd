@@ -1,7 +1,6 @@
 package io.rewynd.android.player
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.rewynd.android.MEDIA_COMPLETED_PERCENT
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
 import io.rewynd.client.result
@@ -40,16 +39,11 @@ object EpisodePlaybackMethodHandler {
         order: SortOrder,
     ) = client.getNextEpisode(GetNextEpisodeRequest(playerMedia.info.id, order))
         .result().getOrNull()?.episodeInfo?.let { episodeInfo ->
-            val progress =
-                client.getUserProgress(episodeInfo.id)
-                    .body()
-                    .percent
-                    .takeIf { it < MEDIA_COMPLETED_PERCENT } ?: 0.0
             PlayerMedia.Episode(
                 playbackMethod = playerMedia.playbackMethod,
                 info = episodeInfo,
                 runTime = episodeInfo.runTime.seconds,
-                startOffset = (progress * episodeInfo.runTime).seconds,
+                startOffset = (episodeInfo.progress.percent * episodeInfo.runTime).seconds,
                 videoTrackName = playerMedia.videoTrackName?.let { episodeInfo.videoTracks.keys.firstOrNull() },
                 audioTrackName = playerMedia.audioTrackName?.let { episodeInfo.audioTracks.keys.firstOrNull() },
                 subtitleTrackName =

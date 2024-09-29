@@ -1,10 +1,21 @@
 type: object
 properties:
-  minPercent:
+  minProgress:
     type: number
-  maxPercent:
+    minimum: 0
+    maximum: 1
+    default: 0
+  maxProgress:
     type: number
+    minimum: 0
+    maximum: 1
+    default: 1
   limit:
     type: number
+    default: 100
   cursor:
     $ref: "./ListProgressCursor.yaml"
+required:
+  - minProgress
+  - maxProgress
+  - limit

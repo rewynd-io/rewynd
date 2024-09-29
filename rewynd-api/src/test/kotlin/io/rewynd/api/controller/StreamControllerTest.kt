@@ -24,6 +24,7 @@ import io.rewynd.api.util.toSubsM3u8
 import io.rewynd.common.cache.queue.StreamJobQueue
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.ClientStreamEvents
+import io.rewynd.common.model.Progressed
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.StreamMapping
@@ -144,7 +145,7 @@ internal class StreamControllerTest : StringSpec({
             coEvery { cache.putStreamMetadata(any(), any(), any()) } returns Unit
             coEvery { streamJobQueue.submit(any()) } returns metadata.jobId
             coEvery { cache.putSessionStreamMapping(any(), any(), any()) } returns Unit
-            coEvery { db.getEpisode(createStreamRequest.id) } returns episode
+            coEvery { db.getProgressedEpisode(createStreamRequest.id, username) } returns episode
 
             testCall(
                 { createStream(createStreamRequest) },
@@ -245,7 +246,7 @@ internal class StreamControllerTest : StringSpec({
             val subtitleSegId: Int,
             val streamMapping: StreamMapping,
             val createStreamRequest: CreateStreamRequest,
-            val episode: ServerEpisodeInfo,
+            val episode: Progressed<ServerEpisodeInfo>,
             val showLibrary: Library,
         ) : BaseHarness(user, sessionId) {
             val streamJobQueue: StreamJobQueue = mockk {}
@@ -268,7 +269,7 @@ internal class StreamControllerTest : StringSpec({
                             subtitleSegId = Arb.int(subtitleMetadata.segments.indices).bind(),
                             streamMapping = InternalGenerators.streamMapping.bind(),
                             createStreamRequest = ApiGenerators.createStreamRequest.bind(),
-                            episode = InternalGenerators.serverEpisodeInfo.bind(),
+                            episode = InternalGenerators.progressedServerEpisodeInfo.bind(),
                             showLibrary = ApiGenerators.library.bind().copy(type = LibraryType.Show),
                         )
                     }

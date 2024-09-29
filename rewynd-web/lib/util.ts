@@ -112,7 +112,12 @@ export async function loadAllMovies(libraryId: string) {
   const libs = [];
   do {
     const res = await HttpClient.listMovies({
-      listMoviesRequest: { cursor: cursor, libraryId: libraryId },
+      listMoviesRequest: {
+        cursor: cursor,
+        libraryId: libraryId,
+        minProgress: 0,
+        maxProgress: 1,
+      },
     });
     cursor = res.cursor;
     libs.push(...res.page);

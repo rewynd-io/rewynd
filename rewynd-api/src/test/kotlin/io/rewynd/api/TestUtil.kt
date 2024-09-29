@@ -36,6 +36,9 @@ open class BaseHarness(
     val user: ServerUser,
     val sessionId: String,
 ) {
+    val username: String
+        get() = user.user.username
+
     val session =
         UserSession(
             sessionId,

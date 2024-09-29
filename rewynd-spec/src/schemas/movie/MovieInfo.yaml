@@ -64,6 +64,8 @@ properties:
     $ref: "../image/ImageId.yaml"
   posterImageId:
     $ref: "../image/ImageId.yaml"
+  progress:
+    $ref: "../progress/Progress.yaml"
 required:
   - id
   - libraryId
@@ -72,3 +74,4 @@ required:
   - audioTracks
   - videoTracks
   - subtitleTracks
+  - progress

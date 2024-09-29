@@ -16,6 +16,7 @@ import io.rewynd.common.model.FileInfo
 import io.rewynd.common.model.FileLocation
 import io.rewynd.common.model.LibraryData
 import io.rewynd.common.model.Mime
+import io.rewynd.common.model.Progressed
 import io.rewynd.common.model.ServerAudioTrack
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerImageInfo
@@ -161,6 +162,10 @@ object InternalGenerators {
                 lastModified = instant.bind(),
             )
         }
+
+    val progressedServerEpisodeInfo = arbitrary {
+        Progressed(serverEpisodeInfo.bind(), userProgress.bind())
+    }
 
     val serverSeasonInfo =
         arbitrary {

@@ -17,6 +17,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.sessions.sessionId
 import io.rewynd.api.UserSession
+import io.rewynd.api.UserSession.Companion.withUsername
 import io.rewynd.api.util.toIndexM3u8
 import io.rewynd.api.util.toStreamM3u8
 import io.rewynd.api.util.toSubsM3u8
@@ -121,29 +122,33 @@ fun Route.streamRoutes(
         } ?: call.respond(HttpStatusCode.BadRequest)
     }
     post("/stream/create") {
-        runBlocking {
-            val req: CreateStreamRequest = call.receive()
-            val id = UUID.randomUUID().toString()
-            db.getLibrary(req.library)?.let { library ->
-                call.sessionId<UserSession>()?.let { sessionId ->
-                    when (library.type) {
-                        LibraryType.Show -> db.getEpisode(req.id)?.toServerMediaInfo()
-                        LibraryType.Movie -> db.getMovie(req.id)?.toServerMediaInfo()
-                        LibraryType.Image -> TODO()
-                    }?.let { serverMediaInfo ->
-                        // Lock to prevent parallel creation of streams using the same session
-                        createStream(cache, sessionId, queue, id, serverMediaInfo, req)
-                        call.respond(
-                            HlsStreamProps(
-                                id = id,
-                                url = "/api/stream/$id/index.m3u8",
-                                duration = serverMediaInfo.mediaInfo.runTime,
-                            ),
-                        )
+        withUsername {
+            runBlocking {
+                val req: CreateStreamRequest = call.receive()
+                val id = UUID.randomUUID().toString()
+                db.getLibrary(req.library)?.let { library ->
+                    call.sessionId<UserSession>()?.let { sessionId ->
+                        when (library.type) {
+                            LibraryType.Show -> db.getProgressedEpisode(req.id, this@withUsername)
+                                ?.data?.toServerMediaInfo()
+                            LibraryType.Movie -> db.getProgressedMovie(req.id, this@withUsername)
+                                ?.data?.toServerMediaInfo()
+                            LibraryType.Image -> TODO()
+                        }?.let { serverMediaInfo ->
+                            // Lock to prevent parallel creation of streams using the same session
+                            createStream(cache, sessionId, queue, id, serverMediaInfo, req)
+                            call.respond(
+                                HlsStreamProps(
+                                    id = id,
+                                    url = "/api/stream/$id/index.m3u8",
+                                    duration = serverMediaInfo.mediaInfo.runTime,
+                                ),
+                            )
+                        }
                     }
                 }
-            }
-        } ?: call.respond(HttpStatusCode.InternalServerError)
+            } ?: call.respond(HttpStatusCode.InternalServerError)
+        }
     }
     post("/stream/heartbeat/{streamId}") {
         val reqStreamId = requireNotNull(call.parameters["streamId"]) { "Missing StreamId" }

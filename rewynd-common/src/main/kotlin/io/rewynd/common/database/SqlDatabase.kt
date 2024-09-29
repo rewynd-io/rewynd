@@ -3,13 +3,12 @@ package io.rewynd.common.database
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.common.JSON
 import io.rewynd.common.database.Database.Companion.LIST_EPISODES_MAX_SIZE
-import io.rewynd.common.database.SqlDatabase.Episodes.nullable
-import io.rewynd.common.database.SqlDatabase.Episodes.references
 import io.rewynd.common.generateSalt
 import io.rewynd.common.hashPassword
 import io.rewynd.common.model.FileInfo
 import io.rewynd.common.model.LibraryData
 import io.rewynd.common.model.LibraryIndex
+import io.rewynd.common.model.Progressed
 import io.rewynd.common.model.ServerAudioTrack
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerImageInfo
@@ -49,6 +48,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.innerJoin
+import org.jetbrains.exposed.sql.leftJoin
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
@@ -314,7 +314,20 @@ open class SqlDatabase(
                 ?.toServerEpisodeInfo()
         }
 
-    override suspend fun getNextEpisode(episodeId: String, order: io.rewynd.model.SortOrder): ServerEpisodeInfo? =
+    override suspend fun getProgressedEpisode(episodeId: String, username: String): Progressed<ServerEpisodeInfo>? =
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            Episodes.leftJoin(Progression, { Episodes.episodeId }, { Progression.mediaId })
+                .selectAll()
+                .where { Episodes.episodeId eq episodeId and (Progression.username.isNull() or (Progression.username eq username)) }
+                .firstOrNull()
+                ?.toProgressedServerEpisodeInfo()
+        }
+
+    override suspend fun getNextProgressedEpisode(
+        episodeId: String,
+        order: io.rewynd.model.SortOrder,
+        username: String
+    ): Progressed<ServerEpisodeInfo>? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             val current =
                 Episodes.select(
@@ -324,32 +337,33 @@ open class SqlDatabase(
                     Episodes.episodeId
                 ).where { Episodes.episodeId eq episodeId }
                     .alias("current")
+            val progress = Progression.selectAll().where { Progression.username eq username }.alias("progress")
             Episodes.innerJoin(
                 current,
                 onColumn = { showId },
                 otherColumn = { this[Episodes.showId] }
-            ).select(Episodes.columns)
+            ).leftJoin(progress, { Episodes.episodeId }, { progress[Progression.mediaId] }).select(Episodes.columns)
                 .where {
                     Episodes.episodeId neq current[Episodes.episodeId] and when (order) {
                         io.rewynd.model.SortOrder.Ascending -> {
                             (
-                                (Episodes.episode greaterEq current[Episodes.episode]) and
-                                    (Episodes.season greaterEq current[Episodes.season])
-                                )
-                            (Episodes.season greater current[Episodes.season])
+                                    (Episodes.episode greaterEq current[Episodes.episode]) and
+                                            (Episodes.season greaterEq current[Episodes.season])
+                                    ) or
+                                    (Episodes.season greater current[Episodes.season])
                         }
 
                         io.rewynd.model.SortOrder.Descending -> {
                             (
-                                (Episodes.episode lessEq current[Episodes.episode]) and
-                                    (Episodes.season lessEq current[Episodes.season])
-                                ) or
-                                (Episodes.season less current[Episodes.season])
+                                    (Episodes.episode lessEq current[Episodes.episode]) and
+                                            (Episodes.season lessEq current[Episodes.season])
+                                    ) or
+                                    (Episodes.season less current[Episodes.season])
                         }
                     }
                 }
                 .orderBy(Episodes.season to order.toSql(), Episodes.episode to order.toSql()).limit(1)
-                .map { it.toServerEpisodeInfo() }.firstOrNull()
+                .map { it.toProgressedServerEpisodeInfo() }.firstOrNull()
         }
 
     override suspend fun upsertEpisode(episode: ServerEpisodeInfo): Boolean =
@@ -394,31 +408,38 @@ open class SqlDatabase(
             } == 1
         }
 
-    override suspend fun listEpisodes(
+    override suspend fun listProgressedEpisodes(
         seasonId: String,
         cursor: String?,
-    ): Paged<ServerEpisodeInfo, String> =
+        username: String
+    ): Paged<Progressed<ServerEpisodeInfo>, String> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes
+            Episodes.leftJoin(Progression, { Episodes.episodeId }, { Progression.mediaId })
                 .selectAll()
                 .where {
-                    cursor?.let {
-                        Episodes.seasonId eq seasonId and (Episodes.episodeId greater it)
-                    } ?: (Episodes.seasonId eq seasonId)
-                }.orderBy(Episodes.episodeId, SortOrder.ASC)
+                    (Episodes.seasonId eq seasonId) and (Progression.username.isNull() or (Progression.username eq username))
+                }
+                .apply {
+                    if (cursor != null) {
+                        andWhere { Episodes.episodeId greater cursor }
+                    }
+                }
+                .orderBy(Episodes.episodeId, SortOrder.ASC)
                 .limit(LIST_EPISODES_MAX_SIZE)
-                .map { it.toServerEpisodeInfo() }.let { Paged(it, it.lastOrNull()?.id) }
+                .map { it.toProgressedServerEpisodeInfo() }.let { Paged(it, it.lastOrNull()?.data?.id) }
         }
 
-    override suspend fun listEpisodesByLastUpdated(
+    override suspend fun listProgressedEpisodesByLastUpdated(
         cursor: String?,
         limit: Int,
         libraryIds: List<String>,
-    ): Paged<ServerEpisodeInfo, String> =
+        username: String
+    ): Paged<Progressed<ServerEpisodeInfo>, String> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             val deserCursor = cursor?.toLongOrNull()
-            Episodes
+            Episodes.leftJoin(Progression, { Episodes.episodeId }, { Progression.mediaId })
                 .selectAll()
+                .where { Progression.username.isNull() or (Progression.username eq username) }
                 .apply {
                     if (libraryIds.isNotEmpty()) {
                         andWhere { Episodes.libraryId.inList(libraryIds) }
@@ -430,9 +451,9 @@ open class SqlDatabase(
                     Episodes.lastModified,
                     SortOrder.DESC
                 ).limit(limit)
-                .map { it.toServerEpisodeInfo() }
+                .map { it.toProgressedServerEpisodeInfo() }
                 .let {
-                    Paged(it, it.lastOrNull()?.lastUpdated?.toEpochMilliseconds()?.toString())
+                    Paged(it, it.lastOrNull()?.data?.lastUpdated?.toEpochMilliseconds()?.toString())
                 }
         }
 
@@ -443,6 +464,18 @@ open class SqlDatabase(
                 .where { Movies.movieId eq movieId }
                 .firstOrNull()
                 ?.toServerMovieInfo()
+        }
+
+    override suspend fun getProgressedMovie(movieId: String, username: String): Progressed<ServerMovieInfo>? =
+        newSuspendedTransaction(currentCoroutineContext(), conn) {
+            Movies.leftJoin(Progression, { Movies.movieId }, { Progression.mediaId })
+                .selectAll()
+                .where {
+                    Movies.movieId eq movieId and
+                            (Progression.username.isNull() or (Progression.username eq username))
+                }
+                .firstOrNull()
+                ?.toProgressedServerMovieInfo()
         }
 
     override suspend fun upsertMovie(movieInfo: ServerMovieInfo): Boolean =
@@ -486,14 +519,16 @@ open class SqlDatabase(
             Movies.deleteWhere { Movies.movieId eq movieId } == 1
         }
 
-    override suspend fun listMovies(
+    override suspend fun listProgressedMovies(
         libraryId: String,
         cursor: String?,
-    ): List<ServerMovieInfo> =
+        username: String
+    ): Paged<Progressed<ServerMovieInfo>, String> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Movies
+            Movies.leftJoin(Progression, { Movies.movieId }, { Progression.mediaId })
                 .selectAll()
                 .let {
+                    // TODO min and max progression filters
                     if (cursor != null) {
                         it.where {
                             Movies.movieId greater cursor
@@ -503,7 +538,7 @@ open class SqlDatabase(
                     }
                 }.orderBy(Movies.movieId, SortOrder.ASC)
                 .limit(LIST_EPISODES_MAX_SIZE)
-                .map { it.toServerMovieInfo() }
+                .map { it.toProgressedServerMovieInfo() }.let { Paged(it, it.lastOrNull()?.data?.id) }
         }
 
     override suspend fun cleanMovies(
@@ -513,8 +548,8 @@ open class SqlDatabase(
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Movies.deleteWhere {
                 lastUpdated less start.toEpochMilliseconds() and (
-                    Movies.libraryId eq libraryId
-                    )
+                        Movies.libraryId eq libraryId
+                        )
             }
         }
 
@@ -631,8 +666,8 @@ open class SqlDatabase(
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
         Shows.deleteWhere {
             lastUpdated less start.toEpochMilliseconds() and (
-                Shows.libraryId eq libraryId
-                )
+                    Shows.libraryId eq libraryId
+                    )
         }
     }
 
@@ -673,7 +708,7 @@ open class SqlDatabase(
                 .where {
                     if (updatedAfter != null) {
                         LibraryIndicies.libraryId eq libraryId and
-                            (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
+                                (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
                     } else {
                         LibraryIndicies.libraryId eq libraryId
                     }
@@ -743,16 +778,16 @@ open class SqlDatabase(
                 .selectAll()
                 .where {
                     (
-                        Progression.percent.lessEq(maxPercent) and
-                            Progression.percent.greaterEq(minPercent) and
-                            Progression.username.eq(username)
-                        ).let {
-                        if (cursor != null) {
-                            it and Progression.timestamp.less(cursor.toEpochMilliseconds())
-                        } else {
-                            it
+                            Progression.percent.lessEq(maxPercent) and
+                                    Progression.percent.greaterEq(minPercent) and
+                                    Progression.username.eq(username)
+                            ).let {
+                            if (cursor != null) {
+                                it and Progression.timestamp.less(cursor.toEpochMilliseconds())
+                            } else {
+                                it
+                            }
                         }
-                    }
                 }.orderBy(Progression.timestamp to SortOrder.DESC, Progression.mediaId to SortOrder.DESC)
                 .limit(limit)
                 .asFlow()
@@ -970,6 +1005,12 @@ open class SqlDatabase(
                 },
             )
 
+        private fun ResultRow.toProgressedServerMovieInfo() =
+            Progressed(
+                data = this.toServerMovieInfo(),
+                progress = this.toNullableProgress()
+            )
+
         private fun ResultRow.toServerScheduleInfo() =
             ServerScheduleInfo(
                 id = this[Schedules.scheduleId],
@@ -1081,6 +1122,12 @@ open class SqlDatabase(
                 },
             )
 
+        private fun ResultRow.toProgressedServerEpisodeInfo() =
+            Progressed(
+                data = this.toServerEpisodeInfo(),
+                progress = this.toNullableProgress()
+            )
+
         private fun ResultRow.toServerUser() =
             ServerUser(
                 user =
@@ -1107,5 +1154,22 @@ open class SqlDatabase(
                 timestamp = Instant.fromEpochMilliseconds(this[Progression.timestamp]),
                 username = this[Progression.username],
             )
+
+        private fun ResultRow.toNullableProgress(): UserProgress? {
+            val id = this.getOrNull(Progression.mediaId)
+            val percent = this.getOrNull(Progression.percent)
+            val timestamp = this.getOrNull(Progression.timestamp)?.let { Instant.fromEpochMilliseconds(it) }
+            val username = this.getOrNull(Progression.username)
+            return if (id != null && percent != null && timestamp != null && username != null) {
+                UserProgress(
+                    id = id,
+                    percent = percent,
+                    timestamp = timestamp,
+                    username = username,
+                )
+            } else {
+                null
+            }
+        }
     }
 }

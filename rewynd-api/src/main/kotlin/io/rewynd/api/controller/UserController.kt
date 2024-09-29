@@ -6,12 +6,9 @@ import io.ktor.server.application.install
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
-import io.rewynd.api.UserSession
+import io.rewynd.api.UserSession.Companion.withUsername
 import io.rewynd.api.plugins.mkAdminAuthZPlugin
 import io.rewynd.common.database.Database
 import io.rewynd.common.decoder
@@ -32,23 +29,23 @@ fun Route.userRoutes(db: Database) {
         route("/changePassword") {
             post {
                 val req = call.receive<ChangePasswordRequest>()
-                call.sessions.get<UserSession>()?.username?.let { username ->
-                    db.getUser(username)
-                }?.let {
-                    val oldHash = hashPassword(req.oldPassword, it.salt)
-                    val newSalt = generateSalt()
-                    val newHash = hashPassword(req.newPassword, newSalt)
-                    if (MessageDigest.isEqual(
-                            decoder.decode(oldHash),
-                            decoder.decode(it.hashedPass),
-                        ) && req.oldPassword != req.newPassword
-                    ) {
-                        db.upsertUser(it.copy(salt = newSalt, hashedPass = newHash))
-                        call.respond(HttpStatusCode.OK)
-                    } else {
-                        null
+                withUsername {
+                    db.getUser(this)?.let {
+                        val oldHash = hashPassword(req.oldPassword, it.salt)
+                        val newSalt = generateSalt()
+                        val newHash = hashPassword(req.newPassword, newSalt)
+                        if (MessageDigest.isEqual(
+                                decoder.decode(oldHash),
+                                decoder.decode(it.hashedPass),
+                            ) && req.oldPassword != req.newPassword
+                        ) {
+                            db.upsertUser(it.copy(salt = newSalt, hashedPass = newHash))
+                            call.respond(HttpStatusCode.OK)
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest)
+                        }
                     }
-                } ?: call.respond(HttpStatusCode.BadRequest)
+                }
             }
         }
         route("/list") {

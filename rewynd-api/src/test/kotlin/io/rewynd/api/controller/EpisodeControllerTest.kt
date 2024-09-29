@@ -15,9 +15,11 @@ import io.rewynd.api.BaseHarness
 import io.rewynd.api.plugins.configureSession
 import io.rewynd.common.database.Database
 import io.rewynd.common.database.Paged
+import io.rewynd.common.model.Progressed
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerSeasonInfo
 import io.rewynd.common.model.ServerUser
+import io.rewynd.common.model.toEpisodeInfo
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.GetNextEpisodeResponse
 import io.rewynd.model.ListEpisodesByLastUpdatedRequest
@@ -30,16 +32,15 @@ import io.rewynd.test.InternalGenerators
 import io.rewynd.test.checkAllRun
 import io.rewynd.test.list
 import io.rewynd.test.nullable
-import kotlinx.datetime.Instant
 import net.kensand.kielbasa.kotest.property.Generators
 
 internal class EpisodeControllerTest : StringSpec({
     "getEpisode" {
         Harness.arb.checkAllRun {
-            coEvery { db.getEpisode(episode.id) } returns episode
+            coEvery { db.getProgressedEpisode(episode.data.id, username) } returns episode
 
             testCall(
-                { getEpisode(episode.id) },
+                { getEpisode(episode.data.id) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
@@ -47,17 +48,17 @@ internal class EpisodeControllerTest : StringSpec({
             }
 
             coVerify {
-                db.getEpisode(any())
+                db.getProgressedEpisode(any(), username)
             }
         }
     }
 
     "nextEpisode" {
         Harness.arb.checkAllRun {
-            coEvery { db.getNextEpisode(episode.id, SortOrder.Ascending) } returns otherEpisode
+            coEvery { db.getNextProgressedEpisode(episode.data.id, SortOrder.Ascending, username) } returns otherEpisode
 
             testCall(
-                { getNextEpisode(GetNextEpisodeRequest(episode.id, SortOrder.Ascending)) },
+                { getNextEpisode(GetNextEpisodeRequest(episode.data.id, SortOrder.Ascending)) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
@@ -68,10 +69,12 @@ internal class EpisodeControllerTest : StringSpec({
 
     "previousEpisode" {
         Harness.arb.checkAllRun {
-            coEvery { db.getNextEpisode(episode.id, SortOrder.Descending) } returns otherEpisode
+            coEvery {
+                db.getNextProgressedEpisode(episode.data.id, SortOrder.Descending, username)
+            } returns otherEpisode
 
             testCall(
-                { getNextEpisode(GetNextEpisodeRequest(episode.id, SortOrder.Descending)) },
+                { getNextEpisode(GetNextEpisodeRequest(episode.data.id, SortOrder.Descending)) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
@@ -82,17 +85,19 @@ internal class EpisodeControllerTest : StringSpec({
 
     "listEpisodes" {
         Harness.arb.checkAllRun {
-            coEvery { db.listEpisodes(season.seasonInfo.id) } returns Paged(episodes, episodes.lastOrNull()?.id)
+            coEvery {
+                db.listProgressedEpisodes(season.seasonInfo.id, cursor, username)
+            } returns Paged(episodes, episodes.lastOrNull()?.data?.id)
 
             testCall(
-                { listEpisodes(ListEpisodesRequest(season.seasonInfo.id)) },
+                { listEpisodes(ListEpisodesRequest(season.seasonInfo.id, cursor = cursor)) },
                 setup = { setupApp(db) },
             ) {
                 status shouldBe HttpStatusCode.OK.value
                 body() shouldBe
                     ListEpisodesResponse(
-                        episodes.map(ServerEpisodeInfo::toEpisodeInfo),
-                        episodes.lastOrNull()?.id
+                        episodes.map(Progressed<ServerEpisodeInfo>::toEpisodeInfo),
+                        episodes.lastOrNull()?.data?.id
                     )
             }
         }
@@ -101,10 +106,11 @@ internal class EpisodeControllerTest : StringSpec({
     "listByLastUpdated" {
         Harness.arb.checkAllRun {
             coEvery {
-                db.listEpisodesByLastUpdated(
+                db.listProgressedEpisodesByLastUpdated(
                     any(),
                     any(),
-                    any()
+                    any(),
+                    username
                 )
             } returns Paged(episodes, null)
 
@@ -119,7 +125,7 @@ internal class EpisodeControllerTest : StringSpec({
                 status shouldBe HttpStatusCode.OK.value
                 body() shouldBe
                     ListEpisodesByLastUpdatedResponse(
-                        episodes.map(ServerEpisodeInfo::toEpisodeInfo),
+                        episodes.map(Progressed<ServerEpisodeInfo>::toEpisodeInfo),
                     )
             }
         }
@@ -129,15 +135,14 @@ internal class EpisodeControllerTest : StringSpec({
         class Harness(
             user: ServerUser,
             sessionId: String,
-            val episodes: List<ServerEpisodeInfo>,
-            val episode: ServerEpisodeInfo,
-            val otherEpisode: ServerEpisodeInfo,
+            val episodes: List<Progressed<ServerEpisodeInfo>>,
+            val episode: Progressed<ServerEpisodeInfo>,
+            val otherEpisode: Progressed<ServerEpisodeInfo>,
             val season: ServerSeasonInfo,
-            val cursor: Instant?,
-            val libraryIds: List<String>?,
+            val cursor: String?,
         ) : BaseHarness(user, sessionId) {
             init {
-                coEvery { db.getEpisode(episode.id) } returns episode
+                coEvery { db.getProgressedEpisode(episode.data.id, username) } returns episode
             }
 
             companion object {
@@ -146,12 +151,11 @@ internal class EpisodeControllerTest : StringSpec({
                         Harness(
                             user = InternalGenerators.serverUser.bind(),
                             sessionId = ApiGenerators.sessionId.bind(),
-                            episodes = InternalGenerators.serverEpisodeInfo.list().bind(),
-                            episode = InternalGenerators.serverEpisodeInfo.bind(),
-                            otherEpisode = InternalGenerators.serverEpisodeInfo.bind(),
+                            episodes = InternalGenerators.progressedServerEpisodeInfo.list().bind(),
+                            episode = InternalGenerators.progressedServerEpisodeInfo.bind(),
+                            otherEpisode = InternalGenerators.progressedServerEpisodeInfo.bind(),
                             season = InternalGenerators.serverSeasonInfo.bind(),
-                            cursor = Generators.instant.nullable().bind(),
-                            libraryIds = Generators.string.list().nullable().bind(),
+                            cursor = Generators.string.nullable().bind(),
                         )
                     }
             }

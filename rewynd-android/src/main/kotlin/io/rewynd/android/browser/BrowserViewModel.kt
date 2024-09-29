@@ -32,7 +32,6 @@ import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.Library
 import io.rewynd.model.MovieInfo
-import io.rewynd.model.Progress
 import io.rewynd.model.SearchRequest
 import io.rewynd.model.SearchResultType
 import io.rewynd.model.SeasonInfo
@@ -136,16 +135,6 @@ class BrowserViewModel(
             config = PAGING_CONFIG,
             pagingSourceFactory = { EpisodesPagingSource(seasonId, client) },
         ).flow.cachedIn(viewModelScope)
-
-    var progress by mutableStateOf<Progress?>(null)
-        private set
-
-    @Composable
-    fun loadProgress(id: String) = LaunchedEffect(id) {
-        progress = null
-        progress = client.getUserProgress(id).body()
-            .let { it ?: Progress(id, 0.0, kotlinx.datetime.Instant.fromEpochSeconds(0)) }
-    }
 
     var episode by mutableStateOf<EpisodeInfo?>(null)
         private set

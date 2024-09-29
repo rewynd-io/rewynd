@@ -3,6 +3,7 @@ package io.rewynd.common.database
 import io.rewynd.common.config.DatabaseConfig
 import io.rewynd.common.config.fromConfig
 import io.rewynd.common.model.LibraryIndex
+import io.rewynd.common.model.Progressed
 import io.rewynd.common.model.ServerEpisodeInfo
 import io.rewynd.common.model.ServerImageInfo
 import io.rewynd.common.model.ServerMovieInfo
@@ -67,24 +68,34 @@ sealed interface Database {
         cursor: String?,
     ): List<ServerSeasonInfo>
 
+    suspend fun getProgressedEpisode(episodeId: String, username: String): Progressed<ServerEpisodeInfo>?
+
     suspend fun getEpisode(episodeId: String): ServerEpisodeInfo?
 
-    suspend fun getNextEpisode(episodeId: String, order: SortOrder): ServerEpisodeInfo?
+    suspend fun getNextProgressedEpisode(
+        episodeId: String,
+        order: SortOrder,
+        username: String
+    ): Progressed<ServerEpisodeInfo>?
 
     suspend fun upsertEpisode(episode: ServerEpisodeInfo): Boolean
 
     suspend fun deleteEpisode(episodeId: String): Boolean
 
-    suspend fun listEpisodes(
+    suspend fun listProgressedEpisodes(
         seasonId: String,
         cursor: String? = null,
-    ): Paged<ServerEpisodeInfo, String>
+        username: String
+    ): Paged<Progressed<ServerEpisodeInfo>, String>
 
-    suspend fun listEpisodesByLastUpdated(
+    suspend fun listProgressedEpisodesByLastUpdated(
         cursor: String?,
         limit: Int = LIST_EPISODES_MAX_SIZE,
         libraryIds: List<String> = emptyList(),
-    ): Paged<ServerEpisodeInfo, String>
+        username: String
+    ): Paged<Progressed<ServerEpisodeInfo>, String>
+
+    suspend fun getProgressedMovie(movieId: String, username: String): Progressed<ServerMovieInfo>?
 
     suspend fun getMovie(movieId: String): ServerMovieInfo?
 
@@ -92,7 +103,11 @@ sealed interface Database {
 
     suspend fun deleteMovie(movieId: String): Boolean
 
-    suspend fun listMovies(libraryId: String, cursor: String?): List<ServerMovieInfo>
+    suspend fun listProgressedMovies(
+        libraryId: String,
+        cursor: String?,
+        username: String
+    ): Paged<Progressed<ServerMovieInfo>, String>
 
     suspend fun getImage(imageId: String): ServerImageInfo?
 

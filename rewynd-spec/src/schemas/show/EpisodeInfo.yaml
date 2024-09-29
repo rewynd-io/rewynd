@@ -61,6 +61,8 @@ properties:
     $ref: "../util/Timestamp.yaml"
   lastModified:
     $ref: "../util/Timestamp.yaml"
+  progress:
+    $ref: "../progress/Progress.yaml"
 required:
   - id
   - seasonId
@@ -76,3 +78,4 @@ required:
   - subtitleTracks
   - lastUpdated
   - lastModified
+  - progress

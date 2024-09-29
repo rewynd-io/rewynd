@@ -26,44 +26,41 @@ fun MovieBrowser(
     modifier: Modifier = Modifier
 ) = with(viewModel) {
     loadMovie(movieId)
-    loadProgress(movieId)
 
     movie?.let { movieInfo ->
-        progress?.let { progress ->
-            Column(modifier.verticalScroll(rememberScrollState())) {
-                Row {
-                    Button({
-                        library?.let {
-                            actions.library(movieInfo.libraryId)
-                        }
-                    }) {
-                        Text(movieInfo.libraryId, color = Color.White)
+        Column(modifier.verticalScroll(rememberScrollState())) {
+            Row {
+                Button({
+                    library?.let {
+                        actions.library(movieInfo.libraryId)
                     }
-                }
-                Text(movieInfo.title, color = Color.White)
-
-                Card(onClick = {
-                    startPlayer(
-                        PlayerMedia.Movie(
-                            movieInfo,
-                            runTime = movieInfo.runTime.seconds,
-                            startOffset =
-                            movieInfo.runTime.seconds.times(
-                                (progress.percent),
-                            ),
-                            videoTrackName = movieInfo.videoTracks.keys.firstOrNull(),
-                            audioTrackName = movieInfo.audioTracks.keys.firstOrNull(),
-                            subtitleTrackName = movieInfo.subtitleTracks.keys.firstOrNull(),
-                            // TODO load normalization method from user prefs
-                            normalizationMethod = null,
-                        ),
-                    )
                 }) {
-                    ApiImage(movieInfo.posterImageId, loadImage = viewModel.imageLoader)
+                    Text(movieInfo.libraryId, color = Color.White)
                 }
-                (movieInfo.plot ?: movieInfo.outline)?.let { Text(it, color = Color.White) }
-                Text("Rating: ${movieInfo.rating}", color = Color.White)
             }
+            Text(movieInfo.title, color = Color.White)
+
+            Card(onClick = {
+                startPlayer(
+                    PlayerMedia.Movie(
+                        movieInfo,
+                        runTime = movieInfo.runTime.seconds,
+                        startOffset =
+                        movieInfo.runTime.seconds.times(
+                            (movieInfo.progress.percent),
+                        ),
+                        videoTrackName = movieInfo.videoTracks.keys.firstOrNull(),
+                        audioTrackName = movieInfo.audioTracks.keys.firstOrNull(),
+                        subtitleTrackName = movieInfo.subtitleTracks.keys.firstOrNull(),
+                        // TODO load normalization method from user prefs
+                        normalizationMethod = null,
+                    ),
+                )
+            }) {
+                ApiImage(movieInfo.posterImageId, loadImage = viewModel.imageLoader)
+            }
+            (movieInfo.plot ?: movieInfo.outline)?.let { Text(it, color = Color.White) }
+            Text("Rating: ${movieInfo.rating}", color = Color.White)
         }
-    } ?: CircularProgressIndicator()
-}
+    }
+} ?: CircularProgressIndicator()
