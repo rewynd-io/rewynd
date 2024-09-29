@@ -318,7 +318,10 @@ open class SqlDatabase(
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Episodes.leftJoin(Progression, { Episodes.episodeId }, { Progression.mediaId })
                 .selectAll()
-                .where { Episodes.episodeId eq episodeId and (Progression.username.isNull() or (Progression.username eq username)) }
+                .where {
+                    Episodes.episodeId eq episodeId and
+                        (Progression.username.isNull() or (Progression.username eq username))
+                }
                 .firstOrNull()
                 ?.toProgressedServerEpisodeInfo()
         }
@@ -347,18 +350,18 @@ open class SqlDatabase(
                     Episodes.episodeId neq current[Episodes.episodeId] and when (order) {
                         io.rewynd.model.SortOrder.Ascending -> {
                             (
-                                    (Episodes.episode greaterEq current[Episodes.episode]) and
-                                            (Episodes.season greaterEq current[Episodes.season])
-                                    ) or
-                                    (Episodes.season greater current[Episodes.season])
+                                (Episodes.episode greaterEq current[Episodes.episode]) and
+                                    (Episodes.season greaterEq current[Episodes.season])
+                                ) or
+                                (Episodes.season greater current[Episodes.season])
                         }
 
                         io.rewynd.model.SortOrder.Descending -> {
                             (
-                                    (Episodes.episode lessEq current[Episodes.episode]) and
-                                            (Episodes.season lessEq current[Episodes.season])
-                                    ) or
-                                    (Episodes.season less current[Episodes.season])
+                                (Episodes.episode lessEq current[Episodes.episode]) and
+                                    (Episodes.season lessEq current[Episodes.season])
+                                ) or
+                                (Episodes.season less current[Episodes.season])
                         }
                     }
                 }
@@ -417,7 +420,8 @@ open class SqlDatabase(
             Episodes.leftJoin(Progression, { Episodes.episodeId }, { Progression.mediaId })
                 .selectAll()
                 .where {
-                    (Episodes.seasonId eq seasonId) and (Progression.username.isNull() or (Progression.username eq username))
+                    (Episodes.seasonId eq seasonId) and
+                        (Progression.username.isNull() or (Progression.username eq username))
                 }
                 .apply {
                     if (cursor != null) {
@@ -472,7 +476,7 @@ open class SqlDatabase(
                 .selectAll()
                 .where {
                     Movies.movieId eq movieId and
-                            (Progression.username.isNull() or (Progression.username eq username))
+                        (Progression.username.isNull() or (Progression.username eq username))
                 }
                 .firstOrNull()
                 ?.toProgressedServerMovieInfo()
@@ -548,8 +552,8 @@ open class SqlDatabase(
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Movies.deleteWhere {
                 lastUpdated less start.toEpochMilliseconds() and (
-                        Movies.libraryId eq libraryId
-                        )
+                    Movies.libraryId eq libraryId
+                    )
             }
         }
 
@@ -666,8 +670,8 @@ open class SqlDatabase(
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
         Shows.deleteWhere {
             lastUpdated less start.toEpochMilliseconds() and (
-                    Shows.libraryId eq libraryId
-                    )
+                Shows.libraryId eq libraryId
+                )
         }
     }
 
@@ -708,7 +712,7 @@ open class SqlDatabase(
                 .where {
                     if (updatedAfter != null) {
                         LibraryIndicies.libraryId eq libraryId and
-                                (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
+                            (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
                     } else {
                         LibraryIndicies.libraryId eq libraryId
                     }
@@ -778,16 +782,16 @@ open class SqlDatabase(
                 .selectAll()
                 .where {
                     (
-                            Progression.percent.lessEq(maxPercent) and
-                                    Progression.percent.greaterEq(minPercent) and
-                                    Progression.username.eq(username)
-                            ).let {
-                            if (cursor != null) {
-                                it and Progression.timestamp.less(cursor.toEpochMilliseconds())
-                            } else {
-                                it
-                            }
+                        Progression.percent.lessEq(maxPercent) and
+                            Progression.percent.greaterEq(minPercent) and
+                            Progression.username.eq(username)
+                        ).let {
+                        if (cursor != null) {
+                            it and Progression.timestamp.less(cursor.toEpochMilliseconds())
+                        } else {
+                            it
                         }
+                    }
                 }.orderBy(Progression.timestamp to SortOrder.DESC, Progression.mediaId to SortOrder.DESC)
                 .limit(limit)
                 .asFlow()

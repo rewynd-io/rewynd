@@ -8,8 +8,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
-import io.rewynd.api.UserSession
 import io.rewynd.api.UserSession.Companion.withUsername
 import io.rewynd.common.database.Database
 import io.rewynd.common.model.UserProgress
