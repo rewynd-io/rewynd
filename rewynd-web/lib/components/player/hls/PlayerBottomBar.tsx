@@ -332,6 +332,7 @@ export function PlayerBottomBar(props: PlayerBottomBarProps) {
           direction="column"
           justifyContent="center"
           alignItems="center"
+          sx={{ width: "100%" }}
         >
           <Grid sx={{ width: "100%" }}>{props.slider}</Grid>
         </Grid>
