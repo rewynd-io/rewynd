@@ -1,8 +1,4 @@
-import {
-  EpisodeInfo,
-  Library,
-  SortOrder,
-} from "@rewynd.io/rewynd-client-typescript";
+import { EpisodeInfo, Library } from "@rewynd.io/rewynd-client-typescript";
 import React, { useEffect, useState } from "react";
 import { ButtonLink } from "./ButtonLink";
 import { WebRoutes } from "../routes";
@@ -71,51 +67,9 @@ export function Home() {
         ),
       );
 
-    HttpClient.listProgress({
-      listProgressRequest: {
-        minProgress: 0.95,
-        maxProgress: 1,
-        limit: 10,
-      },
-    })
-      .then(async (it) => {
-        const results = it.results;
-        return (
-          await Promise.all(
-            results?.map(async (prog) => {
-              try {
-                const res = await HttpClient.getNextEpisode({
-                  getNextEpisodeRequest: {
-                    episodeId: prog.id,
-                    sortOrder: SortOrder.Ascending,
-                  },
-                });
-                if (res.episodeInfo) {
-                  if (res.episodeInfo.progress.percent <= 0.05) {
-                    return res.episodeInfo;
-                  } else {
-                    return undefined;
-                  }
-                } else {
-                  return undefined;
-                }
-              } catch (e) {
-                log.error("Failed to load episode", e);
-                return undefined;
-              }
-            }) ?? [],
-          )
-        )?.filter((it) => isNotNil(it));
-      })
-      .then((it) =>
-        setNextEpisodes(
-          List(it)
-            .filter(isNotNil)
-            .sortBy((a) => a.progress.timestamp.getTime())
-            .reverse()
-            .toArray(),
-        ),
-      );
+    HttpClient.listNextEpisodes({ listNextEpisodesRequest: {} }).then((it) =>
+      setNextEpisodes(it.page),
+    );
   }, []);
 
   const libEntries = libraries.map((lib) => {

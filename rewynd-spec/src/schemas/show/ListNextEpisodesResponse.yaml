@@ -1,0 +1,11 @@
+type: object
+properties:
+  page:
+    type: array
+    default: []
+    items:
+      $ref: "./EpisodeInfo.yaml"
+  cursor:
+    $ref: "./ListNextEpisodesCursor.yaml"
+required:
+  - page

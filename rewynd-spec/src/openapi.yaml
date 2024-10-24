@@ -61,6 +61,8 @@ paths:
     $ref: "./resources/show/getSeason.yaml"
   /api/episode/list:
     $ref: "./resources/show/listEpisodes.yaml"
+  /api/episode/listNext:
+    $ref: "./resources/show/listNextEpisodes.yaml"
   /api/episode/listByLastUpdated:
     $ref: "./resources/show/listEpisodesByLastUpdated.yaml"
   /api/episode/get/{episodeId}:
@@ -186,6 +188,12 @@ components:
       $ref: "./schemas/show/ListEpisodesRequest.yaml"
     ListEpisodesResponse:
       $ref: "./schemas/show/ListEpisodesResponse.yaml"
+    ListNextEpisodesCursor:
+      $ref: "./schemas/show/ListNextEpisodesCursor.yaml"
+    ListNextEpisodesRequest:
+      $ref: "./schemas/show/ListNextEpisodesRequest.yaml"
+    ListNextEpisodesResponse:
+      $ref: "./schemas/show/ListNextEpisodesResponse.yaml"
     ListSeasonsCursor:
       $ref: "./schemas/show/ListSeasonsCursor.yaml"
     ListSeasonsRequest:

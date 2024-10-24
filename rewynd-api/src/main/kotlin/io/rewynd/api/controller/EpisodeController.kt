@@ -16,6 +16,8 @@ import io.rewynd.model.ListEpisodesByLastUpdatedRequest
 import io.rewynd.model.ListEpisodesByLastUpdatedResponse
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
+import io.rewynd.model.ListNextEpisodesRequest
+import io.rewynd.model.ListNextEpisodesResponse
 
 @Suppress("LongMethod")
 fun Route.episodeRoutes(db: Database) {
@@ -27,6 +29,16 @@ fun Route.episodeRoutes(db: Database) {
             }
         }
     }
+
+    post("/episode/listNext") {
+        withUsername {
+            call.receive<ListNextEpisodesRequest>().let { request ->
+                val page = db.listNextEpisodes(this, request.cursor?.toLongOrNull())
+                call.respond(ListNextEpisodesResponse(page.data.map { it.toEpisodeInfo() }, page.cursor?.toString()))
+            }
+        }
+    }
+
     post("/episode/listByLastUpdated") {
         withUsername {
             call.receive<ListEpisodesByLastUpdatedRequest>().let { request ->

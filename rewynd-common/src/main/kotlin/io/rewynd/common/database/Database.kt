@@ -95,6 +95,11 @@ sealed interface Database {
         username: String
     ): Paged<Progressed<ServerEpisodeInfo>, String>
 
+    suspend fun listNextEpisodes(
+        username: String,
+        cursor: Long?
+    ): Paged<Progressed<ServerEpisodeInfo>, Long>
+
     suspend fun getProgressedMovie(movieId: String, username: String): Progressed<ServerMovieInfo>?
 
     suspend fun getMovie(movieId: String): ServerMovieInfo?
