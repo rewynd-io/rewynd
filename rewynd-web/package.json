@@ -19,7 +19,7 @@
     "@mui/lab": "^5.0.0-alpha.160",
     "@mui/material": "^6.0.0",
     "@mui/x-data-grid": "^7.0.0",
-    "@reduxjs/toolkit": "^2.0.1",
+    "@reduxjs/toolkit": "^2.3.0",
     "@rewynd.io/rewynd-client-typescript": "file:../rewynd-client-typescript",
     "@rewynd.io/rewynd-spec": "file:../rewynd-spec",
     "@testing-library/jest-dom": "^6.2.0",

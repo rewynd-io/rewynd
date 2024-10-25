@@ -1,257 +1,74 @@
-import {
-  CreateStreamRequest,
-  EpisodeInfo,
-  Progress,
-} from "@rewynd.io/rewynd-client-typescript";
 import { Navigate, useNavigate, useParams } from "react-router";
 import React, { useEffect } from "react";
 import { HlsPlayer, MediaSelection } from "./HlsPlayer";
-import { useAppDispatch, useAppSelector } from "../../../store/store";
 import {
-  EpisodeState,
-  setEpisodeState,
-} from "../../../store/slice/EpisodeSlice";
-import { HttpClient } from "../../../const";
+  useAppDispatch,
+  useAppSelector,
+  useThunkEffect,
+} from "../../../store/store";
+import { fetchEpisode } from "../../../store/slice/EpisodeSlice";
 import { WebRoutes } from "../../../routes";
 import { useUser } from "../../../store/slice/UserSlice";
-import { resetCompletedProgress } from "../../../util";
-import formatEpisodeRoute = WebRoutes.Player.formatEpisodeRoute;
+import { LoadingIcon } from "../../LoadingIcon";
+import { setCompleted } from "../../../store/slice/HlsPlayerSlice";
 
 export function EpisodeHlsPlayer() {
   const { episodeId } = useParams();
   const nav = useNavigate();
+  const user = useUser();
+  const dispatch = useAppDispatch();
   if (!episodeId) {
     return <Navigate to={"/"} />;
   }
-  const dispatch = useAppDispatch();
-  const nextId = useAppSelector((state) => state.episode.nextId);
-  const prevId = useAppSelector((state) => state.episode.previousId);
-  const user = useUser();
-  useEffect(() => {
-    const episodeMapping = getEpisodeMapping();
-    console.log(
-      "EpisodeId changed: " +
-        episodeId +
-        ", Mapping: " +
-        JSON.stringify(episodeMapping),
-    );
 
-    if (episodeMapping) {
-      if (episodeMapping.sourceEpisodeId == episodeId) {
-        clearEpisodeMapping();
-        nav(formatEpisodeRoute(episodeMapping.destEpisodeId), {
-          replace: true,
-        });
-        return;
-      } else {
-        clearEpisodeMapping();
-      }
-    }
+  const isComplete = useAppSelector((state) => state.hls.completed);
+  useEffect(() => {
+    dispatch(setCompleted(false));
   }, [episodeId]);
 
-  const nextHandler: (
-    last: CreateStreamRequest,
-  ) => Promise<MediaSelection | undefined> = async (
-    last: CreateStreamRequest,
-  ) => {
-    console.log(`Handling next - ${JSON.stringify(last)}`);
-    // don't depend on anything from react - it might not be up-to-date if not in focus
-    const next = (
-      await HttpClient.getNextEpisode({
-        getNextEpisodeRequest: {
-          episodeId: last.id,
-          sortOrder: "Ascending",
-        },
-      }).catch(() => undefined)
-    )?.episodeInfo;
+  useThunkEffect(fetchEpisode, episodeId);
+  const state = useAppSelector((state) => state.episode.state);
+  if (!state) {
+    return <LoadingIcon />;
+  }
+
+  const { episode, next, previous } = state;
+
+  const nextHandler = () => {
+    dispatch(setCompleted(true));
     if (next) {
-      const [perc, nextNext]: [number | undefined, string | undefined] =
-        await Promise.all([
-          HttpClient.getUserProgress({ id: next.id }).then(
-            (it: Progress) => resetCompletedProgress(it)?.percent,
-          ),
-          HttpClient.getNextEpisode({
-            getNextEpisodeRequest: {
-              episodeId: next.id,
-              sortOrder: "Ascending",
-            },
-          })
-            .then((it) => it.episodeInfo?.id)
-            .catch(() => undefined),
-        ]);
-      saveEpisodeMapping(episodeId, next.id);
-
-      // Update ui last
-      dispatch(
-        setEpisodeState({
-          percent: perc,
-          nextId: nextNext,
-          previousId: last.id,
-        }),
-      );
-
-      return {
-        request: {
-          audioTrack: Object.keys(next.audioTracks)[0],
-          videoTrack: Object.keys(next.videoTracks)[0],
-          subtitleTrack: Object.keys(next.subtitleTracks)[0],
-          library: next.libraryId,
-          id: next.id,
-          startOffset: (perc ?? 0) * (next.runTime ?? 0),
-        },
-        info: next,
-      };
-    } else return undefined;
+      nav(WebRoutes.Player.formatEpisodeRoute(next.id), { replace: true });
+    }
   };
-
   return (
     <HlsPlayer
       onInit={async () => {
-        const [ep, prog, next, prev]: [
-          EpisodeInfo,
-          number | undefined,
-          string | undefined,
-          string | undefined,
-        ] = await Promise.all([
-          HttpClient.getEpisode({ episodeId: episodeId }),
-          HttpClient.getUserProgress({ id: episodeId }).then(
-            (it: Progress) => resetCompletedProgress(it)?.percent,
-          ),
-          HttpClient.getNextEpisode({
-            getNextEpisodeRequest: {
-              episodeId: episodeId,
-              sortOrder: "Ascending",
-            },
-          })
-            .then((it) => it.episodeInfo?.id)
-            .catch(() => undefined),
-          HttpClient.getNextEpisode({
-            getNextEpisodeRequest: {
-              episodeId: episodeId,
-              sortOrder: "Descending",
-            },
-          })
-            .then((it) => it.episodeInfo?.id)
-            .catch(() => undefined),
-        ]);
-        const epState: EpisodeState = {
-          percent: prog,
-          nextId: next,
-          previousId: prev,
-        };
-        console.log("Setting episode :" + JSON.stringify(epState));
-        dispatch(setEpisodeState(epState));
         return {
           request: {
-            audioTrack: Object.keys(ep.audioTracks)[0],
-            videoTrack: Object.keys(ep.videoTracks)[0],
+            audioTrack: Object.keys(episode.audioTracks)[0],
+            videoTrack: Object.keys(episode.videoTracks)[0],
             subtitleTrack: user?.preferences?.enableSubtitlesByDefault
-              ? Object.keys(ep.subtitleTracks)[0]
+              ? Object.keys(episode.subtitleTracks)[0]
               : undefined,
-            library: ep.libraryId,
-            id: ep.id,
-            startOffset: (prog ?? 0) * (ep.runTime ?? 0),
+            library: episode.libraryId,
+            id: episode.id,
+            startOffset: isComplete
+              ? 0
+              : episode.progress.percent * (episode.runTime ?? 0),
           },
-          info: ep,
+          info: episode,
         } as MediaSelection;
       }}
-      onNext={nextId ? nextHandler : undefined}
-      onPrevious={
-        prevId
-          ? async (last: CreateStreamRequest) => {
-              const prev = (
-                await HttpClient.getNextEpisode({
-                  getNextEpisodeRequest: {
-                    episodeId: last.id,
-                    sortOrder: "Descending",
-                  },
-                }).catch(() => undefined)
-              )?.episodeInfo;
-              if (prev) {
-                const [perc, prevPrev]: [
-                  number | undefined,
-                  string | undefined,
-                ] = await Promise.all([
-                  HttpClient.getUserProgress({ id: prev.id })
-                    .then((it: Progress) => resetCompletedProgress(it)?.percent)
-                    .catch(() => undefined),
-                  HttpClient.getNextEpisode({
-                    getNextEpisodeRequest: {
-                      episodeId: prev.id,
-                      sortOrder: "Ascending",
-                    },
-                  })
-                    .then((it) => it.episodeInfo?.id)
-                    .catch(() => undefined),
-                ]);
-                saveEpisodeMapping(episodeId, prev.id);
-
-                // Update ui last
-                dispatch(
-                  setEpisodeState({
-                    percent: perc,
-                    nextId: last.id,
-                    previousId: prevPrev,
-                  }),
-                );
-
-                return {
-                  info: prev,
-                  request: {
-                    audioTrack: Object.keys(prev.audioTracks)[0],
-                    videoTrack: Object.keys(prev.videoTracks)[0],
-                    subtitleTrack: Object.keys(prev.subtitleTracks)[0],
-                    library: prev.libraryId,
-                    id: prev.id,
-                    startOffset: (perc ?? 0) * (prev.runTime ?? 0),
-                    // TODO fetch userProgress
-                  },
-                };
-              } else {
-                return undefined;
-              }
-            }
-          : undefined
-      }
+      onNext={nextHandler}
+      onPrevious={() => {
+        dispatch(setCompleted(true));
+        if (previous) {
+          nav(WebRoutes.Player.formatEpisodeRoute(previous.id), {
+            replace: true,
+          });
+        }
+      }}
       onComplete={nextHandler}
     />
   );
-}
-
-const episodeMappingItemName = "EpisodeMapping";
-function clearEpisodeMapping() {
-  localStorage.removeItem(episodeMappingItemName);
-}
-
-function saveEpisodeMapping(currentEpisodeId: string, nextEpisodeId: string) {
-  const currMapping = getEpisodeMapping();
-  if (currMapping?.destEpisodeId == currentEpisodeId) {
-    setEpisodeMapping({
-      sourceEpisodeId: currMapping.sourceEpisodeId,
-      destEpisodeId: nextEpisodeId,
-    });
-  } else {
-    setEpisodeMapping({
-      sourceEpisodeId: currentEpisodeId,
-      destEpisodeId: nextEpisodeId,
-    });
-  }
-}
-
-function setEpisodeMapping(mapping: EpisodeMapping) {
-  localStorage.setItem(episodeMappingItemName, JSON.stringify(mapping));
-}
-
-function getEpisodeMapping(): EpisodeMapping | undefined {
-  const item = localStorage.getItem(episodeMappingItemName);
-  if (item) {
-    return JSON.parse(item);
-  } else {
-    return undefined;
-  }
-}
-
-export interface EpisodeMapping {
-  readonly sourceEpisodeId: string;
-  readonly destEpisodeId: string;
 }

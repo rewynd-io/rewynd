@@ -1,76 +1,39 @@
-import { EpisodeInfo, Library } from "@rewynd.io/rewynd-client-typescript";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ButtonLink } from "./ButtonLink";
 import { WebRoutes } from "../routes";
 import { NavBar } from "./NavBar";
 import { Grid2 as Grid, Stack, Typography } from "@mui/material";
-import { List } from "immutable";
-import { cardWidth, HttpClient } from "../const";
+import { cardWidth } from "../const";
 import { EpisodeCard } from "./browser/card/EpisodeCard";
-import { WebLog } from "../log";
 import "../util";
-import { isNotNil, loadAllLibraries } from "../util";
 import { ApiImage } from "./Image";
 import { Link } from "./Link";
-import { usePages } from "../Pagination";
-
-const log = WebLog.getChildCategory("Home");
+import { useAppSelector, useThunkEffect } from "../store/store";
+import {
+  loadLibraries,
+  loadNewestEpisodes,
+  loadNextEpisodes,
+  loadStartedEpisodes,
+} from "../store/slice/HomeSlice";
 
 export function Home() {
-  const [libraries, setLibraries] = useState<Library[]>([]);
-  const [episodes, setEpisodes] = useState<EpisodeInfo[]>([]);
-  const [nextEpisodes, setNextEpisodes] = useState<EpisodeInfo[]>([]);
-  const [newestEpisodes] = usePages<EpisodeInfo, string>(
-    async (cursor) => {
-      const res = await HttpClient.listEpisodesByLastUpdated({
-        listEpisodesByLastUpdatedRequest: {
-          cursor: cursor,
-          libraryIds: [],
-          limit: 100,
-        },
-      });
-      return [res.episodes, res.cursor];
-    },
-    undefined,
-    100,
+  const nextEpisodes = useAppSelector(
+    (it) => it.home.nextEpisodesState?.episodes ?? [],
+  );
+  const episodes = useAppSelector(
+    (it) => it.home.startedEpisodesState?.episodes ?? [],
+  );
+  const newestEpisodes = useAppSelector(
+    (it) => it.home.newestEpisodesState?.episodes ?? [],
+  );
+  const libraries = useAppSelector(
+    (it) => it.home.librariesState?.libraries ?? [],
   );
 
-  useEffect(() => {
-    loadAllLibraries().then(setLibraries);
-    HttpClient.listProgress({
-      listProgressRequest: {
-        minProgress: 0.05,
-        maxProgress: 0.95,
-        limit: 20,
-      },
-    })
-      .then((it) => {
-        const results = it.results;
-        return Promise.all(
-          results?.map(async (prog) => {
-            try {
-              return await HttpClient.getEpisode({ episodeId: prog.id });
-            } catch (e) {
-              log.error("Failed to load episode", e);
-              return undefined;
-            }
-          }) ?? [],
-        );
-      })
-      .then((it) =>
-        setEpisodes(
-          List(it)
-            .filter(isNotNil)
-            .sortBy((a) => a.progress.timestamp.getTime())
-            .reverse()
-            .toArray(),
-        ),
-      );
-
-    HttpClient.listNextEpisodes({ listNextEpisodesRequest: {} }).then((it) =>
-      setNextEpisodes(it.page),
-    );
-  }, []);
+  useThunkEffect(loadLibraries);
+  useThunkEffect(loadNewestEpisodes);
+  useThunkEffect(loadNextEpisodes);
+  useThunkEffect(loadStartedEpisodes);
 
   const libEntries = libraries.map((lib) => {
     return { route: WebRoutes.formatLibraryRoute(lib.name), name: lib.name };

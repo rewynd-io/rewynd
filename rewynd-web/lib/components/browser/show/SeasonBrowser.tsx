@@ -7,6 +7,7 @@ import { NavBar } from "../../NavBar";
 import { List } from "immutable";
 import { EpisodeCard } from "../card/EpisodeCard";
 import { ApiImage } from "../../Image";
+import { toSerializableEpisodeInfo } from "../../../models";
 
 export function SeasonBrowser() {
   const season = useParams()["seasonId"];
@@ -45,7 +46,7 @@ export function SeasonBrowser() {
                     return (
                       // <Box sx={{ minHeight: "10em" }} key={showEpisodeInfo.id}>
                       <EpisodeCard
-                        episode={showEpisodeInfo}
+                        episode={toSerializableEpisodeInfo(showEpisodeInfo)}
                         key={showEpisodeInfo.id}
                       />
                       // </Box>

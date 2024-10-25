@@ -3,7 +3,6 @@ import { ButtonLink } from "../../ButtonLink";
 import { WebRoutes } from "../../../routes";
 import { ApiImage } from "../../Image";
 import React, { PropsWithChildren } from "react";
-import { EpisodeInfo } from "@rewynd.io/rewynd-client-typescript";
 import { cardWidth } from "../../../const";
 import { formatEpisode, formatSeason } from "../../../util";
 import { UnpaddedButtonLink } from "../../styled/UnpaddedButtonLink";
@@ -11,6 +10,7 @@ import formatShowRoute = WebRoutes.formatShowRoute;
 import formatSeasonRoute = WebRoutes.formatSeasonRoute;
 import formatEpisodeRoute = WebRoutes.formatEpisodeRoute;
 import formatPlayerRoute = WebRoutes.Player.formatEpisodeRoute;
+import { SerializableEpisodeInfo } from "../../../models";
 
 const Text = styled(Typography)(({ theme }) => ({
   fontSize: "1em",
@@ -37,7 +37,7 @@ const Row = (props: RowProps) => (
 );
 
 export interface EpisodeCardProps {
-  readonly episode: EpisodeInfo;
+  readonly episode: SerializableEpisodeInfo;
 }
 
 export function EpisodeCard(props: EpisodeCardProps) {

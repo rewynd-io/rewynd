@@ -31,15 +31,9 @@ export interface MediaSelection {
 
 export interface HlsPlayerProps {
   readonly onInit: () => Promise<MediaSelection | undefined>;
-  readonly onComplete?: (
-    lastRequest: CreateStreamRequest,
-  ) => Promise<MediaSelection | undefined>;
-  readonly onNext?: (
-    lastRequest: CreateStreamRequest,
-  ) => Promise<MediaSelection | undefined>;
-  readonly onPrevious?: (
-    lastRequest: CreateStreamRequest,
-  ) => Promise<MediaSelection | undefined>;
+  readonly onComplete?: () => void;
+  readonly onNext?: () => void;
+  readonly onPrevious?: () => void;
   readonly onTracksChange?: (
     lastRequest: CreateStreamRequest,
     tracks: {
@@ -127,19 +121,9 @@ export function HlsPlayer(props: HlsPlayerProps) {
   useEffect(() => {
     if (props.onComplete) {
       const propOnComplete = props.onComplete;
-      const onComplete = async (manager: HlsPlayerManager) => {
-        const last = manager.lastMediaSelection?.request;
-        if (last) {
-          dispatch(setLoading(true));
-          const next = await propOnComplete(last);
-          if (next) {
-            await load(next, false);
-          }
-        }
-      };
-      manager.on("next", onComplete);
+      manager.on("next", propOnComplete);
       return () => {
-        manager.off("next", onComplete);
+        manager.off("next", propOnComplete);
       };
     } else return;
   }, [props.onComplete]);
@@ -338,42 +322,8 @@ export function HlsPlayer(props: HlsPlayerProps) {
         playing={!(ref.current?.paused ?? true)}
         onPause={() => ref.current?.pause()}
         onPlay={() => ref.current?.play()}
-        onNext={
-          props.onNext
-            ? async () => {
-                if (props.onNext && manager.lastMediaSelection) {
-                  const paused = loadingOverlay();
-                  const next = await props.onNext(
-                    manager.lastMediaSelection.request,
-                  );
-                  if (next) {
-                    await load(next);
-                  } else {
-                    dispatch(setLoading(false));
-                  }
-                  await setPaused(paused);
-                }
-              }
-            : undefined
-        }
-        onPrevious={
-          props.onPrevious
-            ? async () => {
-                if (props.onPrevious && manager.lastMediaSelection) {
-                  const paused = loadingOverlay();
-                  const prev = await props.onPrevious(
-                    manager.lastMediaSelection.request,
-                  );
-                  if (prev) {
-                    await load(prev);
-                  } else {
-                    dispatch(setLoading(false));
-                  }
-                  await setPaused(paused);
-                }
-              }
-            : undefined
-        }
+        onNext={props.onNext}
+        onPrevious={props.onPrevious}
         onForward={async () => {
           await seek(Math.min(duration, manager.currentTime + skipSeconds));
         }}

@@ -4,6 +4,7 @@ properties:
     type: array
     items:
       $ref: "../library/LibraryId.yaml"
+    description: An empty array will result in all libraries that a user has access to being applied
     default: []
   cursor:
     $ref: "./ListEpisodesByLastUpdatedCursor.yaml"

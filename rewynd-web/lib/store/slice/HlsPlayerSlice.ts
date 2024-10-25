@@ -17,9 +17,11 @@ export interface HlsPlayerState {
   available: number;
   controlsVisibleLast: number;
   loading: boolean;
+  completed: boolean;
 }
 
 const initialState: HlsPlayerState = {
+  completed: false,
   loading: false,
   media: {},
   controlsVisibleLast: 0,
@@ -43,6 +45,9 @@ export const hlsPlayerSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
+    setCompleted: (state, action: PayloadAction<boolean>) => {
+      state.completed = action.payload;
+    },
     setAvailable: (state, action: PayloadAction<number>) => {
       state.available = action.payload;
     },
@@ -65,6 +70,7 @@ export const hlsPlayerSlice = createSlice({
 export const setupMedia = hlsPlayerSlice.actions.setupMedia;
 export const setPlayed = hlsPlayerSlice.actions.setPlayed;
 export const setLoading = hlsPlayerSlice.actions.setLoading;
+export const setCompleted = hlsPlayerSlice.actions.setCompleted;
 export const setAvailable = hlsPlayerSlice.actions.setAvailable;
 export const setControlsVisibleLast =
   hlsPlayerSlice.actions.setControlsVisibleLast;

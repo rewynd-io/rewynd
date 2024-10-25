@@ -195,6 +195,16 @@ export async function loadAllUsers() {
   return users;
 }
 
+export async function clearUserProgress(id: string) {
+  await HttpClient.putUserProgress({
+    progress: {
+      percent: 0,
+      timestamp: new Date(),
+      id,
+    },
+  });
+}
+
 export function stripMediaInfo(mediaInfo: MediaInfo): MediaInfo {
   return {
     runTime: mediaInfo.runTime,
