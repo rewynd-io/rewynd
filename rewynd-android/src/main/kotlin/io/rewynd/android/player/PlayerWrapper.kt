@@ -71,7 +71,7 @@ class PlayerWrapper(
     context: Context,
     httpClient: OkHttpClient,
     val client: RewyndClient,
-    val onEvent: () -> Unit = {},
+    val onEvent: (state: PlayerState) -> Unit = {},
 ) {
     private val datasourceFactory by lazy { OkHttpDataSource.Factory(httpClient) }
 
@@ -129,15 +129,20 @@ class PlayerWrapper(
             ) {
                 super.onEvents(player, events)
                 log.info { "TimeUpdate: ${player.currentPosition}" }
-                getState().let {
-                    if (it.media != null && it.offsetTime >= it.media.runTime.minus(1.seconds)) {
-                        runBlocking {
-                            next(startAtZero = true)
-                        }
+                val state = getState()
+                onEvent(state)
+                if (state.media != null && state.offsetTime >= state.media.runTime.minus(1.seconds)) {
+                    runBlocking {
+                        next(startAtZero = true)
                     }
                 }
+            }
 
-                onEvent()
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                super.onPlaybackStateChanged(playbackState)
+                if (playbackState == ExoPlayer.STATE_ENDED) {
+                    next(startAtZero = true)
+                }
             }
 
             override fun onPlayerError(e: PlaybackException) =
@@ -225,7 +230,8 @@ class PlayerWrapper(
         player.play()
     }
 
-    fun load(playerMedia: PlayerMedia) =
+    fun load(playerMedia: PlayerMedia) {
+        stop()
         runBlocking {
             _state.updateAndGet {
                 runBlocking {
@@ -240,11 +246,11 @@ class PlayerWrapper(
                         it.copy(isLoading = true, media = playerMedia)
                     }
                 }
-            }
+            }.let(onEvent)
 
             heartbeat.load(playerMedia.toCreateStreamRequest())
-            this@PlayerWrapper.onEvent()
         }
+    }
 
     @OptIn(UnstableApi::class) // HlsMediaSource is unstable
     private val heartbeat by lazy {

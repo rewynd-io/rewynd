@@ -1,6 +1,7 @@
 package io.rewynd.android.player
 
 import android.util.Log
+import arrow.fx.coroutines.mapIndexed
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.client.RewyndClient
@@ -14,10 +15,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import net.kensand.kielbasa.coroutines.coRunCatching
+import net.kensand.kielbasa.coroutines.repeatAsFlow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -44,14 +48,18 @@ class StreamHeartbeat(
     // TODO handle a failure to create a stream better instead of just dying
     private fun startJob(createStreamRequest: CreateStreamRequest) =
         MainScope().launch {
-            val props = client.createStream(createStreamRequest).result().getOrNull()
+            val props = retryIndefinitely({ "failed to load" }) {
+                client.createStream(createStreamRequest).result().getOrThrow()
+            }
             var lastStatus: StreamStatus? = StreamStatus.Pending
-            while (props != null) {
+            while (true) {
                 try {
                     lastStatus = beat(props, createStreamRequest, lastStatus)
                 } catch (e: CancellationException) {
                     withContext(NonCancellable) {
-                        client.deleteStream(props.id)
+                        runCatching {
+                            client.deleteStream(props.id)
+                        }.onFailure { log.warn(it) { "Failed to delete stream ${props.id}" } }
                     }
                     log.warn(e) { "Heartbeat stopped" }
                     return@launch
@@ -122,6 +130,7 @@ class StreamHeartbeat(
                     audioTrackName = audioTrackName,
                     normalizationMethod = normalizationMethod,
                 )
+
             is PlayerMedia.Movie ->
                 this.copy(
                     startOffset = startOffset,
@@ -131,5 +140,19 @@ class StreamHeartbeat(
                     normalizationMethod = normalizationMethod,
                 )
         }
+
+        suspend fun <T> retryIndefinitely(
+            errorMessage: (Int) -> String,
+            onFailure: () -> Unit = {
+            },
+            block: suspend () -> T
+        ) = repeatAsFlow {}
+            .mapIndexed { index, _ ->
+                coRunCatching {
+                    block()
+                }.onFailure { log.error(it) { errorMessage(index) } }
+            }.first {
+                it.isSuccess
+            }.getOrThrow()
     }
 }

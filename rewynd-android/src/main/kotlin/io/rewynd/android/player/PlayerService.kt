@@ -34,22 +34,19 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.toJavaDuration
+import kotlin.time.Duration.Companion.milliseconds
 
 class PlayerService : Service() {
     private var browserState: Bundle? = null
     private var originalPlayerProps: PlayerProps? = null
-    private val next: MutableStateFlow<PlayerMedia?> = MutableStateFlow(null)
-    private val prev: MutableStateFlow<PlayerMedia?> = MutableStateFlow(null)
     private val cookies by lazy { PersistentCookiesStorage }
     private lateinit var notification: Notification
     private val httpClient: OkHttpClient by lazy {
         OkHttpClient
             .Builder()
-            .callTimeout(1.minutes.toJavaDuration())
             .cookieJar(CookieStorageCookieJar(cookies))
             .addInterceptor(logging)
+            .retryOnConnectionFailure(true)
             .build()
     }
 
@@ -57,8 +54,8 @@ class PlayerService : Service() {
         PlayerWrapper(this, httpClient, client, onEvent = {
             // Relies on the stop() setting instance.value to null, which isn't great
             if (_instance.value != null) {
-                setPlaybackState()
-                createNotification()
+                setPlaybackState(it)
+                createNotification(it)
             }
         })
     }
@@ -127,21 +124,11 @@ class PlayerService : Service() {
             }
 
             is PlayerServiceProps.Next -> {
-                val n = next.value
-                if (n != null) {
-                    runBlocking {
-                        player.load(n)
-                    }
-                }
+                player.next()
             }
 
             is PlayerServiceProps.Prev -> {
-                val p = prev.value
-                if (p != null) {
-                    runBlocking {
-                        player.load(p)
-                    }
-                }
+                player.prev()
             }
         }
 
@@ -154,18 +141,15 @@ class PlayerService : Service() {
             client = mkRewyndClient()
             runBlocking {
                 val playerMedia = props.playerProps.media
-                this@PlayerService.next.value = PlaybackMethodHandler.next(client, playerMedia)
-                this@PlayerService.prev.value = PlaybackMethodHandler.prev(client, playerMedia)
                 player.load(playerMedia)
             }
             this.mediaSession.setCallback(mediaSessionCallback)
-            this.setPlaybackState()
+            this.setPlaybackState(player.state.value)
             _instance.value = serviceInterface
         }
     }
 
-    private fun setPlaybackState() {
-        val state = player.state.value
+    private fun setPlaybackState(state: PlayerState) {
         val playPause =
             if (state.isPlaying) {
                 PlaybackState.ACTION_PAUSE
@@ -174,14 +158,14 @@ class PlayerService : Service() {
             }
 
         val next =
-            if (this.next.value == null) {
+            if (player.state.value.next == null) {
                 0
             } else {
                 PlaybackState.ACTION_SKIP_TO_NEXT
             }
 
         val prev =
-            if (this.prev.value == null) {
+            if (player.state.value.prev == null) {
                 0
             } else {
                 PlaybackState.ACTION_SKIP_TO_PREVIOUS
@@ -194,7 +178,8 @@ class PlayerService : Service() {
                     prev or
                     PlaybackState.ACTION_FAST_FORWARD or
                     PlaybackState.ACTION_REWIND or
-                    PlaybackState.ACTION_STOP,
+                    PlaybackState.ACTION_STOP or
+                    PlaybackState.ACTION_SEEK_TO
             ).setState(
                 when (state.playbackState) {
                     is PlayerState.PlaybackState.Buffering -> PlaybackState.STATE_BUFFERING
@@ -300,7 +285,7 @@ class PlayerService : Service() {
 
     // https://android-developers.googleblog.com/2020/08/playing-nicely-with-media-controls.html
     @Suppress("MagicNumber")
-    private fun createNotification(): Unit = player.state.value.run {
+    private fun createNotification(playerState: PlayerState): Unit = playerState.run {
         media?.let { playerMedia ->
             // Creating a NotificationChannel is required for Android O and up.
             createNotificationChannel()
@@ -338,7 +323,8 @@ class PlayerService : Service() {
                     playerMedia.runTime.inWholeSeconds.toInt(),
                     offsetTime.inWholeSeconds.toInt(),
                     false,
-                ).addAction(
+                )
+                .addAction(
                     Notification.Action
                         .Builder(
                             Icon.createWithResource(
@@ -449,6 +435,8 @@ class PlayerService : Service() {
                 return super.onMediaButtonEvent(mediaButtonIntent)
             }
 
+            override fun onSeekTo(pos: Long) = this@PlayerService.player.seek(pos.milliseconds)
+
             override fun onStop() = this@PlayerService.stop()
 
             override fun onPlay() = this@PlayerService.player.play()
@@ -459,21 +447,9 @@ class PlayerService : Service() {
 
             override fun onRewind() = this@PlayerService.player.seekBack()
 
-            override fun onSkipToNext() =
-                runBlocking {
-                    val next = this@PlayerService.next.value
-                    if (next != null) {
-                        this@PlayerService.player.load(next)
-                    }
-                }
+            override fun onSkipToNext() = this@PlayerService.player.next()
 
-            override fun onSkipToPrevious() =
-                runBlocking {
-                    val prev = this@PlayerService.prev.value
-                    if (prev != null) {
-                        this@PlayerService.player.load(prev)
-                    }
-                }
+            override fun onSkipToPrevious() = this@PlayerService.player.prev()
 
             override fun onCustomAction(action: String, extras: Bundle?) {
                 super.onCustomAction(action, extras)
