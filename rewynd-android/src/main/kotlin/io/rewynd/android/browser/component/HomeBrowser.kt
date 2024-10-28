@@ -50,11 +50,11 @@ fun HomeBrowser(
             HomeRow(
                 "Next Up",
                 nextEpisodes,
-                { media.details },
-                { media.id },
+                { this.details },
+                { this.id },
                 viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
-                { media.episodeImageId },
+                { this.episodeImageId },
                 onNavigateToEpisode
             )
             HomeRow(

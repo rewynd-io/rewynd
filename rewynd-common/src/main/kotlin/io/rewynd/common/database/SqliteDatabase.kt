@@ -156,11 +156,13 @@ class SqliteDatabase(
         }
 
     override suspend fun listNextEpisodes(
+        cursor: Long?,
         username: String,
-        cursor: Long?
+        completedPercent: Double,
+        notStartedPercent: Double
     ): Paged<Progressed<ServerEpisodeInfo>, Long> =
         mutex.withLock {
-            super.listNextEpisodes(username, cursor)
+            super.listNextEpisodes(cursor, username, completedPercent, notStartedPercent)
         }
 
     override suspend fun getProgressedMovie(

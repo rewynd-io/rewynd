@@ -19,7 +19,7 @@ private const val REMAINDER = DIVISOR - 1
 @Composable
 fun <Item : Any, Nav> HomeRow(
     title: String,
-    libraries: LazyPagingItems<Item>,
+    pagingItems: LazyPagingItems<Item>,
     nameAccessor: Item.() -> String,
     navAccessor: Item.() -> Nav,
     loadImage: ImageLoader,
@@ -31,7 +31,7 @@ fun <Item : Any, Nav> HomeRow(
         Column {
             Text(modifier = Modifier.height(this@Inner.maxHeight / DIVISOR), text = title)
             LazyRow(modifier = Modifier.height((this@Inner.maxHeight / DIVISOR) * REMAINDER)) {
-                items(libraries) {
+                items(pagingItems) {
                     BoxWithConstraints Item@{
                         Card(onClick = {
                             onNavigate(it.navAccessor())

@@ -33,7 +33,7 @@ fun Route.episodeRoutes(db: Database) {
     post("/episode/listNext") {
         withUsername {
             call.receive<ListNextEpisodesRequest>().let { request ->
-                val page = db.listNextEpisodes(this, request.cursor?.toLongOrNull())
+                val page = db.listNextEpisodes(request.cursor?.toLongOrNull(), this)
                 call.respond(ListNextEpisodesResponse(page.data.map { it.toEpisodeInfo() }, page.cursor?.toString()))
             }
         }

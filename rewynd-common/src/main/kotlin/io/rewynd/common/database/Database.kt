@@ -96,8 +96,10 @@ sealed interface Database {
     ): Paged<Progressed<ServerEpisodeInfo>, String>
 
     suspend fun listNextEpisodes(
+        cursor: Long?,
         username: String,
-        cursor: Long?
+        completedPercent: Double = 0.95,
+        notStartedPercent: Double = 0.05
     ): Paged<Progressed<ServerEpisodeInfo>, Long>
 
     suspend fun getProgressedMovie(movieId: String, username: String): Progressed<ServerMovieInfo>?
@@ -176,7 +178,7 @@ sealed interface Database {
         username: String,
         cursor: Instant? = null,
         minPercent: Double = LIST_PROGRESS_MIN_PERCENT,
-        maxPercent: Double = LIST_PROGRESS_MAX_PERCENT,
+        maxPercent: Double = MAX_PERCENT,
         limit: Int = LIST_PROGRESS_MAX_SIZE
     ): List<UserProgress>
 
@@ -190,6 +192,6 @@ sealed interface Database {
         const val LIST_EPISODES_MAX_SIZE = 100
         const val LIST_PROGRESS_MAX_SIZE = 100
         const val LIST_PROGRESS_MIN_PERCENT = 0.0
-        const val LIST_PROGRESS_MAX_PERCENT = 1.0
+        const val MAX_PERCENT = 1.0
     }
 }
