@@ -40,21 +40,21 @@ fun HomeBrowser(
             HomeRow(
                 "Continue Watching",
                 latestEpisodes,
-                { media.details },
-                { media.id },
+                { details },
+                { id },
                 viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
-                { media.episodeImageId },
+                { episodeImageId },
                 onNavigateToEpisode
             )
             HomeRow(
                 "Next Up",
                 nextEpisodes,
-                { this.details },
-                { this.id },
+                { details },
+                { id },
                 viewModel.imageLoader,
                 Modifier.height(this@BoxWithConstraints.maxHeight / 4),
-                { this.episodeImageId },
+                { episodeImageId },
                 onNavigateToEpisode
             )
             HomeRow(

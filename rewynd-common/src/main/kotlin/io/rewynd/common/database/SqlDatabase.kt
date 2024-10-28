@@ -24,6 +24,8 @@ import io.rewynd.common.model.UserProgress
 import io.rewynd.common.toSql
 import io.rewynd.model.Library
 import io.rewynd.model.LibraryType
+import io.rewynd.model.ListEpisodesRequestOrder
+import io.rewynd.model.ListEpisodesRequestOrderProperty
 import io.rewynd.model.SeasonInfo
 import io.rewynd.model.User
 import io.rewynd.model.UserPermissions
@@ -40,6 +42,7 @@ import kotlinx.serialization.encodeToString
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Alias
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.LiteralOp
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -319,11 +322,11 @@ open class SqlDatabase(
 
     override suspend fun getProgressedEpisode(episodeId: String, username: String): Progressed<ServerEpisodeInfo>? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes.leftJoin(Progression, { Episodes.episodeId }, { Progression.mediaId })
+            Episodes.leftJoin(Progression, { Episodes.episodeId }, { mediaId })
                 .selectAll()
                 .where {
                     Episodes.episodeId eq episodeId and
-                        (Progression.username.isNull() or (Progression.username eq username))
+                            (Progression.username.isNull() or (Progression.username eq username))
                 }
                 .firstOrNull()
                 ?.toProgressedServerEpisodeInfo()
@@ -348,23 +351,30 @@ open class SqlDatabase(
             Episodes.episodeId
         ).where {
             (Episodes.showId eq current[Episodes.showId]) and
-                (Episodes.episodeId neq current[Episodes.episodeId]) and
-                (
-                    (Episodes.season greater current[Episodes.season]) or
-                        (
-                            (Episodes.season eq current[Episodes.season]) and
-                                (Episodes.episode greater current[Episodes.episode])
+                    (Episodes.episodeId neq current[Episodes.episodeId]) and
+                    (
+                            (Episodes.season greater current[Episodes.season]) or
+                                    (
+                                            (Episodes.season eq current[Episodes.season]) and
+                                                    (Episodes.episode greater current[Episodes.episode])
+                                            )
                             )
-                    )
         }.orderBy(Episodes.season to SortOrder.ASC, Episodes.episode to SortOrder.ASC).limit(1)
 
         progressedCurrent.crossJoin(progressedNext).select(next.columns + nextProg.columns + currProg.columns).where {
             (if (cursor == null) Op.TRUE else currProg[Progression.timestamp] less cursor) and
-                (currProg[Progression.username] eq username) and
-                ((nextProg[Progression.username].isNull()) or (nextProg[Progression.username] eq username)) and
-                (currProg[Progression.percent] greater completedPercent) and
-                (nextProg[Progression.percent].isNull() or (nextProg[Progression.percent] less notStartedPercent)) and
-                (next[Episodes.episodeId] eqSubQuery innerQuery)
+                    (currProg[Progression.username] eq username) and
+                    ((nextProg[Progression.username].isNull()) or (nextProg[Progression.username] eq username)) and
+                    (currProg[Progression.percent] greater completedPercent) and
+                    (
+                            (coalesce(
+                                nextProg[Progression.percent],
+                                LiteralOp(Progression.percent.columnType, 0.0)
+                            ) less notStartedPercent) or
+                                    (coalesce(
+                                        nextProg[Progression.timestamp], LiteralOp(Progression.timestamp.columnType, 0)
+                                    ) less currProg[Progression.timestamp])) and
+                    (next[Episodes.episodeId] eqSubQuery innerQuery)
         }.orderBy(currProg[Progression.timestamp], SortOrder.DESC).limit(LIST_EPISODES_MAX_SIZE).let { results ->
             val lastTimestamp = results.lastOrNull()?.get(currProg[Progression.timestamp])
             Paged(results.map { it.toProgressedServerEpisodeInfo(next, nextProg) }, lastTimestamp)
@@ -395,18 +405,18 @@ open class SqlDatabase(
                     Episodes.episodeId neq current[Episodes.episodeId] and when (order) {
                         io.rewynd.model.SortOrder.Ascending -> {
                             (
-                                (Episodes.episode greaterEq current[Episodes.episode]) and
-                                    (Episodes.season greaterEq current[Episodes.season])
-                                ) or
-                                (Episodes.season greater current[Episodes.season])
+                                    (Episodes.episode greaterEq current[Episodes.episode]) and
+                                            (Episodes.season greaterEq current[Episodes.season])
+                                    ) or
+                                    (Episodes.season greater current[Episodes.season])
                         }
 
                         io.rewynd.model.SortOrder.Descending -> {
                             (
-                                (Episodes.episode lessEq current[Episodes.episode]) and
-                                    (Episodes.season lessEq current[Episodes.season])
-                                ) or
-                                (Episodes.season less current[Episodes.season])
+                                    (Episodes.episode lessEq current[Episodes.episode]) and
+                                            (Episodes.season lessEq current[Episodes.season])
+                                    ) or
+                                    (Episodes.season less current[Episodes.season])
                         }
                     }
                 }
@@ -457,53 +467,40 @@ open class SqlDatabase(
         }
 
     override suspend fun listProgressedEpisodes(
-        seasonId: String,
+        username: String,
         cursor: String?,
-        username: String
+        seasonId: String?,
+        minProgress: Double,
+        maxProgress: Double,
+        order: ListEpisodesRequestOrder
     ): Paged<Progressed<ServerEpisodeInfo>, String> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes.leftJoin(Progression, { Episodes.episodeId }, { Progression.mediaId })
+            Episodes.leftJoin(Progression, { episodeId }, { mediaId })
                 .selectAll()
                 .where {
-                    (Episodes.seasonId eq seasonId) and
-                        (Progression.username.isNull() or (Progression.username eq username))
+                    (Progression.username.isNull() or (Progression.username eq username)) and
+                            (coalesce(
+                                Progression.percent,
+                                LiteralOp(Progression.percent.columnType, 0.0)
+                            ) greaterEq minProgress) and
+                            (coalesce(
+                                Progression.percent,
+                                LiteralOp(Progression.percent.columnType, 0.0)
+                            ) lessEq maxProgress)
                 }
                 .apply {
+                    if (seasonId != null) {
+                        andWhere {
+                            (Episodes.seasonId eq seasonId)
+                        }
+                    }
                     if (cursor != null) {
                         andWhere { Episodes.episodeId greater cursor }
                     }
                 }
-                .orderBy(Episodes.episodeId, SortOrder.ASC)
+                .orderBy(order.property.toSql(), order.sortOrder.toSql())
                 .limit(LIST_EPISODES_MAX_SIZE)
                 .map { it.toProgressedServerEpisodeInfo() }.let { Paged(it, it.lastOrNull()?.data?.id) }
-        }
-
-    override suspend fun listProgressedEpisodesByLastUpdated(
-        cursor: String?,
-        limit: Int,
-        libraryIds: List<String>,
-        username: String
-    ): Paged<Progressed<ServerEpisodeInfo>, String> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
-            val deserCursor = cursor?.toLongOrNull()
-            Episodes.leftJoin(Progression, { Episodes.episodeId }, { Progression.mediaId })
-                .selectAll()
-                .where { Progression.username.isNull() or (Progression.username eq username) }
-                .apply {
-                    if (libraryIds.isNotEmpty()) {
-                        andWhere { Episodes.libraryId.inList(libraryIds) }
-                    }
-                    if (deserCursor != null) {
-                        andWhere { Episodes.lastModified less deserCursor }
-                    }
-                }.orderBy(
-                    Episodes.lastModified,
-                    SortOrder.DESC
-                ).limit(limit)
-                .map { it.toProgressedServerEpisodeInfo() }
-                .let {
-                    Paged(it, it.lastOrNull()?.data?.lastUpdated?.toEpochMilliseconds()?.toString())
-                }
         }
 
     override suspend fun getMovie(movieId: String): ServerMovieInfo? =
@@ -517,11 +514,11 @@ open class SqlDatabase(
 
     override suspend fun getProgressedMovie(movieId: String, username: String): Progressed<ServerMovieInfo>? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Movies.leftJoin(Progression, { Movies.movieId }, { Progression.mediaId })
+            Movies.leftJoin(Progression, { Movies.movieId }, { mediaId })
                 .selectAll()
                 .where {
                     Movies.movieId eq movieId and
-                        (Progression.username.isNull() or (Progression.username eq username))
+                            (Progression.username.isNull() or (Progression.username eq username))
                 }
                 .firstOrNull()
                 ?.toProgressedServerMovieInfo()
@@ -574,7 +571,7 @@ open class SqlDatabase(
         username: String
     ): Paged<Progressed<ServerMovieInfo>, String> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Movies.leftJoin(Progression, { Movies.movieId }, { Progression.mediaId })
+            Movies.leftJoin(Progression, { movieId }, { mediaId })
                 .selectAll()
                 .let {
                     // TODO min and max progression filters
@@ -597,8 +594,8 @@ open class SqlDatabase(
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Movies.deleteWhere {
                 lastUpdated less start.toEpochMilliseconds() and (
-                    Movies.libraryId eq libraryId
-                    )
+                        Movies.libraryId eq libraryId
+                        )
             }
         }
 
@@ -715,8 +712,8 @@ open class SqlDatabase(
     ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
         Shows.deleteWhere {
             lastUpdated less start.toEpochMilliseconds() and (
-                Shows.libraryId eq libraryId
-                )
+                    Shows.libraryId eq libraryId
+                    )
         }
     }
 
@@ -757,7 +754,7 @@ open class SqlDatabase(
                 .where {
                     if (updatedAfter != null) {
                         LibraryIndicies.libraryId eq libraryId and
-                            (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
+                                (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
                     } else {
                         LibraryIndicies.libraryId eq libraryId
                     }
@@ -801,7 +798,7 @@ open class SqlDatabase(
                     it[mediaId] = progress.id
                     it[timestamp] = progress.timestamp.toEpochMilliseconds()
                     it[username] = progress.username
-                    it[percent] = progress.percent
+                    it[percent] = progress.percent.coerceAtMost(1.0).coerceAtLeast(0.0)
                 }.insertedCount == 1
         }
 
@@ -827,16 +824,16 @@ open class SqlDatabase(
                 .selectAll()
                 .where {
                     (
-                        Progression.percent.lessEq(maxPercent) and
-                            Progression.percent.greaterEq(minPercent) and
-                            Progression.username.eq(username)
-                        ).let {
-                        if (cursor != null) {
-                            it and Progression.timestamp.less(cursor.toEpochMilliseconds())
-                        } else {
-                            it
+                            Progression.percent.lessEq(maxPercent) and
+                                    Progression.percent.greaterEq(minPercent) and
+                                    Progression.username.eq(username)
+                            ).let {
+                            if (cursor != null) {
+                                it and Progression.timestamp.less(cursor.toEpochMilliseconds())
+                            } else {
+                                it
+                            }
                         }
-                    }
                 }.orderBy(Progression.timestamp to SortOrder.DESC, Progression.mediaId to SortOrder.DESC)
                 .limit(limit)
                 .asFlow()
@@ -1210,12 +1207,12 @@ open class SqlDatabase(
                 username = this[Progression.username],
             )
 
-        private fun ResultRow.toNullableProgress(progresTable: Alias<Progression>? = null): UserProgress? {
-            val id = this.getOrNull(progresTable[Progression.mediaId])
-            val percent = this.getOrNull(progresTable[Progression.percent])
+        private fun ResultRow.toNullableProgress(progressTable: Alias<Progression>? = null): UserProgress? {
+            val id = this.getOrNull(progressTable[Progression.mediaId])
+            val percent = this.getOrNull(progressTable[Progression.percent])
             val timestamp =
-                this.getOrNull(progresTable[Progression.timestamp])?.let { Instant.fromEpochMilliseconds(it) }
-            val username = this.getOrNull(progresTable[Progression.username])
+                this.getOrNull(progressTable[Progression.timestamp])?.let { Instant.fromEpochMilliseconds(it) }
+            val username = this.getOrNull(progressTable[Progression.username])
             return if (id != null && percent != null && timestamp != null && username != null) {
                 UserProgress(
                     id = id,
@@ -1227,5 +1224,11 @@ open class SqlDatabase(
                 null
             }
         }
+    }
+
+    private fun ListEpisodesRequestOrderProperty.toSql() = when (this) {
+        ListEpisodesRequestOrderProperty.EpisodeId -> Episodes.episodeId
+        ListEpisodesRequestOrderProperty.EpisodeAddedTimestamp -> Episodes.lastModified
+        ListEpisodesRequestOrderProperty.ProgressTimestamp -> Progression.timestamp
     }
 }

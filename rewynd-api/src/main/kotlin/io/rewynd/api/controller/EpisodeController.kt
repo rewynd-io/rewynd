@@ -12,8 +12,6 @@ import io.rewynd.common.database.Database
 import io.rewynd.common.model.toEpisodeInfo
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.GetNextEpisodeResponse
-import io.rewynd.model.ListEpisodesByLastUpdatedRequest
-import io.rewynd.model.ListEpisodesByLastUpdatedResponse
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
 import io.rewynd.model.ListNextEpisodesRequest
@@ -24,7 +22,14 @@ fun Route.episodeRoutes(db: Database) {
     post("/episode/list") {
         withUsername {
             call.receive<ListEpisodesRequest>().let { request ->
-                val page = db.listProgressedEpisodes(request.seasonId, request.cursor, this)
+                val page = db.listProgressedEpisodes(
+                    username = this,
+                    cursor = request.cursor,
+                    seasonId = request.seasonId,
+                    minProgress = request.minProgress,
+                    maxProgress = request.maxProgress,
+                    order = request.order
+                )
                 call.respond(ListEpisodesResponse(page.data.map { it.toEpisodeInfo() }, page.cursor))
             }
         }
@@ -39,25 +44,6 @@ fun Route.episodeRoutes(db: Database) {
         }
     }
 
-    post("/episode/listByLastUpdated") {
-        withUsername {
-            call.receive<ListEpisodesByLastUpdatedRequest>().let { request ->
-                val episodes =
-                    db.listProgressedEpisodesByLastUpdated(
-                        request.cursor,
-                        request.limit,
-                        request.libraryIds,
-                        this
-                    )
-                val res =
-                    ListEpisodesByLastUpdatedResponse(
-                        episodes.data.map { it.toEpisodeInfo() },
-                        episodes.cursor,
-                    )
-                call.respond(HttpStatusCode.OK, res)
-            }
-        }
-    }
     get("/episode/get/{episodeId}") {
         withUsername {
             val episode = call.parameters["episodeId"]?.let { db.getProgressedEpisode(it, this) }?.toEpisodeInfo()

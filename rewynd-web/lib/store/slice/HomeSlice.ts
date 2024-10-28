@@ -128,17 +128,21 @@ export function loadNewestEpisodes(): Thunk {
   return async (dispatch, getState) => {
     const state = getState().home.newestEpisodesState;
     if (!state || state.cursor) {
-      const page = await HttpClient.listEpisodesByLastUpdated({
-        listEpisodesByLastUpdatedRequest: {
-          libraryIds: [],
-          limit: 100,
+      const response = await HttpClient.listEpisodes({
+        listEpisodesRequest: {
+          order: {
+            property: "EpisodeAddedTimestamp",
+            sortOrder: "Descending",
+          },
+          minProgress: 0,
+          maxProgress: 0.95,
           cursor: state?.cursor,
         },
       });
       dispatch(
         appendNewestEpisodes({
-          cursor: page.cursor,
-          values: page.episodes.map(toSerializableEpisodeInfo),
+          cursor: response.cursor,
+          values: response.page.map(toSerializableEpisodeInfo),
         }),
       );
     }
@@ -168,28 +172,21 @@ export function loadStartedEpisodes(): Thunk {
   return async (dispatch, getState) => {
     const state = getState().home.startedEpisodesState;
     if (!state || state.cursor) {
-      const cursor = state?.cursor;
-      // TODO add min/max progress to listEpisodes api instead
-      const page = await HttpClient.listProgress({
-        listProgressRequest: {
-          cursor: cursor ? new Date(cursor) : undefined,
+      const response = await HttpClient.listEpisodes({
+        listEpisodesRequest: {
+          order: {
+            property: "ProgressTimestamp",
+            sortOrder: "Descending",
+          },
+          minProgress: 0.05,
           maxProgress: 0.95,
-          minProgress: 0.5,
-          limit: 100,
+          cursor: state?.cursor,
         },
       });
       dispatch(
         appendStartedEpisodes({
-          cursor: page.cursor?.toISOString(),
-          values: (
-            await Promise.all(
-              page.results?.map((it) =>
-                HttpClient.getEpisode({ episodeId: it.id })
-                  .then((it) => [toSerializableEpisodeInfo(it)])
-                  .catch(() => []),
-              ) ?? [],
-            )
-          ).flatMap((it) => it),
+          cursor: response.cursor,
+          values: response.page.map(toSerializableEpisodeInfo),
         }),
       );
     }

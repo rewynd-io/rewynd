@@ -14,6 +14,7 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.SessionStorage
 import io.rewynd.common.model.UserProgress
 import io.rewynd.model.Library
+import io.rewynd.model.ListEpisodesRequestOrder
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -137,22 +138,15 @@ class SqliteDatabase(
         }
 
     override suspend fun listProgressedEpisodes(
-        seasonId: String,
+        username: String,
         cursor: String?,
-        username: String
+        seasonId: String?,
+        minProgress: Double,
+        maxProgress: Double,
+        order: ListEpisodesRequestOrder
     ): Paged<Progressed<ServerEpisodeInfo>, String> =
         mutex.withLock {
-            super.listProgressedEpisodes(seasonId, cursor, username)
-        }
-
-    override suspend fun listProgressedEpisodesByLastUpdated(
-        cursor: String?,
-        limit: Int,
-        libraryIds: List<String>,
-        username: String
-    ): Paged<Progressed<ServerEpisodeInfo>, String> =
-        mutex.withLock {
-            super.listProgressedEpisodesByLastUpdated(cursor, limit, libraryIds, username)
+            super.listProgressedEpisodes(username, cursor, seasonId, minProgress, maxProgress, order)
         }
 
     override suspend fun listNextEpisodes(

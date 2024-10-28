@@ -14,6 +14,7 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.SessionStorage
 import io.rewynd.common.model.UserProgress
 import io.rewynd.model.Library
+import io.rewynd.model.ListEpisodesRequestOrder
 import io.rewynd.model.SortOrder
 import kotlinx.datetime.Instant
 
@@ -83,16 +84,12 @@ sealed interface Database {
     suspend fun deleteEpisode(episodeId: String): Boolean
 
     suspend fun listProgressedEpisodes(
-        seasonId: String,
+        username: String,
         cursor: String? = null,
-        username: String
-    ): Paged<Progressed<ServerEpisodeInfo>, String>
-
-    suspend fun listProgressedEpisodesByLastUpdated(
-        cursor: String?,
-        limit: Int = LIST_EPISODES_MAX_SIZE,
-        libraryIds: List<String> = emptyList(),
-        username: String
+        seasonId: String? = null,
+        minProgress: Double = 0.0,
+        maxProgress: Double = 1.0,
+        order: ListEpisodesRequestOrder
     ): Paged<Progressed<ServerEpisodeInfo>, String>
 
     suspend fun listNextEpisodes(

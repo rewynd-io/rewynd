@@ -1,6 +1,5 @@
 package io.rewynd.api
 
-import io.kotest.assertions.inspecting
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
@@ -83,7 +82,7 @@ open class BaseHarness(
             setup()
             val customClient = RewyndClient("https://localhost", clientSetup())
             val res = clientCall.invoke(customClient)
-            inspecting(res) { runBlocking { inspector() } }
+            with(res) { runBlocking { inspector() } }
         }
     }
 
