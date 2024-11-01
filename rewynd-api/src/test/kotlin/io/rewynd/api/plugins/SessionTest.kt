@@ -36,7 +36,7 @@ class SessionTest : StringSpec({
                         configureSession(db, secure = true)
                         routing {
                             get {
-                                context.sessions.set(userSession)
+                                call.sessions.set(userSession)
                                 call.respond(HttpStatusCode.OK)
                             }
                         }
@@ -60,7 +60,7 @@ class SessionTest : StringSpec({
                     configureSession(db, secure = false)
                     routing {
                         get {
-                            context.sessions.set(userSession)
+                            call.sessions.set(userSession)
                             call.respond(HttpStatusCode.OK)
                         }
                     }

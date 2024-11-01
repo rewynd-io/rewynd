@@ -23,20 +23,20 @@ import java.security.MessageDigest
 fun Route.authRoutes(db: Database) {
     route("/auth") {
         get("/verify") {
-            val session = this.context.sessions.get<UserSession>()
+            val session = call.sessions.get<UserSession>()
             val user = session?.let { db.getUser(it.username) }
             if (user != null) {
-                this.context.response.status(HttpStatusCode.OK)
+                call.response.status(HttpStatusCode.OK)
                 call.respond(user.user)
             } else {
-                this.context.sessions.clear<UserSession>()
-                this.context.response.status(
+                call.sessions.clear<UserSession>()
+                call.response.status(
                     HttpStatusCode.Forbidden,
                 )
             }
         }
         post("/logout") {
-            this.context.sessions.clear<UserSession>()
+            call.sessions.clear<UserSession>()
             call.respond(HttpStatusCode.OK)
         }
         post("/login") {
@@ -49,10 +49,10 @@ fun Route.authRoutes(db: Database) {
                     if (user != null) {
                         val hashedPass = hashPassword(password, user.salt)
                         if (MessageDigest.isEqual(decoder.decode(hashedPass), decoder.decode(user.hashedPass))) {
-                            this.context.sessions.set<UserSession>(UserSession(generateSessionId(), username))
+                            call.sessions.set<UserSession>(UserSession(generateSessionId(), username))
                             HttpStatusCode.OK
                         } else {
-                            this.context.sessions.clear<UserSession>()
+                            call.sessions.clear<UserSession>()
                             HttpStatusCode.Forbidden
                         }
                     } else {

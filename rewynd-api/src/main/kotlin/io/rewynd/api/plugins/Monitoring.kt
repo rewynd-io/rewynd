@@ -7,7 +7,7 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callid.generate
-import io.ktor.server.plugins.callloging.CallLogging
+import io.ktor.server.plugins.calllogging.CallLogging
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.util.UUID

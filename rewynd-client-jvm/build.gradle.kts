@@ -109,6 +109,8 @@ val copySources =
 }
 """,
                 )
+                .replace("import io.ktor.util.InternalAPI", "")
+                .replace("@OptIn(InternalAPI::class)", "")
         }
     }
 

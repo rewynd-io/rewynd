@@ -112,7 +112,7 @@ object PersistentCookiesStorage : CookiesStorage {
                     name = cookie.name,
                     value = cookie.value,
                     encoding = cookie.encoding,
-                    maxAge = cookie.maxAge,
+                    maxAge = cookie.maxAge ?: 0,
                     expires = cookie.expires?.timestamp,
                     domain = cookie.domain,
                     path = cookie.path,

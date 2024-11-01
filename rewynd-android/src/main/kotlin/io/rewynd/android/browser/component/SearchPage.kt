@@ -24,7 +24,7 @@ fun SearchPage(
     viewModel: BrowserViewModel,
     actions: BrowserNavigationActions,
     modifier: Modifier = Modifier,
-    onActiveChange: (Boolean) -> Unit
+    onActiveChange: (Boolean) -> Unit = { }
 ) {
     val searchText by viewModel.searchText.collectAsStateWithLifecycle("")
     val results by viewModel.searchResults.collectAsStateWithLifecycle(emptyList())

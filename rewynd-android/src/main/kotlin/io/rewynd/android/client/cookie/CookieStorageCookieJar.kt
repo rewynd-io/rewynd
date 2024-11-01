@@ -20,9 +20,9 @@ class CookieStorageCookieJar(private val cookiesStorage: CookiesStorage) : Cooki
                     if (it.httpOnly) httpOnly()
                     it.path?.also(this::path)
                     it.expires?.timestamp?.apply(this::expiresAt)
-                    if (it.maxAge > 0) {
+                    if ((it.maxAge ?: 0) > 0) {
                         this.expiresAt(
-                            (System.currentTimeMillis() / MILLIS_PER_SECOND) + it.maxAge,
+                            (System.currentTimeMillis() / MILLIS_PER_SECOND) + (it.maxAge ?: 0),
                         )
                     }
                     if (it.secure) secure()

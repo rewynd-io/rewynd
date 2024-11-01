@@ -11,7 +11,7 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.util.toByteArray
+import io.ktor.utils.io.toByteArray
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyAll
