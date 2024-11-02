@@ -8,22 +8,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-fun <K : Any, V : Any> RedisCoroutinesCommands<K, V>.blpopFlow(vararg keys: K) =
+fun <K : Any, V : Any> RedisCoroutinesCommands<K, V>.blpopFlow(vararg keys: K, interval: Duration = 30.seconds) =
     flow {
         while (true) {
-            val popped = this@blpopFlow.blpop(0, *keys)
-            emit(popped)
+            val popped = this@blpopFlow.blpop(interval.inWholeSeconds, *keys)
+            popped?.let { emit(it) }
         }
     }.flowOn(Dispatchers.IO)
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-fun <K : Any, V : Any> RedisClusterCoroutinesCommands<K, V>.blpopFlow(vararg keys: K) =
+fun <K : Any, V : Any> RedisClusterCoroutinesCommands<K, V>.blpopFlow(vararg keys: K, interval: Duration = 30.seconds) =
     flow {
         while (true) {
-            val popped = this@blpopFlow.blpop(0, *keys)
-            emit(popped)
+            val popped = this@blpopFlow.blpop(interval.inWholeSeconds, *keys)
+            popped?.let { emit(it) }
         }
     }.flowOn(Dispatchers.IO)
 
