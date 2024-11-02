@@ -91,6 +91,8 @@ dependencies {
     implementation(libs.arrow.fx.coroutines)
     implementation(libs.coil.base)
     implementation(libs.coil.compose)
+    implementation(libs.acra.mail)
+    implementation(libs.acra.dialog)
 
     detektPlugins(libs.detekt.formatting)
     detektPlugins(libs.detekt.compose)

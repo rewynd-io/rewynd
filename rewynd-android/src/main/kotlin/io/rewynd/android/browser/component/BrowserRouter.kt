@@ -24,7 +24,7 @@ fun BrowserRouter(
 ) {
     NavHost(
         navController = navController,
-        startDestination = navController.currentDestination ?: BrowserState.HomeState,
+        startDestination = BrowserState.HomeState,
     ) {
         composable<BrowserState.SearchState> {
             SearchPage(viewModel, actions) { if (!it) navController.popBackStack() }
