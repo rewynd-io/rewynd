@@ -162,7 +162,7 @@ export async function loadAllEpisodes(seasonId: string) {
         minProgress: 0,
         maxProgress: 1,
         order: {
-          property: "EpisodeId",
+          property: "Natural",
           sortOrder: "Ascending",
         },
       },

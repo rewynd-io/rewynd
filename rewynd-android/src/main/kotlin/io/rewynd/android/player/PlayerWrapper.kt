@@ -131,17 +131,10 @@ class PlayerWrapper(
                 log.info { "TimeUpdate: ${player.currentPosition}" }
                 val state = getState()
                 onEvent(state)
-                if (state.media != null && state.offsetTime >= state.media.runTime.minus(1.seconds)) {
+                if (state.media != null && state.offsetTime >= state.media.runTime.minus(100.milliseconds)) {
                     runBlocking {
                         next(startAtZero = true)
                     }
-                }
-            }
-
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                super.onPlaybackStateChanged(playbackState)
-                if (playbackState == ExoPlayer.STATE_ENDED) {
-                    next(startAtZero = true)
                 }
             }
 

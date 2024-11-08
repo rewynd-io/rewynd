@@ -20,7 +20,7 @@ class EpisodesPagingSource(
         ListEpisodesRequest(
             seasonId = seasonId,
             cursor = params.key,
-            order = ListEpisodesRequestOrder(ListEpisodesRequestOrderProperty.EpisodeId, SortOrder.Descending)
+            order = ListEpisodesRequestOrder(ListEpisodesRequestOrderProperty.Natural, SortOrder.Descending)
         ),
     ).result().fold({
         LoadResult.Page(it.page.sortedBy(EpisodeInfo::episode), null, it.cursor)

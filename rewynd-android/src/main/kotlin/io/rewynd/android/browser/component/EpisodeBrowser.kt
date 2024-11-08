@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserViewModel
+import io.rewynd.android.browser.Prefs.clampedPercent
 import io.rewynd.android.component.ApiImage
 import io.rewynd.android.model.PlayerMedia
 import io.rewynd.android.util.details
@@ -69,7 +70,7 @@ fun EpisodeBrowser(
                         runTime = episodeInfo.runTime.seconds,
                         startOffset =
                         episodeInfo.runTime.seconds.times(
-                            (episodeInfo.progress.percent),
+                            (episodeInfo.progress.clampedPercent),
                         ),
                         videoTrackName = episodeInfo.videoTracks.keys.firstOrNull(),
                         audioTrackName = episodeInfo.audioTracks.keys.firstOrNull(),

@@ -71,7 +71,7 @@ class BrowserViewModel(
     @Composable
     fun loadUser() = LaunchedEffect(_user) {
         if (_user.value == null) {
-            _user.value = client.verify().body()
+            _user.value = client.verify().result().getOrNull()
         }
     }
 
@@ -142,7 +142,7 @@ class BrowserViewModel(
     @Composable
     fun loadEpisode(id: String) = LaunchedEffect(id) {
         episode = null
-        episode = client.getEpisode(id).body()
+        episode = client.getEpisode(id).result().getOrNull()
     }
 
     var nextEpisode by mutableStateOf<EpisodeInfo?>(null)
@@ -151,7 +151,7 @@ class BrowserViewModel(
     @Composable
     fun loadNextEpisode(id: String) = LaunchedEffect(id) {
         nextEpisode = null
-        nextEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Ascending)).body().episodeInfo
+        nextEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Ascending)).result().getOrNull()?.episodeInfo
     }
 
     var prevEpisode by mutableStateOf<EpisodeInfo?>(null)
@@ -160,7 +160,7 @@ class BrowserViewModel(
     @Composable
     fun loadPrevEpisode(id: String) = LaunchedEffect(id) {
         prevEpisode = null
-        prevEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Descending)).body().episodeInfo
+        prevEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Descending)).result().getOrNull()?.episodeInfo
     }
 
     var season by mutableStateOf<SeasonInfo?>(null)
@@ -169,7 +169,7 @@ class BrowserViewModel(
     @Composable
     fun loadSeason(id: String) = LaunchedEffect(id) {
         season = null
-        season = client.getSeasons(id).body()
+        season = client.getSeasons(id).result().getOrNull()
     }
 
     var show by mutableStateOf<ShowInfo?>(null)
@@ -178,7 +178,7 @@ class BrowserViewModel(
     @Composable
     fun loadShow(id: String) = LaunchedEffect(id) {
         show = null
-        show = client.getShow(id).body()
+        show = client.getShow(id).result().getOrNull()
     }
 
     var movie by mutableStateOf<MovieInfo?>(null)
@@ -187,7 +187,7 @@ class BrowserViewModel(
     @Composable
     fun loadMovie(id: String) = LaunchedEffect(id) {
         movie = null
-        movie = client.getMovie(id).body()
+        movie = client.getMovie(id).result().getOrNull()
     }
 
     var library by mutableStateOf<Library?>(null)
@@ -196,7 +196,7 @@ class BrowserViewModel(
     @Composable
     fun loadLibrary(id: String) = LaunchedEffect(id) {
         library = null
-        library = client.getLibrary(id).body()
+        library = client.getLibrary(id).result().getOrNull()
     }
 
     private val _searchText = MutableStateFlow("")
@@ -214,14 +214,14 @@ class BrowserViewModel(
     init {
         viewModelScope.launch {
             searchText.collectLatest { query ->
-                client.search(SearchRequest(query)).body().let { res ->
+                client.search(SearchRequest(query)).result().getOrNull()?.let { res ->
                     _searchResults.value =
                         res.results
                             .asFlow()
                             .parMap {
                                 when (it.resultType) {
                                     SearchResultType.Episode ->
-                                        client.getEpisode(it.id).body().let { episode ->
+                                        client.getEpisode(it.id).result().getOrNull()?.let { episode ->
                                             LoadedSearchResult.Episode(
                                                 it,
                                                 episode,
@@ -229,18 +229,18 @@ class BrowserViewModel(
                                         }
 
                                     SearchResultType.Season ->
-                                        client.getSeasons(it.id).body().let { season ->
+                                        client.getSeasons(it.id).result().getOrNull()?.let { season ->
                                             LoadedSearchResult.Season(
                                                 it,
                                                 season,
                                             )
                                         }
 
-                                    SearchResultType.Show -> client.getShow(it.id).body()
-                                        .let { show -> LoadedSearchResult.Show(it, show) }
+                                    SearchResultType.Show -> client.getShow(it.id).result().getOrNull()
+                                        ?.let { show -> LoadedSearchResult.Show(it, show) }
 
-                                    SearchResultType.Movie -> client.getMovie(it.id).body()
-                                        .let { movie -> LoadedSearchResult.Movie(it, movie) }
+                                    SearchResultType.Movie -> client.getMovie(it.id).result().getOrNull()
+                                        ?.let { movie -> LoadedSearchResult.Movie(it, movie) }
                                 }
                             }.filterNotNull()
                             .toList()

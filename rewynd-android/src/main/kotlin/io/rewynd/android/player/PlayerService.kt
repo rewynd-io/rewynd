@@ -24,7 +24,6 @@ import io.rewynd.android.client.cookie.CookieStorageCookieJar
 import io.rewynd.android.client.cookie.PersistentCookiesStorage
 import io.rewynd.android.client.mkRewyndClient
 import io.rewynd.android.model.PlayerMedia
-import io.rewynd.client.RewyndClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +39,6 @@ class PlayerService : Service() {
     private var browserState: Bundle? = null
     private var originalPlayerProps: PlayerProps? = null
     private val cookies by lazy { PersistentCookiesStorage }
-    private lateinit var notification: Notification
     private val httpClient: OkHttpClient by lazy {
         OkHttpClient
             .Builder()
@@ -51,7 +49,7 @@ class PlayerService : Service() {
     }
 
     private val player by lazy {
-        PlayerWrapper(this, httpClient, client, onEvent = {
+        PlayerWrapper(this, httpClient, mkRewyndClient(), onEvent = {
             // Relies on the stop() setting instance.value to null, which isn't great
             if (_instance.value != null) {
                 setPlaybackState(it)
@@ -61,8 +59,6 @@ class PlayerService : Service() {
     }
 
     private val mediaSession: MediaSession by lazy { MediaSession(this, "RewyndMediaSession") }
-
-    private lateinit var client: RewyndClient
 
     private fun stop(): Unit =
         runBlocking {
@@ -138,7 +134,6 @@ class PlayerService : Service() {
     private fun handleStartIntent(props: PlayerServiceProps.Start) {
         if (props.interruptPlayback || player.state.value.media == null) {
             this.originalPlayerProps = props.playerProps
-            client = mkRewyndClient()
             runBlocking {
                 val playerMedia = props.playerProps.media
                 player.load(playerMedia)
@@ -383,8 +378,8 @@ class PlayerService : Service() {
                 builder.setColorized(true)
             }
 
-            notification = builder.build()
-            startForeground(PLAYER_SERVICE_NOTIFICATION_ID, notification)
+
+            startForeground(PLAYER_SERVICE_NOTIFICATION_ID, builder.build())
         } ?: Unit
     }
 

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import io.rewynd.android.browser.BrowserNavigationActions
 import io.rewynd.android.browser.BrowserViewModel
+import io.rewynd.android.browser.Prefs.clampedPercent
 import io.rewynd.android.component.ApiImage
 import io.rewynd.android.model.PlayerMedia
 import kotlin.time.Duration.Companion.seconds
@@ -47,7 +48,7 @@ fun MovieBrowser(
                         runTime = movieInfo.runTime.seconds,
                         startOffset =
                         movieInfo.runTime.seconds.times(
-                            (movieInfo.progress.percent),
+                            (movieInfo.progress.clampedPercent),
                         ),
                         videoTrackName = movieInfo.videoTracks.keys.firstOrNull(),
                         audioTrackName = movieInfo.audioTracks.keys.firstOrNull(),

@@ -5,6 +5,7 @@ import androidx.preference.PreferenceManager
 import io.rewynd.android.App
 import io.rewynd.android.client.ServerUrl
 import io.rewynd.android.client.cookie.PersistentCookiesStorage
+import io.rewynd.model.Progress
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -33,4 +34,7 @@ object Prefs {
             Json.decodeFromString<Map<String, HashSet<PersistentCookiesStorage.SerializableCookie>>>(it)
         } ?: emptyMap()
         set(value) = sharedPreferences.edit { putString(COOKIES_STORE_PREF, Json.encodeToString(value)) }
+
+    val Progress.clampedPercent: Double
+        get() = if(percent > 0.95) 0.0 else percent
 }
