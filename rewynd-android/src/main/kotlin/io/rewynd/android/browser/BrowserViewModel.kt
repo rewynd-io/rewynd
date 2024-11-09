@@ -151,7 +151,8 @@ class BrowserViewModel(
     @Composable
     fun loadNextEpisode(id: String) = LaunchedEffect(id) {
         nextEpisode = null
-        nextEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Ascending)).result().getOrNull()?.episodeInfo
+        nextEpisode =
+            client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Ascending)).result().getOrNull()?.episodeInfo
     }
 
     var prevEpisode by mutableStateOf<EpisodeInfo?>(null)
@@ -160,7 +161,8 @@ class BrowserViewModel(
     @Composable
     fun loadPrevEpisode(id: String) = LaunchedEffect(id) {
         prevEpisode = null
-        prevEpisode = client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Descending)).result().getOrNull()?.episodeInfo
+        prevEpisode =
+            client.getNextEpisode(GetNextEpisodeRequest(id, SortOrder.Descending)).result().getOrNull()?.episodeInfo
     }
 
     var season by mutableStateOf<SeasonInfo?>(null)

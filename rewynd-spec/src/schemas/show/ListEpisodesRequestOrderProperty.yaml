@@ -1,5 +1,5 @@
 type: string
 enum:
-  - Natural
+  - EpisodeId
   - EpisodeAddedTimestamp
   - ProgressTimestamp

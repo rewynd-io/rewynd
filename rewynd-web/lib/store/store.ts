@@ -8,12 +8,14 @@ import { userPreferencesSlice } from "./slice/UserPreferencesSlice";
 import { adminSettingsSlice } from "./slice/AdminSettingsSlice";
 import { useEffect } from "react";
 import { homeSlice } from "./slice/HomeSlice";
+import { seasonSlice } from "./slice/SeasonSlice";
 
 export const store = configureStore({
   reducer: {
     // player: playerSlice.reducer,
     home: homeSlice.reducer,
     episode: episodeSlice.reducer,
+    season: seasonSlice.reducer,
     hls: hlsPlayerSlice.reducer,
     user: userSlice.reducer,
     adminSettings: adminSettingsSlice.reducer,

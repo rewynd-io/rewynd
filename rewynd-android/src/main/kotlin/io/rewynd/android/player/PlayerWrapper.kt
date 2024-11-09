@@ -32,7 +32,6 @@ import kotlinx.datetime.Clock
 import okhttp3.OkHttpClient
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 data class PlayerState(
     val bufferedPosition: Duration = Duration.ZERO,

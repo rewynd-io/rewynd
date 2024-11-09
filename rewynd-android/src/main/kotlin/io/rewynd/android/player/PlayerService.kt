@@ -378,7 +378,6 @@ class PlayerService : Service() {
                 builder.setColorized(true)
             }
 
-
             startForeground(PLAYER_SERVICE_NOTIFICATION_ID, builder.build())
         } ?: Unit
     }

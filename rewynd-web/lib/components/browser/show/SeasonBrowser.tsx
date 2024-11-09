@@ -1,62 +1,84 @@
 import React from "react";
 
 import { useParams } from "react-router";
-import { EpisodesLoader } from "../../loader/show/EpisodesLoader";
 import { Grid2 as Grid, Stack, Typography } from "@mui/material";
 import { NavBar } from "../../NavBar";
 import { List } from "immutable";
 import { EpisodeCard } from "../card/EpisodeCard";
 import { ApiImage } from "../../Image";
-import { toSerializableEpisodeInfo } from "../../../models";
+import { useAppSelector, useThunkEffect } from "../../../store/store";
+import { LoadingIcon } from "../../LoadingIcon";
+import { fetchSeason, loadEpisodes } from "../../../store/slice/SeasonSlice";
 
 export function SeasonBrowser() {
-  const season = useParams()["seasonId"];
-  if (!season) return <></>;
   return (
     <NavBar>
-      <EpisodesLoader
-        seasonId={season}
-        onLoad={({ episodeInfos, seasonInfo }) => {
-          return (
-            <Stack>
-              <Stack direction={"row"}>
-                <ApiImage
-                  style={{ width: "30%" }}
-                  alt={`${seasonInfo.showName} ${seasonInfo.seasonNumber} Season Image`}
-                  id={seasonInfo.folderImageId}
-                />
-                <Stack direction={"column"}>
-                  <Typography>{seasonInfo.showName}</Typography>
-                  <Typography>Season {seasonInfo.seasonNumber}</Typography>
-                  <Typography>
-                    {seasonInfo.releaseDate?.toDateString()}
-                  </Typography>
-                </Stack>
-              </Stack>
-              <Grid
-                container
-                direction={"row"}
-                sx={{ height: "100%" }}
-                key={`EpisodesContainer-${season}`}
-              >
-                {List(episodeInfos)
-                  .sortBy((it) => it.episode)
-                  .map((showEpisodeInfo) => {
-                    // TODO fetch progress to be displayed on the cards
-                    return (
-                      // <Box sx={{ minHeight: "10em" }} key={showEpisodeInfo.id}>
-                      <EpisodeCard
-                        episode={toSerializableEpisodeInfo(showEpisodeInfo)}
-                        key={showEpisodeInfo.id}
-                      />
-                      // </Box>
-                    );
-                  })}
-              </Grid>
-            </Stack>
-          );
-        }}
-      />
+      <InnerSeasonBrowser />
     </NavBar>
+  );
+}
+
+function InnerSeasonBrowser() {
+  const seasonId = useParams()["seasonId"];
+  if (!seasonId) return <></>;
+
+  const { episodes, season } = useAppSelector((state) => state.season);
+
+  useThunkEffect(fetchSeason, seasonId);
+  useThunkEffect(loadEpisodes, seasonId, episodes?.cursor);
+
+  if (!episodes || !season) {
+    return <LoadingIcon />;
+  }
+  return (
+    <Stack>
+      <Stack direction={"row"}>
+        <ApiImage
+          style={{ width: "30%" }}
+          alt={`${season.showName} ${season.seasonNumber} Season Image`}
+          id={season.folderImageId}
+        />
+        <Stack direction={"column"}>
+          <Typography>{season.showName}</Typography>
+          <Typography>Season {season.seasonNumber}</Typography>
+          <Typography>{season.releaseDate}</Typography>
+        </Stack>
+      </Stack>
+      <Grid
+        container
+        direction={"row"}
+        sx={{ height: "100%" }}
+        key={`EpisodesContainer-${season}`}
+      >
+        {List(episodes.episodes)
+          .sort((a, b) => {
+            if (a.episode < b.episode) {
+              return -1;
+            } else if (a.episode > b.episode) {
+              return 1;
+            } else {
+              if (a.title < b.title) {
+                return -1;
+              } else if (a.title > b.title) {
+                return 1;
+              } else {
+                if (a.id < b.id) {
+                  return -1;
+                } else if (a.id > b.id) {
+                  return 1;
+                } else {
+                  return 0;
+                }
+              }
+            }
+          })
+          .map((showEpisodeInfo) => {
+            // TODO fetch progress to be displayed on the cards
+            return (
+              <EpisodeCard episode={showEpisodeInfo} key={showEpisodeInfo.id} />
+            );
+          })}
+      </Grid>
+    </Stack>
   );
 }

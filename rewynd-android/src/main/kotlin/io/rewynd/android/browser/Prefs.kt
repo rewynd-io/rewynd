@@ -35,6 +35,7 @@ object Prefs {
         } ?: emptyMap()
         set(value) = sharedPreferences.edit { putString(COOKIES_STORE_PREF, Json.encodeToString(value)) }
 
+    private const val COMPLETE_PERCENT = 0.95
     val Progress.clampedPercent: Double
-        get() = if(percent > 0.95) 0.0 else percent
+        get() = if (percent > COMPLETE_PERCENT) 0.0 else percent
 }
