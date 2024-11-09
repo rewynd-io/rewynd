@@ -506,19 +506,22 @@ open class SqlDatabase(
         order: ListEpisodesRequestOrder
     ): Paged<Progressed<ServerEpisodeInfo>, String> =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes.leftJoin(Progression, { episodeId }, { mediaId })
+            val userProgress = Progression.selectAll().where {
+                Progression.username eq username
+            }.alias("userProgress")
+
+            Episodes.leftJoin(userProgress, { episodeId }, { userProgress[Progression.mediaId] })
                 .selectAll()
                 .where {
-                    (Progression.username.isNull() or (Progression.username eq username)) and
+                    (
+                        coalesce(
+                            userProgress[Progression.percent],
+                            LiteralOp(Progression.percent.columnType, 0.0)
+                        ) greaterEq minProgress
+                        ) and
                         (
                             coalesce(
-                                Progression.percent,
-                                LiteralOp(Progression.percent.columnType, 0.0)
-                            ) greaterEq minProgress
-                            ) and
-                        (
-                            coalesce(
-                                Progression.percent,
+                                userProgress[Progression.percent],
                                 LiteralOp(Progression.percent.columnType, 0.0)
                             ) lessEq maxProgress
                             )
@@ -530,7 +533,18 @@ open class SqlDatabase(
                         }
                     }
                     if (cursor != null) {
-                        andWhere { Episodes.episodeId greater cursor }
+                        andWhere {
+                            val expr = when (order.property) {
+                                ListEpisodesRequestOrderProperty.EpisodeId -> Episodes.episodeId
+                                ListEpisodesRequestOrderProperty.ProgressTimestamp -> Progression.timestamp
+                                ListEpisodesRequestOrderProperty.EpisodeAddedTimestamp -> Episodes.lastModified
+                            }
+
+                            when (order.sortOrder) {
+                                io.rewynd.model.SortOrder.Descending -> expr less cursor
+                                io.rewynd.model.SortOrder.Ascending -> expr greater cursor
+                            }
+                        }
                     }
                 }
                 .orderBy(order.property.toSql(), order.sortOrder.toSql())
