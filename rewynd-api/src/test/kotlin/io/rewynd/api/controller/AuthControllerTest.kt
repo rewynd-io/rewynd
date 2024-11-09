@@ -146,7 +146,6 @@ internal class AuthControllerTest : StringSpec({
                 shouldThrow<NoSuchElementException> {
                     sessionStore.read(sessionId)
                 }
-
                 cookieStorage.get(Url("https://localhost")).shouldBeEmpty()
             }
         }
@@ -175,7 +174,7 @@ internal class AuthControllerTest : StringSpec({
                         sessionStore.read(sessionId)
                     }
 
-                    cookieStorage.get(Url("https://localhost")).shouldBeEmpty()
+                    cookieStorage.get(Url("https://localhost")).filter { it.value.isNotEmpty() }.shouldBeEmpty()
                 }
             }
         }

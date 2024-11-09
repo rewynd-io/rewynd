@@ -10,6 +10,7 @@ import {
   instanceOfMovieInfo,
 } from "@rewynd.io/rewynd-client-typescript";
 import { HttpClient } from "./const";
+import { SerializableEpisodeInfo } from "./models";
 
 export type Nil = undefined | null | void;
 
@@ -218,4 +219,29 @@ export function stripMediaInfo(mediaInfo: MediaInfo): MediaInfo {
     libraryId: mediaInfo.libraryId,
     id: mediaInfo.id,
   };
+}
+
+export function compareEpisodeInfo(
+  a: SerializableEpisodeInfo,
+  b: SerializableEpisodeInfo,
+) {
+  if (a.episode < b.episode) {
+    return -1;
+  } else if (a.episode > b.episode) {
+    return 1;
+  } else {
+    if (a.title < b.title) {
+      return -1;
+    } else if (a.title > b.title) {
+      return 1;
+    } else {
+      if (a.id < b.id) {
+        return -1;
+      } else if (a.id > b.id) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+  }
 }

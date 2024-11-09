@@ -9,6 +9,7 @@ import { ApiImage } from "../../Image";
 import { useAppSelector, useThunkEffect } from "../../../store/store";
 import { LoadingIcon } from "../../LoadingIcon";
 import { fetchSeason, loadEpisodes } from "../../../store/slice/SeasonSlice";
+import { compareEpisodeInfo } from "../../../util";
 
 export function SeasonBrowser() {
   return (
@@ -51,27 +52,7 @@ function InnerSeasonBrowser() {
         key={`EpisodesContainer-${season}`}
       >
         {List(episodes.episodes)
-          .sort((a, b) => {
-            if (a.episode < b.episode) {
-              return -1;
-            } else if (a.episode > b.episode) {
-              return 1;
-            } else {
-              if (a.title < b.title) {
-                return -1;
-              } else if (a.title > b.title) {
-                return 1;
-              } else {
-                if (a.id < b.id) {
-                  return -1;
-                } else if (a.id > b.id) {
-                  return 1;
-                } else {
-                  return 0;
-                }
-              }
-            }
-          })
+          .sort(compareEpisodeInfo)
           .map((showEpisodeInfo) => {
             // TODO fetch progress to be displayed on the cards
             return (

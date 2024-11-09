@@ -42,26 +42,27 @@ fun Route.authRoutes(db: Database) {
         post("/login") {
             val request = call.receive<LoginRequest>()
             val username = request.username
-            val user = username?.let { db.getUser(it) }
             val password = request.password
-            call.respond(
-                if (username != null && password != null) {
-                    if (user != null) {
-                        val hashedPass = hashPassword(password, user.salt)
-                        if (MessageDigest.isEqual(decoder.decode(hashedPass), decoder.decode(user.hashedPass))) {
-                            call.sessions.set<UserSession>(UserSession(generateSessionId(), username))
-                            HttpStatusCode.OK
-                        } else {
-                            call.sessions.clear<UserSession>()
-                            HttpStatusCode.Forbidden
-                        }
+            val response = if (username != null && password != null) {
+                val user = db.getUser(username)
+                if (user != null) {
+                    val hashedPass = hashPassword(password, user.salt)
+                    if (MessageDigest.isEqual(decoder.decode(hashedPass), decoder.decode(user.hashedPass))) {
+                        call.sessions.set<UserSession>(UserSession(generateSessionId(), username))
+                        HttpStatusCode.OK
                     } else {
                         HttpStatusCode.Forbidden
                     }
                 } else {
-                    HttpStatusCode.BadRequest
-                },
-            )
+                    HttpStatusCode.Forbidden
+                }
+            } else {
+                HttpStatusCode.BadRequest
+            }
+            if (response != HttpStatusCode.OK) {
+                call.sessions.clear<UserSession>()
+            }
+            call.respond(response)
         }
     }
 }
