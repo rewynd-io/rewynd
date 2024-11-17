@@ -322,11 +322,14 @@ open class SqlDatabase(
 
     override suspend fun getProgressedEpisode(episodeId: String, username: String): Progressed<ServerEpisodeInfo>? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Episodes.leftJoin(Progression, { Episodes.episodeId }, { mediaId })
+            val userProgress = Progression.selectAll().where {
+                Progression.username eq username
+            }.alias("userProgress")
+
+            Episodes.leftJoin(userProgress, { Episodes.episodeId }, { userProgress[Progression.mediaId] })
                 .selectAll()
                 .where {
-                    Episodes.episodeId eq episodeId and
-                        (Progression.username.isNull() or (Progression.username eq username))
+                    Episodes.episodeId eq episodeId
                 }
                 .firstOrNull()
                 ?.toProgressedServerEpisodeInfo()
@@ -563,11 +566,14 @@ open class SqlDatabase(
 
     override suspend fun getProgressedMovie(movieId: String, username: String): Progressed<ServerMovieInfo>? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            Movies.leftJoin(Progression, { Movies.movieId }, { mediaId })
+            val userProgress = Progression.selectAll().where {
+                Progression.username eq username
+            }.alias("userProgress")
+
+            Movies.leftJoin(userProgress, { Movies.movieId }, { userProgress[Progression.mediaId] })
                 .selectAll()
                 .where {
-                    Movies.movieId eq movieId and
-                        (Progression.username.isNull() or (Progression.username eq username))
+                    Movies.movieId eq movieId
                 }
                 .firstOrNull()
                 ?.toProgressedServerMovieInfo()
@@ -835,7 +841,7 @@ open class SqlDatabase(
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Progression
                 .selectAll()
-                .where { Progression.mediaId eq id }
+                .where { (Progression.mediaId eq id) and (Progression.username eq username) }
                 .firstOrNull()
                 ?.toProgress()
         }
@@ -857,7 +863,7 @@ open class SqlDatabase(
     ): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
             Progression.deleteWhere {
-                mediaId eq id
+                (mediaId eq id) and (Progression.username eq username)
             } == 1
         }
 
