@@ -1,5 +1,5 @@
 import { Navigate, useNavigate, useParams } from "react-router";
-import React, { useEffect } from "react";
+import React from "react";
 import { HlsPlayer, MediaSelection } from "./HlsPlayer";
 import {
   useAppDispatch,
@@ -22,9 +22,6 @@ export function EpisodeHlsPlayer() {
   }
 
   const isComplete = useAppSelector((state) => state.hls.completed);
-  useEffect(() => {
-    dispatch(setCompleted(false));
-  }, [episodeId]);
 
   useThunkEffect(fetchEpisode, episodeId);
   const state = useAppSelector((state) => state.episode.state);
@@ -43,6 +40,7 @@ export function EpisodeHlsPlayer() {
   return (
     <HlsPlayer
       onInit={async () => {
+        dispatch(setCompleted(false));
         return {
           request: {
             audioTrack: Object.keys(episode.audioTracks)[0],
