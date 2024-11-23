@@ -46,6 +46,7 @@ fun StreamMetadata.toStreamM3u8(): String =
             #EXT-X-TARGETDURATION:${(segments.maxOfOrNull { segment -> segment.duration } ?: DEFAULT_SEGMENT_DURATION).inWholeSeconds}
             #EXT-X-MEDIA-SEQUENCE:0
             #EXT-X-MAP:URI="init-stream.mp4"
+            #EXT-X-START:TIME-OFFSET=0.0
 
             """.trimIndent(),
         ),
