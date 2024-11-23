@@ -47,6 +47,103 @@ fun PlayerWrapper(
 
     val areControlsVisible by viewModel.areControlsVisible.collectAsState()
 
+    state.media?.let { media ->
+        Log.d("PlayerActivity", media.toString())
+        LaunchedEffect(key1 = media, key2 = updateMedia) {
+            updateMedia()
+        }
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            AndroidView(
+                modifier =
+                Modifier.clickable {
+                    viewModel.setControlsVisible(areControlsVisible.not())
+                }.background(Color.Black).fillMaxHeight().fillMaxWidth(),
+                factory = { context ->
+                    serviceInterface.getPlayerView(context).apply {
+                        useController = false
+                        this.addOnLayoutChangeListener { view: View,
+                                                         _: Int,
+                                                         _: Int,
+                                                         _: Int,
+                                                         _: Int,
+                                                         _: Int,
+                                                         _: Int,
+                                                         _: Int,
+                                                         _: Int ->
+                            view.useRect()
+                        }
+                        this.useRect()
+                    }
+                },
+            )
+            // TODO reset controls visibility on any button press
+            PlayerControls(
+                modifier = Modifier.fillMaxSize(),
+                isVisible = areControlsVisible,
+                isPlaying = state.isPlaying,
+                title = media.details,
+                onPrev =
+                if (state.prev == null) {
+                    null
+                } else {
+                    { serviceInterface.playPrev() }
+                },
+                onNext =
+                if (state.next == null) {
+                    null
+                } else {
+                    { serviceInterface.playNext() }
+                },
+                onPlay = { serviceInterface.play() },
+                onPause = { serviceInterface.pause() },
+                onSeek = { serviceInterface.seek(it) },
+                currentPlayerTime = state.offsetTime,
+                runTime = media.runTime,
+                onAudioChange = {
+                    MainScope().launch {
+                        serviceInterface.loadMedia(
+                            media.copy(
+                                audioTrackName = it,
+                                startOffset = state.offsetTime,
+                            ),
+                        )
+                    }
+                },
+                onVideoChange = {
+                    MainScope().launch {
+                        serviceInterface.loadMedia(
+                            media.copy(
+                                videoTrackName = it,
+                                startOffset = state.offsetTime,
+                            ),
+                        )
+                    }
+                },
+                onSubtitleChange = {
+                    MainScope().launch {
+                        serviceInterface.loadMedia(
+                            media.copy(
+                                subtitleTrackName = it,
+                                startOffset = state.offsetTime,
+                            ),
+                        )
+                    }
+                },
+                currentMedia = media,
+                onNormalizationChange = {
+                    MainScope().launch {
+                        serviceInterface.loadMedia(
+                            media.copy(
+                                normalizationMethod = it,
+                                startOffset = state.offsetTime
+                            ),
+                        )
+                    }
+                },
+            )
+        }
+    }
+
     if (state.isLoading) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -54,103 +151,6 @@ fun PlayerWrapper(
             modifier = Modifier.fillMaxSize()
         ) {
             CircularProgressIndicator(modifier = Modifier.background(Color.Transparent))
-        }
-    } else {
-        state.media?.let { media ->
-            Log.d("PlayerActivity", media.toString())
-            LaunchedEffect(key1 = media, key2 = updateMedia) {
-                updateMedia()
-            }
-            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                AndroidView(
-                    modifier =
-                    Modifier.clickable {
-                        viewModel.setControlsVisible(areControlsVisible.not())
-                    }.background(Color.Black).fillMaxHeight().fillMaxWidth(),
-                    factory = { context ->
-                        serviceInterface.getPlayerView(context).apply {
-                            useController = false
-                            this.addOnLayoutChangeListener { view: View,
-                                                             _: Int,
-                                                             _: Int,
-                                                             _: Int,
-                                                             _: Int,
-                                                             _: Int,
-                                                             _: Int,
-                                                             _: Int,
-                                                             _: Int ->
-                                view.useRect()
-                            }
-                            this.useRect()
-                        }
-                    },
-                )
-                // TODO reset controls visibility on any button press
-                PlayerControls(
-                    modifier = Modifier.fillMaxSize(),
-                    isVisible = areControlsVisible,
-                    isPlaying = state.isPlaying,
-                    title = media.details,
-                    onPrev =
-                    if (state.prev == null) {
-                        null
-                    } else {
-                        { serviceInterface.playPrev() }
-                    },
-                    onNext =
-                    if (state.next == null) {
-                        null
-                    } else {
-                        { serviceInterface.playNext() }
-                    },
-                    onPlay = { serviceInterface.play() },
-                    onPause = { serviceInterface.pause() },
-                    onSeek = { serviceInterface.seek(it) },
-                    currentPlayerTime = state.offsetTime,
-                    runTime = media.runTime,
-                    onAudioChange = {
-                        MainScope().launch {
-                            serviceInterface.loadMedia(
-                                media.copy(
-                                    audioTrackName = it,
-                                    startOffset = state.offsetTime,
-                                ),
-                            )
-                        }
-                    },
-                    onVideoChange = {
-                        MainScope().launch {
-                            serviceInterface.loadMedia(
-                                media.copy(
-                                    videoTrackName = it,
-                                    startOffset = state.offsetTime,
-                                ),
-                            )
-                        }
-                    },
-                    onSubtitleChange = {
-                        MainScope().launch {
-                            serviceInterface.loadMedia(
-                                media.copy(
-                                    subtitleTrackName = it,
-                                    startOffset = state.offsetTime,
-                                ),
-                            )
-                        }
-                    },
-                    currentMedia = media,
-                    onNormalizationChange = {
-                        MainScope().launch {
-                            serviceInterface.loadMedia(
-                                media.copy(
-                                    normalizationMethod = it,
-                                    startOffset = state.offsetTime
-                                ),
-                            )
-                        }
-                    },
-                )
-            }
         }
     }
 }

@@ -16,6 +16,7 @@ import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.extractor.mp4.Mp4Extractor
 import androidx.media3.ui.PlayerView
+import arrow.core.continuations.AtomicRef
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.MILLIS_PER_SECOND
 import io.rewynd.android.model.PlayerMedia
@@ -26,8 +27,11 @@ import io.rewynd.model.Progress
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import okhttp3.OkHttpClient
 import kotlin.time.Duration
@@ -59,10 +63,21 @@ data class PlayerState(
     }
 }
 
-private fun <T> MutableStateFlow<T>.updateAndGet(block: (T) -> T): T {
-    val v = block(value)
-    value = v
-    return v
+private class StateManager(
+    private val state: AtomicRef<PlayerState> = AtomicRef(PlayerState()),
+) {
+    private val _flow: MutableStateFlow<PlayerState> = MutableStateFlow(state.get())
+    val flow: StateFlow<PlayerState>
+        get() = _flow.asStateFlow()
+
+    fun updateAndGet(block: (PlayerState) -> PlayerState): PlayerState = state.updateAndGet {
+        val v = block(it)
+        _flow.value = v
+        v
+    }
+
+    val value: PlayerState
+        get() = state.get()
 }
 
 @OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -74,18 +89,18 @@ class PlayerWrapper(
 ) {
     private val datasourceFactory by lazy { OkHttpDataSource.Factory(httpClient) }
 
-    private val _state = MutableStateFlow(PlayerState())
+    private val _state = StateManager()
     val state: StateFlow<PlayerState>
-        get() = _state
+        get() = _state.flow
 
-    fun MutableStateFlow<PlayerState>.reload(desired: Duration? = null) {
-        updateAndGet { playerState ->
+    fun reload(desired: Duration? = null) {
+        _state.updateAndGet { playerState ->
             playerState.copy(
                 media = playerState.media?.copy(startOffset = desired ?: playerState.offsetTime),
                 actualStartOffset = desired ?: playerState.offsetTime,
                 currentPlayerTime = Duration.ZERO
-            ).also { it.media?.let(this@PlayerWrapper::load) }
-        }
+            )
+        }.also { it.media?.let(this@PlayerWrapper::load) }
     }
 
     private val player: ExoPlayer by lazy {
@@ -130,18 +145,31 @@ class PlayerWrapper(
                 log.info { "TimeUpdate: ${player.currentPosition}" }
                 val state = getState()
                 onEvent(state)
-                if (state.media != null && state.offsetTime >= state.media.runTime.minus(100.milliseconds)) {
-                    runBlocking {
-                        next(startAtZero = true)
-                    }
-                }
             }
 
             override fun onPlayerError(e: PlaybackException) =
                 runBlocking {
                     log.error(e) { "Player Error!" }
-                    _state.reload()
+                    reload()
                 }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                super.onPlaybackStateChanged(playbackState)
+                when(playbackState) {
+                    Player.STATE_ENDED -> runBlocking { next(startAtZero = true) }
+                    Player.STATE_BUFFERING -> {
+                        _state.updateAndGet { it.copy(isLoading = true) }
+                    }
+
+                    Player.STATE_IDLE -> {
+                        _state.updateAndGet { it.copy(isLoading = false) }
+                    }
+
+                    Player.STATE_READY -> {
+                        _state.updateAndGet { it.copy(isLoading = false) }
+                    }
+                }
+            }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 _state.updateAndGet {
@@ -150,8 +178,9 @@ class PlayerWrapper(
             }
         }
 
+    private val mutex = Mutex()
     @OptIn(UnstableApi::class)
-    fun loadUri(uri: Uri) {
+    suspend fun loadUri(uri: Uri) = mutex.withLock {
         player.setMediaItem(
             MediaItem.fromUri(
                 uri,
@@ -160,12 +189,18 @@ class PlayerWrapper(
                     MediaItem.LiveConfiguration.Builder()
                         .setMaxOffsetMs(Long.MAX_VALUE)
                         .setMinOffsetMs(0)
-                        .setTargetOffsetMs(TIME_UNSET)
+                        .setTargetOffsetMs(Long.MAX_VALUE)
                         .build(),
                 )
                 .build()
         )
+        val playing = player.playWhenReady
+        player.pause()
         player.prepare()
+        player.seekTo(1)
+        if(playing) {
+            player.play()
+        }
     }
 
     fun next(startAtZero: Boolean = false) {
@@ -271,7 +306,7 @@ class PlayerWrapper(
             val uri = Uri.parse(client.baseUrl + streamProps.url)
             log.info { "Loading media: $uri" }
 
-            loadUri(uri)
+            runBlocking { loadUri(uri) }
             _state.updateAndGet {
                 it.copy(isLoading = false)
             }
@@ -313,7 +348,7 @@ class PlayerWrapper(
             ) {
                 this.player.seekTo((desired - playerMedia.startOffset).inWholeMilliseconds)
             } else {
-                _state.reload(desired)
+                reload(desired)
             }
         } ?: Unit
 
