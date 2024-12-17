@@ -1,7 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Thunk } from "../store";
 import { HttpClient } from "../../const";
-import { Library } from "@rewynd.io/rewynd-client-typescript";
+import {
+  Library,
+  ListNewEpisodesCursor,
+  ListStartedEpisodesCursor,
+} from "@rewynd.io/rewynd-client-typescript";
 import {
   SerializableEpisodeInfo,
   toSerializableEpisodeInfo,
@@ -15,7 +19,7 @@ export interface LibrariesState {
 
 export interface NewestEpisodesState {
   episodes: SerializableEpisodeInfo[];
-  cursor?: string;
+  cursor?: ListNewEpisodesCursor;
 }
 
 export interface NextEpisodesState {
@@ -25,7 +29,7 @@ export interface NextEpisodesState {
 
 export interface StartedEpisodesState {
   episodes: SerializableEpisodeInfo[];
-  cursor?: string;
+  cursor?: ListStartedEpisodesCursor;
 }
 
 export interface HomeSliceState {
@@ -55,7 +59,9 @@ export const homeSlice = createSlice({
 
     appendNewestEpisodes: (
       state,
-      action: PayloadAction<Page<SerializableEpisodeInfo, string>>,
+      action: PayloadAction<
+        Page<SerializableEpisodeInfo, ListNewEpisodesCursor>
+      >,
     ) => {
       state.newestEpisodesState = {
         episodes: [
@@ -87,7 +93,9 @@ export const homeSlice = createSlice({
 
     appendStartedEpisodes: (
       state,
-      action: PayloadAction<Page<SerializableEpisodeInfo, string>>,
+      action: PayloadAction<
+        Page<SerializableEpisodeInfo, ListStartedEpisodesCursor>
+      >,
     ) => {
       state.startedEpisodesState = {
         episodes: [
@@ -128,12 +136,8 @@ export function loadNewestEpisodes(): Thunk {
   return async (dispatch, getState) => {
     const state = getState().home.newestEpisodesState;
     if (!state || state.cursor) {
-      const response = await HttpClient.listEpisodes({
-        listEpisodesRequest: {
-          order: {
-            property: "EpisodeAddedTimestamp",
-            sortOrder: "Descending",
-          },
+      const response = await HttpClient.listNewEpisodes({
+        listNewEpisodesRequest: {
           minProgress: 0,
           maxProgress: 0.95,
           cursor: state?.cursor,
@@ -172,12 +176,8 @@ export function loadStartedEpisodes(): Thunk {
   return async (dispatch, getState) => {
     const state = getState().home.startedEpisodesState;
     if (!state || state.cursor) {
-      const response = await HttpClient.listEpisodes({
-        listEpisodesRequest: {
-          order: {
-            property: "ProgressTimestamp",
-            sortOrder: "Descending",
-          },
+      const response = await HttpClient.listStartedEpisodes({
+        listStartedEpisodesRequest: {
           minProgress: 0.05,
           maxProgress: 0.95,
           cursor: state?.cursor,

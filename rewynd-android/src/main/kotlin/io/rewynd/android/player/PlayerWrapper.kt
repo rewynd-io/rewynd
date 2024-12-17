@@ -3,7 +3,6 @@ package io.rewynd.android.player
 import android.content.Context
 import android.net.Uri
 import androidx.annotation.OptIn
-import androidx.media3.common.C.TIME_UNSET
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -155,7 +154,7 @@ class PlayerWrapper(
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 super.onPlaybackStateChanged(playbackState)
-                when(playbackState) {
+                when (playbackState) {
                     Player.STATE_ENDED -> runBlocking { next(startAtZero = true) }
                     Player.STATE_BUFFERING -> {
                         _state.updateAndGet { it.copy(isLoading = true) }
@@ -179,6 +178,7 @@ class PlayerWrapper(
         }
 
     private val mutex = Mutex()
+
     @OptIn(UnstableApi::class)
     suspend fun loadUri(uri: Uri) = mutex.withLock {
         player.setMediaItem(
@@ -198,7 +198,7 @@ class PlayerWrapper(
         player.pause()
         player.prepare()
         player.seekTo(1)
-        if(playing) {
+        if (playing) {
             player.play()
         }
     }

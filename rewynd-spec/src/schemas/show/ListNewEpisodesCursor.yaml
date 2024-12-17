@@ -1,0 +1,9 @@
+type: object
+properties:
+  episodeId:
+    $ref: "./EpisodeId.yaml"
+  timestamp:
+    $ref: "../util/Timestamp.yaml"
+required:
+  - episodeId
+  - timestamp

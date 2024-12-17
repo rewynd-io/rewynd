@@ -14,8 +14,12 @@ import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.GetNextEpisodeResponse
 import io.rewynd.model.ListEpisodesRequest
 import io.rewynd.model.ListEpisodesResponse
+import io.rewynd.model.ListNewEpisodesRequest
+import io.rewynd.model.ListNewEpisodesResponse
 import io.rewynd.model.ListNextEpisodesRequest
 import io.rewynd.model.ListNextEpisodesResponse
+import io.rewynd.model.ListStartedEpisodesRequest
+import io.rewynd.model.ListStartedEpisodesResponse
 
 @Suppress("LongMethod")
 fun Route.episodeRoutes(db: Database) {
@@ -26,11 +30,36 @@ fun Route.episodeRoutes(db: Database) {
                     username = this,
                     cursor = request.cursor,
                     seasonId = request.seasonId,
-                    minProgress = request.minProgress,
-                    maxProgress = request.maxProgress,
-                    order = request.order
                 )
                 call.respond(ListEpisodesResponse(page.data.map { it.toEpisodeInfo() }, page.cursor))
+            }
+        }
+    }
+
+    post("/episode/started") {
+        withUsername {
+            call.receive<ListStartedEpisodesRequest>().let { request ->
+                val page = db.listProgressedEpisodesByProgress(
+                    username = this,
+                    cursor = request.cursor,
+                    minPercent = request.minProgress,
+                    maxPercent = request.maxProgress,
+                )
+                call.respond(ListStartedEpisodesResponse(page.data.map { it.toEpisodeInfo() }, page.cursor))
+            }
+        }
+    }
+
+    post("/episode/new") {
+        withUsername {
+            call.receive<ListNewEpisodesRequest>().let { request ->
+                val page = db.listProgressedEpisodesByModified(
+                    username = this,
+                    cursor = request.cursor,
+                    minPercent = request.minProgress,
+                    maxPercent = request.maxProgress,
+                )
+                call.respond(ListNewEpisodesResponse(page.data.map { it.toEpisodeInfo() }, page.cursor))
             }
         }
     }

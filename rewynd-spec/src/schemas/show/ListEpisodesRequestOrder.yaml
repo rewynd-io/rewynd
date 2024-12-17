@@ -1,9 +1,0 @@
-type: object
-properties:
-  property:
-    $ref: "./ListEpisodesRequestOrderProperty.yaml"
-  sortOrder:
-    $ref: "../util/SortOrder.yaml"
-required:
-  - property
-  - sortOrder

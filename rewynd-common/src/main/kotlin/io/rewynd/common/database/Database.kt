@@ -14,7 +14,8 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.SessionStorage
 import io.rewynd.common.model.UserProgress
 import io.rewynd.model.Library
-import io.rewynd.model.ListEpisodesRequestOrder
+import io.rewynd.model.ListNewEpisodesCursor
+import io.rewynd.model.ListStartedEpisodesCursor
 import io.rewynd.model.SortOrder
 import kotlinx.datetime.Instant
 
@@ -85,12 +86,26 @@ sealed interface Database {
 
     suspend fun listProgressedEpisodes(
         username: String,
+        seasonId: String,
         cursor: String? = null,
-        seasonId: String? = null,
-        minProgress: Double = 0.0,
-        maxProgress: Double = 1.0,
-        order: ListEpisodesRequestOrder
+        limit: Int = LIST_PROGRESS_MAX_SIZE
     ): Paged<Progressed<ServerEpisodeInfo>, String>
+
+    suspend fun listProgressedEpisodesByProgress(
+        username: String,
+        cursor: ListStartedEpisodesCursor? = null,
+        minPercent: Double = LIST_PROGRESS_MIN_PERCENT,
+        maxPercent: Double = MAX_PERCENT,
+        limit: Int = LIST_PROGRESS_MAX_SIZE
+    ): Paged<Progressed<ServerEpisodeInfo>, ListStartedEpisodesCursor>
+
+    suspend fun listProgressedEpisodesByModified(
+        username: String,
+        cursor: ListNewEpisodesCursor? = null,
+        minPercent: Double = LIST_PROGRESS_MIN_PERCENT,
+        maxPercent: Double = MAX_PERCENT,
+        limit: Int = LIST_PROGRESS_MAX_SIZE
+    ): Paged<Progressed<ServerEpisodeInfo>, ListNewEpisodesCursor>
 
     suspend fun listNextEpisodes(
         cursor: Long?,

@@ -85,6 +85,7 @@ internal class M3u8Test : StringSpec({
                 #EXT-X-TARGETDURATION:${it.segments.maxOfOrNull { segment -> segment.duration.inWholeSeconds } ?: 10L}
                 #EXT-X-MEDIA-SEQUENCE:0
                 #EXT-X-MAP:URI="init-stream.mp4"
+                #EXT-X-START:TIME-OFFSET=0.0
                 """.trimIndent().plus("\n") + segments + complete
         }
     }

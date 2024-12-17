@@ -160,12 +160,6 @@ export async function loadAllEpisodes(seasonId: string) {
       listEpisodesRequest: {
         cursor: cursor,
         seasonId: seasonId,
-        minProgress: 0,
-        maxProgress: 1,
-        order: {
-          property: "EpisodeId",
-          sortOrder: "Ascending",
-        },
       },
     });
     cursor = res.cursor;

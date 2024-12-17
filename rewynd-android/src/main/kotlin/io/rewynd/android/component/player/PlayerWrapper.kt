@@ -28,6 +28,7 @@ import io.rewynd.android.player.StreamHeartbeat.Companion.copy
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
+@Suppress("MultipleEmitters")
 @Composable
 fun PlayerWrapper(
     viewModel: PlayerViewModel,

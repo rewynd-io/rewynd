@@ -1,0 +1,17 @@
+type: object
+properties:
+  cursor:
+    $ref: "./ListStartedEpisodesCursor.yaml"
+  minProgress:
+    type: number
+    minimum: 0
+    maximum: 1
+    default: 0
+  maxProgress:
+    type: number
+    minimum: 0
+    maximum: 1
+    default: 1
+required:
+  - minProgress
+  - maxProgress

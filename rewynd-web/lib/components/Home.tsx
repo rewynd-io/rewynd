@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ButtonLink } from "./ButtonLink";
 import { WebRoutes } from "../routes";
 import { NavBar } from "./NavBar";
@@ -8,8 +8,12 @@ import { EpisodeCard } from "./browser/card/EpisodeCard";
 import "../util";
 import { ApiImage } from "./Image";
 import { Link } from "./Link";
-import { useAppSelector, useThunkEffect } from "../store/store";
+import { useAppDispatch, useAppSelector, useThunkEffect } from "../store/store";
 import {
+  clearLibraries,
+  clearNewestEpisodes,
+  clearNextEpisodes,
+  clearStartedEpisodes,
   loadLibraries,
   loadNewestEpisodes,
   loadNextEpisodes,
@@ -29,6 +33,14 @@ export function Home() {
   const libraries = useAppSelector(
     (it) => it.home.librariesState?.libraries ?? [],
   );
+
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(clearLibraries());
+    dispatch(clearNewestEpisodes());
+    dispatch(clearNextEpisodes());
+    dispatch(clearStartedEpisodes());
+  }, []);
 
   useThunkEffect(loadLibraries);
   useThunkEffect(loadNewestEpisodes);

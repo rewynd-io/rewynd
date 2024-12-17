@@ -6,22 +6,16 @@ import io.rewynd.android.MEDIA_COMPLETED_PERCENT
 import io.rewynd.client.RewyndClient
 import io.rewynd.client.result
 import io.rewynd.model.EpisodeInfo
-import io.rewynd.model.ListEpisodesRequest
-import io.rewynd.model.ListEpisodesRequestOrder
-import io.rewynd.model.ListEpisodesRequestOrderProperty
-import io.rewynd.model.SortOrder
+import io.rewynd.model.ListNewEpisodesCursor
+import io.rewynd.model.ListNewEpisodesRequest
 
-class RecentlyAddedEpisodesPagingSource(val client: RewyndClient) : PagingSource<String, EpisodeInfo>() {
-    override fun getRefreshKey(state: PagingState<String, EpisodeInfo>): String? = null
+class RecentlyAddedEpisodesPagingSource(val client: RewyndClient) : PagingSource<ListNewEpisodesCursor, EpisodeInfo>() {
+    override fun getRefreshKey(state: PagingState<ListNewEpisodesCursor, EpisodeInfo>): ListNewEpisodesCursor? = null
 
-    override suspend fun load(params: LoadParams<String>) = client.listEpisodes(
-        ListEpisodesRequest(
+    override suspend fun load(params: LoadParams<ListNewEpisodesCursor>) = client.listNewEpisodes(
+        ListNewEpisodesRequest(
             maxProgress = MEDIA_COMPLETED_PERCENT,
             cursor = params.key,
-            order = ListEpisodesRequestOrder(
-                ListEpisodesRequestOrderProperty.EpisodeAddedTimestamp,
-                SortOrder.Descending
-            )
         )
     ).result().fold({
         LoadResult.Page(it.page, null, it.cursor)

@@ -64,6 +64,7 @@ module.exports = {
   ],
   optimization: {
     minimize: false,
+    providedExports: false,
   },
   devServer: {
     proxy: [

@@ -73,9 +73,6 @@ export function fetchSeason(seasonId: string): Thunk {
         await HttpClient.listEpisodes({
           listEpisodesRequest: {
             seasonId,
-            minProgress: 0,
-            maxProgress: 1,
-            order: { sortOrder: "Ascending", property: "EpisodeId" },
           },
         }),
       ),
@@ -95,9 +92,6 @@ export function loadEpisodes(
             listEpisodesRequest: {
               seasonId,
               cursor,
-              minProgress: 0,
-              maxProgress: 1,
-              order: { sortOrder: "Ascending", property: "EpisodeId" },
             },
           }),
         ),

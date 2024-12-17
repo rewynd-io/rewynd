@@ -1,0 +1,10 @@
+type: object
+properties:
+  page:
+    type: array
+    items:
+      $ref: "./EpisodeInfo.yaml"
+  cursor:
+    $ref: "./ListStartedEpisodesCursor.yaml"
+required:
+  - page

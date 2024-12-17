@@ -61,6 +61,10 @@ paths:
     $ref: "./resources/show/getSeason.yaml"
   /api/episode/list:
     $ref: "./resources/show/listEpisodes.yaml"
+  /api/episode/new:
+    $ref: "./resources/show/listNewEpisodes.yaml"
+  /api/episode/started:
+    $ref: "./resources/show/listStartedEpisodes.yaml"
   /api/episode/listNext:
     $ref: "./resources/show/listNextEpisodes.yaml"
   /api/episode/get/{episodeId}:
@@ -176,14 +180,22 @@ components:
       $ref: "./schemas/show/GetNextEpisodeResponse.yaml"
     ListEpisodesCursor:
       $ref: "./schemas/show/ListEpisodesCursor.yaml"
-    ListEpisodesRequestOrder:
-      $ref: "./schemas/show/ListEpisodesRequestOrder.yaml"
-    ListEpisodesRequestOrderProperty:
-      $ref: "./schemas/show/ListEpisodesRequestOrderProperty.yaml"
     ListEpisodesRequest:
       $ref: "./schemas/show/ListEpisodesRequest.yaml"
     ListEpisodesResponse:
       $ref: "./schemas/show/ListEpisodesResponse.yaml"
+    ListNewEpisodesCursor:
+      $ref: "./schemas/show/ListNewEpisodesCursor.yaml"
+    ListNewEpisodesRequest:
+      $ref: "./schemas/show/ListNewEpisodesRequest.yaml"
+    ListNewEpisodesResponse:
+      $ref: "./schemas/show/ListNewEpisodesResponse.yaml"
+    ListStartedEpisodesCursor:
+      $ref: "./schemas/show/ListStartedEpisodesCursor.yaml"
+    ListStartedEpisodesRequest:
+      $ref: "./schemas/show/ListStartedEpisodesRequest.yaml"
+    ListStartedEpisodesResponse:
+      $ref: "./schemas/show/ListStartedEpisodesResponse.yaml"
     ListNextEpisodesCursor:
       $ref: "./schemas/show/ListNextEpisodesCursor.yaml"
     ListNextEpisodesRequest:

@@ -7,9 +7,6 @@ import io.rewynd.client.compare
 import io.rewynd.client.result
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.ListEpisodesRequest
-import io.rewynd.model.ListEpisodesRequestOrder
-import io.rewynd.model.ListEpisodesRequestOrderProperty
-import io.rewynd.model.SortOrder
 
 class EpisodesPagingSource(
     private val seasonId: String,
@@ -21,7 +18,6 @@ class EpisodesPagingSource(
         ListEpisodesRequest(
             seasonId = seasonId,
             cursor = params.key,
-            order = ListEpisodesRequestOrder(ListEpisodesRequestOrderProperty.EpisodeId, SortOrder.Descending)
         ),
     ).result().fold({
         LoadResult.Page(

@@ -23,8 +23,6 @@ import io.rewynd.common.model.toEpisodeInfo
 import io.rewynd.model.GetNextEpisodeRequest
 import io.rewynd.model.GetNextEpisodeResponse
 import io.rewynd.model.ListEpisodesRequest
-import io.rewynd.model.ListEpisodesRequestOrder
-import io.rewynd.model.ListEpisodesRequestOrderProperty
 import io.rewynd.model.ListEpisodesResponse
 import io.rewynd.model.SortOrder
 import io.rewynd.test.ApiGenerators
@@ -86,7 +84,7 @@ internal class EpisodeControllerTest : StringSpec({
     "listEpisodes" {
         Harness.arb.checkAllRun {
             coEvery {
-                db.listProgressedEpisodes(username, cursor, season.seasonInfo.id, any(), any(), any())
+                db.listProgressedEpisodes(username, season.seasonInfo.id, cursor, any())
             } returns Paged(episodes, episodes.lastOrNull()?.data?.id)
 
             testCall(
@@ -95,10 +93,6 @@ internal class EpisodeControllerTest : StringSpec({
                         ListEpisodesRequest(
                             seasonId = season.seasonInfo.id,
                             cursor = cursor,
-                            order = ListEpisodesRequestOrder(
-                                ListEpisodesRequestOrderProperty.EpisodeId,
-                                SortOrder.Descending
-                            )
                         )
                     )
                 },
@@ -122,8 +116,6 @@ internal class EpisodeControllerTest : StringSpec({
                     any(),
                     any(),
                     any(),
-                    any(),
-                    any(),
                 )
             } returns Paged(episodes, null)
 
@@ -133,10 +125,6 @@ internal class EpisodeControllerTest : StringSpec({
                         ListEpisodesRequest(
                             seasonId = season.seasonInfo.id,
                             cursor = cursor,
-                            order = ListEpisodesRequestOrder(
-                                ListEpisodesRequestOrderProperty.EpisodeId,
-                                SortOrder.Descending
-                            )
                         )
                     )
                 },
