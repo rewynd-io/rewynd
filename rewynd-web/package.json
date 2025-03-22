@@ -4,7 +4,7 @@
   "description": "Web front-end for Rewynd.io",
   "license": "GPLv3",
   "repository": {
-    "url": "https://github.com/rewynd-io/rewynd-web.git"
+    "url": "https://codeberg.org/rewynd-io/rewynd"
   },
   "author": {
     "name": "Kenneth Sanders",
@@ -29,11 +29,11 @@
     "hls.js": "^1.5.1",
     "immutable": "^5.0.0",
     "mui-nested-menu": "^4.0.0",
-    "react": "^18.3.1",
+    "react": "^19.0.0",
     "react-cookie": "^8.0.0",
     "react-cron-generator": "^2.0.19",
     "react-device-detect": "^2.2.3",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.0.0",
     "react-grid-layout": "^1.4.4",
     "react-overlays": "^5.2.1",
     "react-player": "^2.14.1",
