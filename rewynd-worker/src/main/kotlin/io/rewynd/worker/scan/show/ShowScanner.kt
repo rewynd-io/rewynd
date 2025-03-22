@@ -1,7 +1,7 @@
 package io.rewynd.worker.scan.show
 
 import arrow.core.identity
-import arrow.core.mapNotNull
+import arrow.core.mapValuesNotNull
 import arrow.fx.coroutines.parMapUnordered
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -276,7 +276,7 @@ class ShowScanner(private val lib: Library, private val db: Database) : Scanner 
                         ?.let {
                             SubtitleFileTrack(entry.value, it)
                         }
-                }.mapNotNull { it.value }
+                }.mapValuesNotNull { it.value }
             val episodeImageFile = episodeFile.findMediaImage(lib)
             val lastModified = episodeFile.lastModified()
             val ffprobe =

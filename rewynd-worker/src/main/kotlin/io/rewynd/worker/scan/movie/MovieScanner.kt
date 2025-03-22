@@ -1,7 +1,7 @@
 package io.rewynd.worker.scan.movie
 
 import arrow.core.identity
-import arrow.core.mapNotNull
+import arrow.core.mapValuesNotNull
 import arrow.fx.coroutines.parMapUnordered
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -105,7 +105,7 @@ class MovieScanner(
                                             ?.let {
                                                 SubtitleFileTrack(entry.value, it)
                                             }
-                                    }.mapNotNull { it.value }
+                                    }.mapValuesNotNull { it.value }
                             val posterImageFile = movieFile.findMediaImage(lib, "-poster")
                                 ?: movieFile.findMediaImage(lib)
                             val backdropImageFile = movieFile.findMediaImage(lib, "-backdrop")

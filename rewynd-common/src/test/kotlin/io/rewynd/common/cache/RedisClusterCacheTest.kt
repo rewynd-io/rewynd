@@ -1,6 +1,5 @@
 package io.rewynd.common.cache
 
-import io.kotest.assertions.inspecting
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.nulls.shouldBeNull
@@ -106,7 +105,7 @@ internal class RedisClusterCacheTest : StringSpec({
     "cache lock extend with same timeout" {
         val harness = setup()
 
-        inspecting(
+        with(
             RedisClusterCache.RedisClusterCacheLock(KEY, ID, harness.client, harness.nodes, expiration, lockTimeout1)
                 .extend(),
         ) {
@@ -138,7 +137,7 @@ internal class RedisClusterCacheTest : StringSpec({
     "cache lock extend with new timeout" {
         val harness = setup()
 
-        inspecting(
+        with(
             RedisClusterCache.RedisClusterCacheLock(KEY, ID, harness.client, harness.nodes, expiration, lockTimeout1)
                 .extend(lockTimeout2),
         ) {
@@ -190,7 +189,7 @@ internal class RedisClusterCacheTest : StringSpec({
                 },
             )
 
-        inspecting(
+        with(
             harness.cache.tryAcquire(KEY, lockTimeout1),
         ) {
             shouldNotBeNull()
@@ -223,7 +222,7 @@ internal class RedisClusterCacheTest : StringSpec({
                     ).shuffled(),
             )
 
-        inspecting(
+        with(
             harness.cache.tryAcquire(KEY, lockTimeout1),
         ) {
             shouldBeNull()

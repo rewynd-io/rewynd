@@ -41,7 +41,7 @@ interface PlayerBottomBarProps {
   readonly onForward?: () => void;
   readonly onBackward?: () => void;
   readonly tracks: Tracks;
-  readonly slider: JSX.Element;
+  readonly slider: React.JSX.Element;
   readonly played: number;
   readonly duration: number;
 }

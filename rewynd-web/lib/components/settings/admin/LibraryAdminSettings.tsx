@@ -180,7 +180,7 @@ function CreateLibraryDialog(props: CreateLibraryDialogProps) {
   }, [complete, props.open]);
 
   const valid = validate(props.libraries, name);
-  const menuItems: JSX.Element[] = [];
+  const menuItems: React.JSX.Element[] = [];
   for (const type in LibraryTypeObj) {
     menuItems.push(<MenuItem value={type}>{type}</MenuItem>);
   }

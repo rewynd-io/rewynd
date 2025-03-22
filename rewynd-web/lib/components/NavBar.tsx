@@ -107,7 +107,7 @@ export function NavBar(props: NavBarProps) {
 
 let callStack = Promise.resolve(); // make sure async calls for search occur in order
 function SearchInput() {
-  const ref = useRef<HTMLInputElement>();
+  const ref = useRef<HTMLInputElement>(null);
   const nav = useNavigate();
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
