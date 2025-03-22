@@ -117,9 +117,5 @@
     "./webpack/**",
     "./dist/**"
   ],
-  "overrides": {
-    "mui-nested-menu": {
-      "@mui/material": "^6.0.0"
-    }
-  }
+  "overrides": {}
 }
