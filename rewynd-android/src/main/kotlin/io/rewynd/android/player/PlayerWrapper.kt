@@ -15,7 +15,7 @@ import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.extractor.mp4.Mp4Extractor
 import androidx.media3.ui.PlayerView
-import arrow.core.continuations.AtomicRef
+import arrow.atomic.Atomic
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.rewynd.android.MILLIS_PER_SECOND
 import io.rewynd.android.model.PlayerMedia
@@ -63,7 +63,7 @@ data class PlayerState(
 }
 
 private class StateManager(
-    private val state: AtomicRef<PlayerState> = AtomicRef(PlayerState()),
+    private val state: Atomic<PlayerState> = Atomic(PlayerState()),
 ) {
     private val _flow: MutableStateFlow<PlayerState> = MutableStateFlow(state.get())
     val flow: StateFlow<PlayerState>
