@@ -23,11 +23,6 @@
     "@reduxjs/toolkit": "^2.6.1",
     "@rewynd.io/rewynd-client-typescript": "file:../rewynd-client-typescript",
     "@rewynd.io/rewynd-spec": "file:../rewynd-spec",
-    "@testing-library/jest-dom": "^6.2.0",
-    "@testing-library/react": "^16.2.0",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/react": "^19.0.0",
-    "@types/string-natural-compare": "^3.0.4",
     "deep-equal": "^2.2.3",
     "durr": "^0.0.10",
     "format-duration": "^3.0.2",
@@ -50,9 +45,7 @@
     "string-natural-compare": "^3.0.1",
     "typescript-logging": "^2.1.0",
     "typescript-logging-category-style": "^2.1.0",
-    "web-vitals": "^4.0.0",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^6.0.0"
+    "web-vitals": "^4.0.0"
   },
   "scripts": {
     "clean": "rm -rf dist webpack",
@@ -90,6 +83,13 @@
     ]
   },
   "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/string-natural-compare": "^3.0.4",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^6.0.0",
+    "@testing-library/jest-dom": "^6.2.0",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.1",
     "@babel/cli": "^7.23.4",
     "@babel/core": "^7.23.7",
     "@babel/plugin-transform-modules-commonjs": "^7.23.3",
