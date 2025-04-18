@@ -143,7 +143,7 @@ export function LibraryAdminSettings() {
         pageSizeOptions={[100]}
         checkboxSelection
         onRowSelectionModelChange={(ids) => {
-          setSelectedIds(ids.map((it) => it.toString()));
+          setSelectedIds(Array.from(ids.ids).map((it) => it.toString()));
         }}
       ></DataGrid>
     </>

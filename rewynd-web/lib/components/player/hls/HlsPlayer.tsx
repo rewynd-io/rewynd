@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { PlayerSlider } from "./PlayerSlider";
-import { Box, CircularProgress, Grid2 as Grid, Modal } from "@mui/material";
+import { Box, CircularProgress, Grid, Modal } from "@mui/material";
 import { PlayerBottomBar } from "./PlayerBottomBar";
 import { Duration } from "durr";
 import {

@@ -1,7 +1,7 @@
 import React from "react";
 import { ButtonLink } from "../../ButtonLink";
 import { useParams } from "react-router";
-import { Box, Grid2 as Grid, Typography } from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 import { WebRoutes } from "../../../routes";
 import { NavBar } from "../../NavBar";
 import { MoviesLoader } from "../../loader/movie/MoviesLoader";

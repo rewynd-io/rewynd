@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { ButtonLink } from "./ButtonLink";
 import { WebRoutes } from "../routes";
 import { NavBar } from "./NavBar";
-import { Grid2 as Grid, Stack, Typography } from "@mui/material";
+import { Grid, Stack, Typography } from "@mui/material";
 import { cardWidth } from "../const";
 import { EpisodeCard } from "./browser/card/EpisodeCard";
 import "../util";

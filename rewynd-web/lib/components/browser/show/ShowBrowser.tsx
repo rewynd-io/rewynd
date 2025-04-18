@@ -2,7 +2,7 @@ import React from "react";
 import { ButtonLink } from "../../ButtonLink";
 import { useParams } from "react-router";
 import { SeasonsLoader } from "../../loader/show/SeasonsLoader";
-import { Box, Grid2 as Grid, Stack, Typography } from "@mui/material";
+import { Box, Grid, Stack, Typography } from "@mui/material";
 import { WebRoutes } from "../../../routes";
 import { NavBar } from "../../NavBar";
 import { List } from "immutable";
