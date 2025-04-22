@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { CircularProgress, Grid2 as Grid } from "@mui/material";
+import { CircularProgress, Grid } from "@mui/material";
 import React from "react";
 
 export interface LoadingProps<T> {

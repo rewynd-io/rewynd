@@ -1,7 +1,7 @@
 import React from "react";
 
 import { useParams } from "react-router";
-import { Grid2 as Grid, Stack, Typography } from "@mui/material";
+import { Grid, Stack, Typography } from "@mui/material";
 import { NavBar } from "../../NavBar";
 import { List } from "immutable";
 import { EpisodeCard } from "../card/EpisodeCard";
