@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
-import kotlinx.serialization.encodeToString
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Alias
 import org.jetbrains.exposed.sql.Column
@@ -77,7 +76,7 @@ open class SqlDatabase(
                 Seasons,
                 Episodes,
                 Progression,
-                LibraryIndicies,
+                LibraryIndices,
                 Schedules,
             )
         }
@@ -888,30 +887,30 @@ open class SqlDatabase(
         updatedAfter: Instant?,
     ): LibraryIndex? =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            LibraryIndicies
+            LibraryIndices
                 .selectAll()
                 .where {
                     if (updatedAfter != null) {
-                        LibraryIndicies.libraryId eq libraryId and
-                            (LibraryIndicies.lastUpdated greater updatedAfter.toEpochMilliseconds())
+                        LibraryIndices.libraryId eq libraryId and
+                            (LibraryIndices.lastUpdated greater updatedAfter.toEpochMilliseconds())
                     } else {
-                        LibraryIndicies.libraryId eq libraryId
+                        LibraryIndices.libraryId eq libraryId
                     }
                 }.firstOrNull()
         }?.toLibraryIndex()
 
     override suspend fun upsertLibraryIndex(index: LibraryIndex): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            LibraryIndicies.upsert(LibraryIndicies.libraryId) {
+            LibraryIndices.upsert(LibraryIndices.libraryId) {
                 it[libraryId] = index.libraryId
                 it[lastUpdated] = index.lastUpdated.toEpochMilliseconds()
-                it[LibraryIndicies.index] = ExposedBlob(index.index)
+                it[LibraryIndices.index] = ExposedBlob(index.index)
             }
         }.insertedCount == 1
 
     override suspend fun deleteLibraryIndex(libraryId: String): Boolean =
         newSuspendedTransaction(currentCoroutineContext(), conn) {
-            LibraryIndicies.deleteWhere { LibraryIndicies.libraryId eq libraryId }
+            LibraryIndices.deleteWhere { LibraryIndices.libraryId eq libraryId }
         } == 1
 
     override suspend fun listLibraryIndexes(): List<LibraryIndex> {
@@ -1126,12 +1125,12 @@ open class SqlDatabase(
 
     object Progression : IntIdTable() {
         val username = text("username").references(Users.username)
-        val mediaId = text("media_id").uniqueIndex()
-        val percent = double("percent")
+        val mediaId = text("media_id").index()
+        val percent = double("percent").index()
         val timestamp = long("timestamp")
     }
 
-    object LibraryIndicies : IntIdTable() {
+    object LibraryIndices : IntIdTable() {
         val libraryId = text("library_id").uniqueIndex().references(Libraries.libraryId)
         val lastUpdated = long("last_updated")
         val index = blob("index")
@@ -1333,9 +1332,9 @@ open class SqlDatabase(
 
         private fun ResultRow.toLibraryIndex(): LibraryIndex =
             LibraryIndex(
-                index = this[LibraryIndicies.index].bytes,
-                libraryId = this[LibraryIndicies.libraryId],
-                lastUpdated = Instant.fromEpochMilliseconds(this[LibraryIndicies.lastUpdated]),
+                index = this[LibraryIndices.index].bytes,
+                libraryId = this[LibraryIndices.libraryId],
+                lastUpdated = Instant.fromEpochMilliseconds(this[LibraryIndices.lastUpdated]),
             )
 
         private fun ResultRow.toProgress() =
