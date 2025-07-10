@@ -32,6 +32,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -45,6 +46,9 @@ class PlayerService : Service() {
             .cookieJar(CookieStorageCookieJar(cookies))
             .addInterceptor(logging)
             .retryOnConnectionFailure(true)
+            .connectTimeout(0, TimeUnit.SECONDS)
+            .writeTimeout(0, TimeUnit.SECONDS)
+            .readTimeout(0, TimeUnit.SECONDS)
             .build()
     }
 

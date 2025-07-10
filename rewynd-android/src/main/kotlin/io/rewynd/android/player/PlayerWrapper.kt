@@ -3,6 +3,7 @@ package io.rewynd.android.player
 import android.content.Context
 import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -32,6 +33,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
+import net.kensand.kielbasa.coroutines.coRunCatching
 import okhttp3.OkHttpClient
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -303,7 +305,7 @@ class PlayerWrapper(
         ) { streamProps ->
             log.info { "Heartbeat Loading" }
 
-            val uri = Uri.parse(client.baseUrl + streamProps.url)
+            val uri = (client.baseUrl + streamProps.url).toUri()
             log.info { "Loading media: $uri" }
 
             runBlocking { loadUri(uri) }
@@ -315,28 +317,32 @@ class PlayerWrapper(
 
     private fun putProgress() =
         MainScope().launch {
-            val s = _state.value
-            when (val m = s.media) {
-                null -> {}
-                is PlayerMedia.Episode -> {
-                    client.putUserProgress(
-                        Progress(
-                            m.info.id,
-                            (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
-                            Clock.System.now(),
-                        ),
-                    ).result().onFailure { log.error(it) { "Failed to putUserProgress" } }
+            coRunCatching {
+                val s = _state.value
+                when (val m = s.media) {
+                    null -> {}
+                    is PlayerMedia.Episode -> {
+                        client.putUserProgress(
+                            Progress(
+                                m.info.id,
+                                (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
+                                Clock.System.now(),
+                            ),
+                        ).result().onFailure { log.error(it) { "Failed to putUserProgress" } }
+                    }
+
+                    is PlayerMedia.Movie -> {
+                        client.putUserProgress(
+                            Progress(
+                                m.info.id,
+                                (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
+                                Clock.System.now(),
+                            ),
+                        ).result().onFailure { log.error(it) { "Failed to putUserProgress" } }
+                    }
                 }
 
-                is PlayerMedia.Movie -> {
-                    client.putUserProgress(
-                        Progress(
-                            m.info.id,
-                            (s.offsetTime.inWholeMilliseconds / MILLIS_PER_SECOND.toDouble()) / m.info.runTime,
-                            Clock.System.now(),
-                        ),
-                    ).result().onFailure { log.error(it) { "Failed to putUserProgress" } }
-                }
+                Unit
             }
         }
 
