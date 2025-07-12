@@ -3,14 +3,14 @@ package io.rewynd.common.cache
 import io.rewynd.common.cache.queue.JobQueue
 import io.rewynd.common.cache.queue.MemoryJobQueue
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import net.jodah.expiringmap.ExpirationPolicy
 import net.jodah.expiringmap.ExpiringMap
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 class MemoryCache : Cache {
     private val map: ExpiringMap<String, String> = ExpiringMap.builder().variableExpiration().build()

@@ -29,6 +29,9 @@ tasks.test {
 
 kotlin {
     jvmToolchain(libs.versions.jvm.get().toInt())
+    compilerOptions {
+        optIn.add("kotlin.time.ExperimentalTime")
+    }
 }
 
 detekt {

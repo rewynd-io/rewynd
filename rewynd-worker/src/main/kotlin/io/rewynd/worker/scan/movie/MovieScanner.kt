@@ -33,8 +33,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import net.kensand.kielbasa.coroutines.coRunCatching
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
@@ -49,8 +47,10 @@ import java.nio.file.Files
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 class MovieScanner(
     private val lib: Library,

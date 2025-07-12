@@ -1,8 +1,8 @@
 package io.rewynd.common.model
 
 import io.rewynd.model.Progress
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Serializable
 data class UserProgress(

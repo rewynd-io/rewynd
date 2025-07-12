@@ -1,8 +1,8 @@
 package io.rewynd.common.model
 
 import io.rewynd.common.SerializableInstant
-import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
+import kotlin.time.Clock
 
 @Serializable
 data class LibraryData(

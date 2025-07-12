@@ -3,8 +3,8 @@ package io.rewynd.worker.image
 import io.rewynd.common.cache.Cache
 import io.rewynd.common.cache.queue.ImageJobHandler
 import io.rewynd.common.model.FileLocation
-import kotlinx.datetime.Clock
 import java.nio.file.Path
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 
 fun mkImageJobHandler(cache: Cache): ImageJobHandler =

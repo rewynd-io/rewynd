@@ -14,7 +14,7 @@ import io.rewynd.common.model.UserProgress
 import io.rewynd.model.ListProgressRequest
 import io.rewynd.model.ListProgressResponse
 import io.rewynd.model.Progress
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 fun Route.progressRoutes(db: Database) {
     get("/user/progress/get/{id}") {

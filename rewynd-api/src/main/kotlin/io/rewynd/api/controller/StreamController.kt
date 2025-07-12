@@ -45,9 +45,9 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
 import java.lang.Double.max
 import java.util.UUID
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -188,7 +188,7 @@ fun Route.streamRoutes(
 private suspend fun Cache.heartbeatStream(
     streamMetadata: StreamMetadata,
     reqStreamId: String,
-    expire: kotlinx.datetime.Instant,
+    expire: kotlin.time.Instant,
     sessionId: String?,
     queue: StreamJobQueue,
 ): Boolean {

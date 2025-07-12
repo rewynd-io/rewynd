@@ -111,6 +111,11 @@ val copySources =
                 )
                 .replace("import io.ktor.util.InternalAPI", "")
                 .replace("@OptIn(InternalAPI::class)", "")
+                .replace(
+                    // https://github.com/Kotlin/kotlinx-datetime?tab=readme-ov-file#deprecation-of-instant
+                    "kotlinx.datetime.Instant",
+                    "kotlin.time.Instant",
+                )
         }
     }
 
@@ -118,6 +123,9 @@ sourceSets["main"].kotlin.srcDir("${layout.buildDirectory.asFile.get().path}/gen
 
 kotlin {
     jvmToolchain(libs.versions.jvm.get().toInt())
+    compilerOptions {
+        optIn.add("kotlin.time.ExperimentalTime")
+    }
 }
 
 tasks.openApiGenerate {
