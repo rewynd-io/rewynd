@@ -17,7 +17,7 @@ import io.rewynd.model.Library
 import io.rewynd.model.ListNewEpisodesCursor
 import io.rewynd.model.ListStartedEpisodesCursor
 import io.rewynd.model.SortOrder
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class Paged<T, C>(val data: List<T>, val cursor: C? = null)
 

@@ -7,10 +7,10 @@ import io.rewynd.common.toVideoTracks
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.MovieInfo
 import io.rewynd.model.Progress
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Serializable
 data class ServerMovieInfo(

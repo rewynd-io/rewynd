@@ -8,7 +8,6 @@ import io.rewynd.common.model.ServerVideoTrack
 import io.rewynd.model.ScanTask
 import io.rewynd.model.Schedule
 import io.rewynd.model.SortOrder
-import kotlinx.datetime.Instant
 import kotlinx.datetime.serializers.InstantComponentSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -21,6 +20,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 val encoder: Base64.Encoder by lazy { Base64.getUrlEncoder() }
 val decoder: Base64.Decoder by lazy { Base64.getUrlDecoder() }

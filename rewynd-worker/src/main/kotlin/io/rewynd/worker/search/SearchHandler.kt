@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
-import kotlinx.datetime.Instant
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.StoredFields
@@ -24,6 +23,7 @@ import org.apache.lucene.search.spell.LevenshteinDistance
 import org.apache.lucene.search.spell.LuceneDictionary
 import org.apache.lucene.search.suggest.analyzing.BlendedInfixSuggester
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Instant
 
 data class SearchIndex(
     val suggester: BlendedInfixSuggester,

@@ -14,14 +14,14 @@ import io.rewynd.common.cache.queue.JobQueue
 import io.rewynd.common.cache.queue.RedisClusterJobQueue
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toJavaInstant
 import java.util.UUID
 import kotlin.math.floor
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 import kotlin.time.toJavaDuration
+import kotlin.time.toJavaInstant
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 class RedisClusterCache(

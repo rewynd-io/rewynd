@@ -1,8 +1,8 @@
 package io.rewynd.test
 
 import io.rewynd.common.cache.CacheLock
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 

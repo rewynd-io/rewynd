@@ -36,7 +36,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Alias
@@ -60,6 +59,7 @@ import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.upsert
 import java.util.UUID
+import kotlin.time.Instant
 import org.jetbrains.exposed.sql.Database as Connection
 
 open class SqlDatabase(

@@ -17,12 +17,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.serialization.encodeToString
 import java.io.Closeable
 import java.util.Base64
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 sealed interface Cache {
     fun <Request, Response, ClientEventPayload, WorkerEventPayload> getJobQueue(
@@ -192,7 +192,7 @@ sealed interface Cache {
 }
 
 interface CacheLock : Closeable {
-    val validUntil: kotlinx.datetime.Instant
+    val validUntil: kotlin.time.Instant
     val timeout: Duration
 
     fun release(): Unit

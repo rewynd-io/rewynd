@@ -6,9 +6,9 @@ import io.rewynd.common.toVideoTracks
 import io.rewynd.model.EpisodeInfo
 import io.rewynd.model.MediaInfo
 import io.rewynd.model.Progress
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Serializable
 data class ServerEpisodeInfo(

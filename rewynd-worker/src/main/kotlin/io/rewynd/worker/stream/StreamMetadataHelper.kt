@@ -11,7 +11,7 @@ import io.rewynd.common.model.SubtitleMetadata
 import io.rewynd.common.model.SubtitleSegment
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
