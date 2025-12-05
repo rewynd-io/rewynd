@@ -57,7 +57,7 @@ slf4j = "2.0.17"
 sqlite = "3.51.1.0"
 
 # Used for versions outside libraries/plugins
-android-compileSdk = "35"
+android-compileSdk = "36"
 android-minSdk = "24"
 compose = "1.6.11"
 jvm = "21"
