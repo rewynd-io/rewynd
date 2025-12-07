@@ -10,7 +10,7 @@ data class ApiSettings(val secureSession: Boolean) {
         private val log = KotlinLogging.logger { }
         fun fromConfig(config: Config = ConfigFactory.load()) =
             config.getConfig(
-                ConfigUtil.joinPath("rewynd", "api"),
+                ConfigUtil.joinPath("rewynd-api"),
             ).run {
                 ApiSettings(
                     secureSession = getBoolean("secure-session")
