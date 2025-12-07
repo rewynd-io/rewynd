@@ -8,7 +8,6 @@ steps:
     pull: true
     commands:
       - ./gradlew clean build
-
   publish android:
     image: codeberg.org/kensand/woodpecker-plugins-forgejo-generic-package:latest
     pull: true
@@ -17,16 +16,12 @@ steps:
       password:
         from_secret: forge-token
       file: "rewynd-android/build/outputs/apk/debug/rewynd-android-debug.apk"
-
   publish worker:
     image: codeberg.org/woodpecker-plugins/docker-buildx:latest
     pull: true
     settings:
       repo: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-worker
-      cache_from:
-        - type=registry,ref=${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-worker:latest
-      cache_to:
-        - type=registry,ref=${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-worker:latest,mode=max
+      cache_from: "${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-worker:latest"
       registry: ${CI_FORGE_URL#*//}
       dockerfile: ./rewynd-worker/Dockerfile
       context: ./rewynd-worker
@@ -34,16 +29,12 @@ steps:
       password:
         from_secret: forge-token
       auto_tag: true
-
   publish api:
     image: codeberg.org/woodpecker-plugins/docker-buildx:latest
     pull: true
     settings:
       repo: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-api
-      cache_from:
-        - type=registry,ref=${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-api:latest
-      cache_to:
-        - type=registry,ref=${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-api:latest,mode=max
+      cache_from: "${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-api:latest"
       registry: ${CI_FORGE_URL#*//}
       dockerfile: ./rewynd-api/Dockerfile
       context: ./rewynd-api
@@ -51,16 +42,12 @@ steps:
       password:
         from_secret: forge-token
       auto_tag: true
-
   publish omni:
     image: codeberg.org/woodpecker-plugins/docker-buildx:latest
     pull: true
     settings:
       repo: ${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-omni
-      cache_from:
-        - type=registry,ref=${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-omni:latest
-      cache_to:
-        - type=registry,ref=${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-omni:latest,mode=max
+      cache_from: "${CI_FORGE_URL#*//}/${CI_REPO_OWNER}/rewynd-omni:latest"
       registry: ${CI_FORGE_URL#*//}
       dockerfile: ./rewynd-omni/Dockerfile
       context: ./rewynd-omni
