@@ -8,9 +8,7 @@ import io.rewynd.common.model.ServerVideoTrack
 import io.rewynd.model.ScanTask
 import io.rewynd.model.Schedule
 import io.rewynd.model.SortOrder
-import kotlinx.datetime.serializers.InstantComponentSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -57,10 +55,7 @@ fun Map<String, ServerAudioTrack>.toAudioTracks() = mapValues { it.value.toAudio
 fun Map<String, ServerSubtitleTrack>.toSubtitleTracks() = mapValues { it.value.toSubtitleTrack() }
 
 fun <E> Collection<E>.indexed() = mapIndexed { index, e -> index to e }
-typealias SerializableInstant =
-    @Serializable
-    (InstantComponentSerializer::class)
-    Instant
+typealias SerializableInstant = Instant
 
 fun Schedule.toServerScheduleInfo(): ServerScheduleInfo =
     ServerScheduleInfo(id = id, cronExpression = cronExpression, scanTasks = scanTasks.map { it.toServerScanTask() })
