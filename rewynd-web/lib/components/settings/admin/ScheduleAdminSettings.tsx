@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import {
   Button,
@@ -8,7 +8,6 @@ import {
   FormGroup,
   MenuItem,
   Select,
-  SelectChangeEvent,
   TextField,
   Typography,
 } from "@mui/material";
@@ -149,11 +148,12 @@ function CreateScheduleDialog(props: CreateScheduleDialogProps) {
     }
   }, [complete, props.open]);
 
-  const handleChange = (event: SelectChangeEvent<string[]>) => {
-    const {
-      target: { value },
-    } = event;
-    setScanTasks(List(typeof value === "string" ? value.split(",") : value));
+  const handleChange = (
+    event:
+      | ChangeEvent<HTMLInputElement>
+      | (Event & { target: { value: string; name: string } }),
+  ) => {
+    setScanTasks(List(event.target.value.split(",")));
   };
 
   const valid = validate(props.schedules, id);
