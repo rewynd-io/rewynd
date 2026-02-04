@@ -30,44 +30,52 @@ import io.rewynd.model.SeasonInfo
 import io.rewynd.model.User
 import io.rewynd.model.UserPermissions
 import io.rewynd.model.UserPreferences
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
-import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Alias
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.LiteralOp
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
-import org.jetbrains.exposed.sql.alias
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.innerJoin
-import org.jetbrains.exposed.sql.leftJoin
-import org.jetbrains.exposed.sql.or
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.statements.api.ExposedBlob
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.upsert
+import org.jetbrains.exposed.v1.core.Alias
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.LiteralOp
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.alias
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.coalesce
+import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.eqSubQuery
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.innerJoin
+import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.leftJoin
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.statements.api.ExposedBlob
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
+import org.jetbrains.exposed.v1.jdbc.upsert
+import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import java.util.UUID
 import kotlin.time.Instant
-import org.jetbrains.exposed.sql.Database as Connection
+import org.jetbrains.exposed.v1.jdbc.Database as Connection
 
 open class SqlDatabase(
     private val conn: Connection,
 ) : Database {
     override suspend fun init() {
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
-            SchemaUtils.createMissingTablesAndColumns(
+        suspendTransaction(conn) {
+            MigrationUtils.statementsRequiredForDatabaseMigration(
                 Users,
                 Sessions,
                 Libraries,
@@ -78,6 +86,7 @@ open class SqlDatabase(
                 Progression,
                 LibraryIndices,
                 Schedules,
+                withLogs = true
             )
         }
 
@@ -104,7 +113,7 @@ open class SqlDatabase(
     }
 
     override suspend fun getUser(username: String): ServerUser? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Users
                 .selectAll()
                 .where { Users.username eq username }
@@ -114,7 +123,7 @@ open class SqlDatabase(
         }
 
     override suspend fun upsertUser(user: ServerUser): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Users
                 .upsert(Users.username) {
                     it[username] = user.user.username
@@ -126,14 +135,14 @@ open class SqlDatabase(
         }
 
     override suspend fun deleteUser(username: String): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Users.deleteWhere {
                 Users.username eq username
             } == 1
         }
 
     override suspend fun listUsers(cursor: String?): List<ServerUser> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Users
                 .selectAll()
                 .let {
@@ -149,7 +158,7 @@ open class SqlDatabase(
         }
 
     override suspend fun getLibrary(libraryId: String): Library? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Libraries.selectAll().where { Libraries.libraryId eq libraryId }.firstOrNull()?.let {
                 Library(
                     name = it[Libraries.libraryId],
@@ -160,7 +169,7 @@ open class SqlDatabase(
         }
 
     override suspend fun upsertLibrary(lib: Library): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Libraries
                 .upsert(Libraries.libraryId) {
                     it[libraryId] = lib.name
@@ -170,14 +179,14 @@ open class SqlDatabase(
         }
 
     override suspend fun deleteLibrary(libraryId: String): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Libraries.deleteWhere {
                 Libraries.libraryId eq libraryId
             } == 1
         }
 
     override suspend fun listLibraries(cursor: String?): List<Library> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Libraries
                 .selectAll()
                 .let {
@@ -197,7 +206,7 @@ open class SqlDatabase(
         }
 
     override suspend fun getShow(showId: String): ServerShowInfo? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Shows
                 .selectAll()
                 .where { Shows.showId eq showId }
@@ -206,7 +215,7 @@ open class SqlDatabase(
         }
 
     override suspend fun upsertShow(show: ServerShowInfo): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Shows
                 .upsert(Shows.showId) {
                     it[showId] = show.id
@@ -239,7 +248,7 @@ open class SqlDatabase(
         }
 
     override suspend fun deleteShow(showId: String): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Shows.deleteWhere { Shows.showId eq showId } == 1
         }
 
@@ -247,7 +256,7 @@ open class SqlDatabase(
         libraryId: String,
         cursor: String?,
     ): List<ServerShowInfo> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Shows
                 .selectAll()
                 .where {
@@ -261,7 +270,7 @@ open class SqlDatabase(
         }
 
     override suspend fun getSeason(seasonId: String): ServerSeasonInfo? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Seasons
                 .selectAll()
                 .where { Seasons.seasonId eq seasonId }
@@ -270,7 +279,7 @@ open class SqlDatabase(
         }
 
     override suspend fun upsertSeason(season: ServerSeasonInfo): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Seasons
                 .upsert(Seasons.seasonId) {
                     it[seasonId] = season.seasonInfo.id
@@ -289,7 +298,7 @@ open class SqlDatabase(
         }
 
     override suspend fun deleteSeason(seasonId: String): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Seasons.deleteWhere { Seasons.seasonId eq seasonId } == 1
         }
 
@@ -297,7 +306,7 @@ open class SqlDatabase(
         showId: String,
         cursor: String?,
     ): List<ServerSeasonInfo> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Seasons
                 .selectAll()
                 .where {
@@ -311,7 +320,7 @@ open class SqlDatabase(
         }
 
     override suspend fun getEpisode(episodeId: String): ServerEpisodeInfo? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Episodes
                 .selectAll()
                 .where { Episodes.episodeId eq episodeId }
@@ -320,7 +329,7 @@ open class SqlDatabase(
         }
 
     override suspend fun getProgressedEpisode(episodeId: String, username: String): Progressed<ServerEpisodeInfo>? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             val userProgress = Progression.selectAll().where {
                 Progression.username eq username
             }.alias("userProgress")
@@ -339,7 +348,7 @@ open class SqlDatabase(
         username: String,
         completedPercent: Double,
         notStartedPercent: Double
-    ): Paged<Progressed<ServerEpisodeInfo>, Long> = newSuspendedTransaction(currentCoroutineContext(), conn) {
+    ): Paged<Progressed<ServerEpisodeInfo>, Long> = suspendTransaction(conn) {
         val current = Episodes.alias("current")
         val currProg = Progression.alias("currProg")
         val next = Episodes.alias("next")
@@ -394,7 +403,7 @@ open class SqlDatabase(
         order: io.rewynd.model.SortOrder,
         username: String
     ): Progressed<ServerEpisodeInfo>? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             val current =
                 Episodes.select(
                     Episodes.showId,
@@ -458,7 +467,7 @@ open class SqlDatabase(
         }
 
     override suspend fun upsertEpisode(episode: ServerEpisodeInfo): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Episodes
                 .upsert(Episodes.episodeId) {
                     it[showId] = episode.showId
@@ -493,7 +502,7 @@ open class SqlDatabase(
         }
 
     override suspend fun deleteEpisode(episodeId: String): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Episodes.deleteWhere {
                 Episodes.episodeId eq episodeId
             } == 1
@@ -506,7 +515,7 @@ open class SqlDatabase(
         maxPercent: Double,
         limit: Int
     ): Paged<Progressed<ServerEpisodeInfo>, ListStartedEpisodesCursor> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             val userProgress = Progression.selectAll().where {
                 Progression.username eq username
             }.alias("userProgress")
@@ -566,7 +575,7 @@ open class SqlDatabase(
         maxPercent: Double,
         limit: Int
     ): Paged<Progressed<ServerEpisodeInfo>, ListNewEpisodesCursor> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             val userProgress = Progression.selectAll().where {
                 Progression.username eq username
             }.alias("userProgress")
@@ -616,7 +625,7 @@ open class SqlDatabase(
         cursor: String?,
         limit: Int
     ): Paged<Progressed<ServerEpisodeInfo>, String> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             val userProgress = Progression.selectAll().where {
                 Progression.username eq username
             }.alias("userProgress")
@@ -639,7 +648,7 @@ open class SqlDatabase(
         }
 
     override suspend fun getMovie(movieId: String): ServerMovieInfo? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Movies
                 .selectAll()
                 .where { Movies.movieId eq movieId }
@@ -648,7 +657,7 @@ open class SqlDatabase(
         }
 
     override suspend fun getProgressedMovie(movieId: String, username: String): Progressed<ServerMovieInfo>? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             val userProgress = Progression.selectAll().where {
                 Progression.username eq username
             }.alias("userProgress")
@@ -663,7 +672,7 @@ open class SqlDatabase(
         }
 
     override suspend fun upsertMovie(movieInfo: ServerMovieInfo): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Movies
                 .upsert(Movies.movieId) {
                     it[movieId] = movieInfo.id
@@ -699,7 +708,7 @@ open class SqlDatabase(
         }
 
     override suspend fun deleteMovie(movieId: String): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Movies.deleteWhere { Movies.movieId eq movieId } == 1
         }
 
@@ -708,7 +717,7 @@ open class SqlDatabase(
         cursor: String?,
         username: String
     ): Paged<Progressed<ServerMovieInfo>, String> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Movies.leftJoin(Progression, { movieId }, { mediaId })
                 .selectAll()
                 .let {
@@ -729,7 +738,7 @@ open class SqlDatabase(
         start: Instant,
         libraryId: String,
     ): Int =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Movies.deleteWhere {
                 lastUpdated less start.toEpochMilliseconds() and (
                     Movies.libraryId eq libraryId
@@ -738,7 +747,7 @@ open class SqlDatabase(
         }
 
     override suspend fun getSchedule(scheduleId: String): ServerScheduleInfo? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Schedules
                 .selectAll()
                 .where { Schedules.scheduleId eq scheduleId }
@@ -747,7 +756,7 @@ open class SqlDatabase(
         }
 
     override suspend fun upsertSchedule(schedule: ServerScheduleInfo): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Schedules
                 .upsert(Schedules.scheduleId) {
                     it[scheduleId] = schedule.id
@@ -757,14 +766,14 @@ open class SqlDatabase(
         }
 
     override suspend fun deleteSchedule(scheduleId: String): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Schedules.deleteWhere {
                 Schedules.scheduleId eq scheduleId
             } == 1
         }
 
     override suspend fun listSchedules(cursor: String?): List<ServerScheduleInfo> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Schedules
                 .selectAll()
                 .let {
@@ -784,7 +793,7 @@ open class SqlDatabase(
         }
 
     override suspend fun getImage(imageId: String): ServerImageInfo? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Images
                 .selectAll()
                 .where { Images.imageId eq imageId }
@@ -793,7 +802,7 @@ open class SqlDatabase(
         }
 
     override suspend fun upsertImage(imageInfo: ServerImageInfo): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Images
                 .upsert(Images.imageId) {
                     it[imageId] = imageInfo.imageId
@@ -815,7 +824,7 @@ open class SqlDatabase(
     override suspend fun mkSessionStorage(): SessionStorage =
         object : SessionStorage {
             override suspend fun invalidate(id: String) =
-                newSuspendedTransaction(currentCoroutineContext(), conn) {
+                suspendTransaction(conn) {
                     Sessions.deleteWhere {
                         sessionId eq id
                     }
@@ -825,7 +834,7 @@ open class SqlDatabase(
             override suspend fun write(
                 id: String,
                 value: String,
-            ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
+            ) = suspendTransaction(conn) {
                 Sessions.upsert(Sessions.sessionId) {
                     it[sessionId] = id
                     it[Sessions.value] = value
@@ -834,7 +843,7 @@ open class SqlDatabase(
             }
 
             override suspend fun read(id: String): String =
-                newSuspendedTransaction(currentCoroutineContext(), conn) {
+                suspendTransaction(conn) {
                     Sessions
                         .selectAll()
                         .where { Sessions.sessionId eq id }
@@ -847,7 +856,7 @@ open class SqlDatabase(
     override suspend fun cleanShows(
         start: Instant,
         libraryId: String,
-    ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
+    ) = suspendTransaction(conn) {
         Shows.deleteWhere {
             lastUpdated less start.toEpochMilliseconds() and (
                 Shows.libraryId eq libraryId
@@ -858,7 +867,7 @@ open class SqlDatabase(
     override suspend fun cleanSeasons(
         start: Instant,
         libraryId: String,
-    ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
+    ) = suspendTransaction(conn) {
         Seasons.deleteWhere {
             lastUpdated less start.toEpochMilliseconds() and (Seasons.libraryId eq libraryId)
         }
@@ -867,7 +876,7 @@ open class SqlDatabase(
     override suspend fun cleanEpisodes(
         start: Instant,
         libraryId: String,
-    ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
+    ) = suspendTransaction(conn) {
         Episodes.deleteWhere {
             lastUpdated less start.toEpochMilliseconds() and (Episodes.libraryId eq libraryId)
         }
@@ -876,7 +885,7 @@ open class SqlDatabase(
     override suspend fun cleanImages(
         start: Instant,
         libraryId: String,
-    ) = newSuspendedTransaction(currentCoroutineContext(), conn) {
+    ) = suspendTransaction(conn) {
         Images.deleteWhere {
             lastUpdated less start.toEpochMilliseconds() and (Images.libraryId eq libraryId)
         }
@@ -886,7 +895,7 @@ open class SqlDatabase(
         libraryId: String,
         updatedAfter: Instant?,
     ): LibraryIndex? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             LibraryIndices
                 .selectAll()
                 .where {
@@ -900,7 +909,7 @@ open class SqlDatabase(
         }?.toLibraryIndex()
 
     override suspend fun upsertLibraryIndex(index: LibraryIndex): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             LibraryIndices.upsert(LibraryIndices.libraryId) {
                 it[libraryId] = index.libraryId
                 it[lastUpdated] = index.lastUpdated.toEpochMilliseconds()
@@ -909,7 +918,7 @@ open class SqlDatabase(
         }.insertedCount == 1
 
     override suspend fun deleteLibraryIndex(libraryId: String): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             LibraryIndices.deleteWhere { LibraryIndices.libraryId eq libraryId }
         } == 1
 
@@ -921,7 +930,7 @@ open class SqlDatabase(
         id: String,
         username: String,
     ): UserProgress? =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Progression
                 .selectAll()
                 .where { (Progression.mediaId eq id) and (Progression.username eq username) }
@@ -930,7 +939,7 @@ open class SqlDatabase(
         }
 
     override suspend fun upsertProgress(progress: UserProgress): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Progression
                 .upsert(Progression.mediaId) {
                     it[mediaId] = progress.id
@@ -944,7 +953,7 @@ open class SqlDatabase(
         id: String,
         username: String,
     ): Boolean =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Progression.deleteWhere {
                 (mediaId eq id) and (Progression.username eq username)
             } == 1
@@ -957,7 +966,7 @@ open class SqlDatabase(
         maxPercent: Double,
         limit: Int,
     ): List<UserProgress> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             Progression
                 .selectAll()
                 .where {
@@ -1263,8 +1272,9 @@ open class SqlDatabase(
                 ),
             )
 
-        private operator fun <Table : org.jetbrains.exposed.sql.Table, T> Alias<Table>?.get(col: Column<T>): Column<T> =
-            this?.let { it[col] } ?: col
+        private operator fun <Table : org.jetbrains.exposed.v1.core.Table, T> Alias<Table>?.get(
+            col: Column<T>
+        ): Column<T> = this?.let { it[col] } ?: col
 
         private fun ResultRow.toServerEpisodeInfo(episodeTable: Alias<Episodes>? = null): ServerEpisodeInfo =
             ServerEpisodeInfo(
