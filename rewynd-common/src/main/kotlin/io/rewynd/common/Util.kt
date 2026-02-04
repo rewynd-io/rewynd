@@ -81,6 +81,6 @@ val JSON = Json {
 }
 
 fun SortOrder.toSql() = when (this) {
-    SortOrder.Descending -> org.jetbrains.exposed.sql.SortOrder.DESC
-    SortOrder.Ascending -> org.jetbrains.exposed.sql.SortOrder.ASC
+    SortOrder.Descending -> org.jetbrains.exposed.v1.core.SortOrder.DESC
+    SortOrder.Ascending -> org.jetbrains.exposed.v1.core.SortOrder.ASC
 }

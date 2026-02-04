@@ -14,12 +14,11 @@ import io.rewynd.common.model.ServerUser
 import io.rewynd.common.model.SessionStorage
 import io.rewynd.common.model.UserProgress
 import io.rewynd.model.Library
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import kotlin.time.Instant
-import org.jetbrains.exposed.sql.Database as Connection
+import org.jetbrains.exposed.v1.jdbc.Database as Connection
 
 class SqliteDatabase(
     config: DatabaseConfig.SqliteConfig,
@@ -86,7 +85,7 @@ class SqliteDatabase(
         libraryId: String,
         cursor: String?,
     ): List<ServerShowInfo> =
-        newSuspendedTransaction(currentCoroutineContext(), conn) {
+        suspendTransaction(conn) {
             super.listShows(libraryId, cursor)
         }
 

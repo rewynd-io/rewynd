@@ -2,7 +2,6 @@ import io.gitlab.arturbosch.detekt.Detekt
 import java.time.Instant
 
 plugins {
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.android.app)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.detekt)
