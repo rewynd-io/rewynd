@@ -52,7 +52,7 @@ postgres = "42.7.10"
 preferenceVersion = "1.2.1"
 quartz = "2.5.2"
 runtimeLivedata = "1.10.5"
-shadow = "9.3.2"
+shadow = "9.4.0"
 slf4j = "2.0.17"
 sqlite = "3.51.2.0"
 
